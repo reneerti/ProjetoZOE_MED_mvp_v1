@@ -60,33 +60,48 @@ serve(async (req) => {
               },
               {
                 type: 'text',
-                text: `Analise esta imagem de exame de BIOIMPEDÂNCIA e extraia TODOS os dados numéricos.
+                text: `Analise esta imagem de exame de BIOIMPEDÂNCIA e extraia TODOS os dados numéricos visíveis.
 
-CRÍTICO: SEMPRE procure e extraia os seguintes valores principais:
-- PESO (weight): Normalmente aparece como "Peso", "Weight", ou valores em kg
-- GORDURA CORPORAL (body_fat_percentage): % de gordura, "Body Fat", "Gordura"
-- MASSA MUSCULAR (muscle_mass): Massa magra em kg, "Muscle Mass", "Massa Muscular"
-- ÁGUA (water_percentage): % de água corporal, "Water", "Hidratação"
+🎯 DADOS OBRIGATÓRIOS (procure com atenção máxima):
+- PESO (weight): Valores em kg - pode estar como "Peso", "Weight", "Körpergewicht"
+- GORDURA CORPORAL (body_fat_percentage): % de gordura - "Body Fat", "Gordura Corporal", "BF%"
+- MASSA MUSCULAR (muscle_mass): Massa magra em kg - "Muscle Mass", "Massa Muscular", "MM"
+- ÁGUA (water_percentage): % de água - "Water", "Hidratação", "TBW"
 
-Procure também outros dados como: IMC, massa óssea, gordura visceral, taxa metabólica basal, etc.
+📊 DADOS COMPLEMENTARES (extraia se disponível):
+- IMC (bmi): Índice de Massa Corporal
+- GORDURA VISCERAL (visceral_fat): Nível de gordura visceral (geralmente 1-30)
+- TAXA METABÓLICA BASAL (bmr): Calorias em repouso
+- TAXA MUSCULAR (muscle_percentage): Porcentagem de músculo
+- MASSA ÓSSEA (bone_mass): Massa óssea em kg
+- IDADE METABÓLICA (metabolic_age): Idade metabólica em anos
+- PROTEÍNA (protein_percentage): Porcentagem de proteína
 
-Retorne um JSON no seguinte formato:
+Retorne um JSON completo:
 {
-  "weight": número em kg (OBRIGATÓRIO - procure com atenção!),
-  "body_fat_percentage": porcentagem de gordura corporal,
+  "weight": número em kg (OBRIGATÓRIO),
+  "body_fat_percentage": porcentagem de gordura,
   "muscle_mass": massa muscular em kg,
   "water_percentage": porcentagem de água,
-  "measurement_date": data da medição no formato YYYY-MM-DD,
+  "measurement_date": data da medição no formato YYYY-MM-DD (ou data atual se não encontrar),
   "additional_data": {
-    "bmi": IMC se encontrado,
-    "visceral_fat": gordura visceral se encontrado,
-    "basal_metabolic_rate": taxa metabólica basal se encontrado,
-    ... outros dados encontrados
+    "bmi": IMC,
+    "visceral_fat": gordura visceral (número),
+    "basal_metabolic_rate": TMB em kcal,
+    "muscle_percentage": porcentagem muscular,
+    "bone_mass": massa óssea em kg,
+    "metabolic_age": idade metabólica,
+    "protein_percentage": porcentagem de proteína,
+    "device_brand": marca do equipamento se visível,
+    "notes": qualquer observação relevante
   }
 }
 
-IMPORTANTE: Se não conseguir encontrar o PESO, retorne uma mensagem de erro explicando que não encontrou.
-Retorne APENAS o JSON, sem markdown.`
+⚠️ IMPORTANTE: 
+- Se NÃO encontrar o PESO, retorne um erro explicando que não conseguiu ler
+- Seja preciso com os valores decimais (use ponto como separador)
+- Se um dado não estiver visível, use null
+- Retorne APENAS o JSON, sem markdown ou explicações`
               }
             ]
           }
@@ -134,30 +149,50 @@ Retorne APENAS o JSON, sem markdown.`
       );
     }
 
-    // Analyze with AI to identify critical values
-    const analysisPrompt = `Analise os seguintes dados de bioimpedância e identifique pontos importantes e valores críticos:
+    // Generate comprehensive AI analysis
+    const analysisPrompt = `Você é um especialista em composição corporal e análise de bioimpedância. Analise os seguintes dados:
 
-Peso: ${extractedData.weight}kg
-${extractedData.body_fat_percentage ? `Gordura Corporal: ${extractedData.body_fat_percentage}%` : ''}
-${extractedData.muscle_mass ? `Massa Muscular: ${extractedData.muscle_mass}kg` : ''}
-${extractedData.water_percentage ? `Água Corporal: ${extractedData.water_percentage}%` : ''}
-${extractedData.additional_data ? `Dados Adicionais: ${JSON.stringify(extractedData.additional_data)}` : ''}
+📊 DADOS MEDIDOS:
+- Peso: **${extractedData.weight}kg**
+${extractedData.body_fat_percentage ? `- Gordura Corporal: **${extractedData.body_fat_percentage}%**` : ''}
+${extractedData.muscle_mass ? `- Massa Muscular: **${extractedData.muscle_mass}kg**` : ''}
+${extractedData.water_percentage ? `- Água Corporal: **${extractedData.water_percentage}%**` : ''}
+${extractedData.additional_data?.bmi ? `- IMC: **${extractedData.additional_data.bmi}**` : ''}
+${extractedData.additional_data?.visceral_fat ? `- Gordura Visceral: **${extractedData.additional_data.visceral_fat}**` : ''}
+${extractedData.additional_data?.basal_metabolic_rate ? `- Taxa Metabólica Basal: **${extractedData.additional_data.basal_metabolic_rate} kcal**` : ''}
+${extractedData.additional_data?.muscle_percentage ? `- Taxa Muscular: **${extractedData.additional_data.muscle_percentage}%**` : ''}
 
-Retorne uma análise em português brasileiro no seguinte formato JSON:
+Retorne uma análise completa e profissional em português brasileiro no seguinte formato JSON:
 {
-  "summary": "Resumo geral em 2-3 linhas com **negritos** nos valores e emojis (🔥💪⚠️✅❤️)",
+  "summary": "Resumo executivo em 2-3 frases destacando os principais indicadores. Use **negrito** nos valores e emojis relevantes (🎯📊💪⚡🔥✨)",
   "critical_points": [
-    "**Ponto crítico 1** com emoji e explicação"
+    "Ponto de atenção 1 com **valores** em negrito e emoji apropriado",
+    "Ponto de atenção 2 com contexto e explicação clara"
   ],
   "positive_points": [
-    "**Ponto positivo 1** com emoji"
+    "Aspecto positivo 1 com **dados** específicos e emoji motivacional",
+    "Aspecto positivo 2 destacando conquistas"
   ],
   "recommendations": [
-    "Recomendação 1 com emoji"
-  ]
+    "💡 Recomendação 1 específica e acionável",
+    "💡 Recomendação 2 baseada nos dados",
+    "💡 Recomendação 3 para melhorar composição corporal"
+  ],
+  "health_insights": {
+    "body_composition": "Análise da composição corporal geral",
+    "hydration_status": "Status de hidratação",
+    "metabolic_health": "Saúde metabólica baseada nos indicadores",
+    "risk_factors": "Fatores de risco identificados (se houver)"
+  }
 }
 
-IMPORTANTE: Use **negrito** em valores numéricos e termos técnicos. Use emojis relevantes.`;
+🎯 DIRETRIZES:
+- Seja técnico mas compreensível
+- Use **negrito** em todos os valores numéricos e termos importantes
+- Adicione emojis relevantes para cada categoria
+- Seja específico e baseie-se nos dados fornecidos
+- Identifique padrões e tendências quando possível
+- Forneça recomendações práticas e acionáveis`;
 
     const analysisResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

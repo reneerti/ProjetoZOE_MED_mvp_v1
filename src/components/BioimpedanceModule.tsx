@@ -105,6 +105,40 @@ export const BioimpedanceModule = ({ onNavigate }: BioimpedanceModuleProps) => {
     }
   };
 
+  const handleLoadSampleData = async () => {
+    if (!user) return;
+    
+    const confirmLoad = window.confirm(
+      "Deseja adicionar dados de exemplo de uma jornada de 11 semanas?\n\n" +
+      "Isso irá adicionar 8 medições simulando uma evolução real.\n\n" +
+      "Continuar?"
+    );
+    
+    if (!confirmLoad) return;
+
+    setLoading(true);
+    try {
+      toast.loading("Carregando dados de exemplo...");
+      
+      const { data, error } = await supabase.functions.invoke('seed-bioimpedance-data');
+
+      if (error) {
+        console.error("Seed error:", error);
+        toast.error("Erro ao carregar dados de exemplo");
+        return;
+      }
+
+      toast.success("Dados de exemplo carregados com sucesso!");
+      await fetchMeasurements();
+      
+    } catch (error) {
+      console.error("Error loading sample data:", error);
+      toast.error("Erro ao carregar dados");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const latestMeasurement = measurements[0];
   const firstMeasurement = measurements[measurements.length - 1];
 
@@ -246,6 +280,26 @@ export const BioimpedanceModule = ({ onNavigate }: BioimpedanceModuleProps) => {
             </label>
           </div>
         </Card>
+        
+        {measurements.length === 0 && (
+          <Card className="bg-muted/50 border-dashed border-2 p-4 mt-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm text-muted-foreground">
+                <strong>💡 Dica:</strong> Quer ver como funciona? Carregue dados de exemplo!
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLoadSampleData}
+                disabled={loading}
+                className="shrink-0"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Dados de Exemplo
+              </Button>
+            </div>
+          </Card>
+        )}
       </div>
 
       {measurements.length >= 2 && (
@@ -745,51 +799,93 @@ export const BioimpedanceModule = ({ onNavigate }: BioimpedanceModuleProps) => {
             🤖 Insights da IA
           </h2>
           
-          <Card className="bg-accent-light border-accent p-4">
-            <div className="flex items-center gap-2 mb-3">
+          <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent p-6">
+            <div className="flex items-center gap-2 mb-4">
               <Sparkles className="w-5 h-5 text-accent" />
-              <h3 className="font-semibold text-accent-foreground">Análise da Última Medição</h3>
+              <h3 className="font-semibold text-accent-foreground">Análise Completa da Última Medição</h3>
             </div>
             
             {latestAnalysis.summary && (
-              <div className="mb-4 text-sm text-card-foreground" 
+              <div className="mb-6 p-4 bg-card rounded-lg border text-sm text-card-foreground leading-relaxed" 
                    dangerouslySetInnerHTML={{ __html: renderMarkdown(latestAnalysis.summary) }} />
             )}
 
-            {latestAnalysis.critical_points?.length > 0 && (
-              <div className="mb-4">
-                <h4 className="font-semibold text-sm mb-2 text-card-foreground">⚠️ Pontos de Atenção:</h4>
-                <ul className="space-y-1">
-                  {latestAnalysis.critical_points.map((point: string, idx: number) => (
-                    <li key={idx} className="text-sm text-card-foreground" 
-                        dangerouslySetInnerHTML={{ __html: renderMarkdown(`• ${point}`) }} />
-                  ))}
-                </ul>
-              </div>
-            )}
+            <div className="grid md:grid-cols-2 gap-4">
+              {latestAnalysis.critical_points?.length > 0 && (
+                <Card className="p-4 bg-destructive/5 border-destructive/20">
+                  <h4 className="font-semibold text-sm mb-3 text-destructive flex items-center gap-2">
+                    ⚠️ Pontos de Atenção
+                  </h4>
+                  <ul className="space-y-2">
+                    {latestAnalysis.critical_points.map((point: string, idx: number) => (
+                      <li key={idx} className="text-sm text-card-foreground pl-2 border-l-2 border-destructive/40" 
+                          dangerouslySetInnerHTML={{ __html: renderMarkdown(point) }} />
+                    ))}
+                  </ul>
+                </Card>
+              )}
 
-            {latestAnalysis.positive_points?.length > 0 && (
-              <div className="mb-4">
-                <h4 className="font-semibold text-sm mb-2 text-card-foreground">✅ Pontos Positivos:</h4>
-                <ul className="space-y-1">
-                  {latestAnalysis.positive_points.map((point: string, idx: number) => (
-                    <li key={idx} className="text-sm text-card-foreground" 
-                        dangerouslySetInnerHTML={{ __html: renderMarkdown(`• ${point}`) }} />
-                  ))}
-                </ul>
-              </div>
+              {latestAnalysis.positive_points?.length > 0 && (
+                <Card className="p-4 bg-success/5 border-success/20">
+                  <h4 className="font-semibold text-sm mb-3 text-success flex items-center gap-2">
+                    ✅ Pontos Positivos
+                  </h4>
+                  <ul className="space-y-2">
+                    {latestAnalysis.positive_points.map((point: string, idx: number) => (
+                      <li key={idx} className="text-sm text-card-foreground pl-2 border-l-2 border-success/40" 
+                          dangerouslySetInnerHTML={{ __html: renderMarkdown(point) }} />
+                    ))}
+                  </ul>
+                </Card>
+              )}
+            </div>
+
+            {latestAnalysis.health_insights && (
+              <Card className="p-4 mt-4 bg-primary/5 border-primary/20">
+                <h4 className="font-semibold text-sm mb-3 text-primary flex items-center gap-2">
+                  🏥 Análise de Saúde Detalhada
+                </h4>
+                <div className="grid md:grid-cols-2 gap-4 text-sm">
+                  {latestAnalysis.health_insights.body_composition && (
+                    <div>
+                      <strong className="text-primary">Composição Corporal:</strong>
+                      <p className="text-muted-foreground mt-1">{latestAnalysis.health_insights.body_composition}</p>
+                    </div>
+                  )}
+                  {latestAnalysis.health_insights.hydration_status && (
+                    <div>
+                      <strong className="text-primary">Hidratação:</strong>
+                      <p className="text-muted-foreground mt-1">{latestAnalysis.health_insights.hydration_status}</p>
+                    </div>
+                  )}
+                  {latestAnalysis.health_insights.metabolic_health && (
+                    <div>
+                      <strong className="text-primary">Saúde Metabólica:</strong>
+                      <p className="text-muted-foreground mt-1">{latestAnalysis.health_insights.metabolic_health}</p>
+                    </div>
+                  )}
+                  {latestAnalysis.health_insights.risk_factors && (
+                    <div>
+                      <strong className="text-destructive">Fatores de Risco:</strong>
+                      <p className="text-muted-foreground mt-1">{latestAnalysis.health_insights.risk_factors}</p>
+                    </div>
+                  )}
+                </div>
+              </Card>
             )}
 
             {latestAnalysis.recommendations?.length > 0 && (
-              <div>
-                <h4 className="font-semibold text-sm mb-2 text-card-foreground">💡 Recomendações:</h4>
-                <ul className="space-y-1">
+              <Card className="p-4 mt-4 bg-accent/5 border-accent/20">
+                <h4 className="font-semibold text-sm mb-3 text-accent-foreground flex items-center gap-2">
+                  💡 Recomendações Personalizadas
+                </h4>
+                <ul className="space-y-2">
                   {latestAnalysis.recommendations.map((rec: string, idx: number) => (
-                    <li key={idx} className="text-sm text-card-foreground" 
-                        dangerouslySetInnerHTML={{ __html: renderMarkdown(`• ${rec}`) }} />
+                    <li key={idx} className="text-sm text-card-foreground p-2 bg-card rounded" 
+                        dangerouslySetInnerHTML={{ __html: renderMarkdown(rec) }} />
                   ))}
                 </ul>
-              </div>
+              </Card>
             )}
           </Card>
         </div>
