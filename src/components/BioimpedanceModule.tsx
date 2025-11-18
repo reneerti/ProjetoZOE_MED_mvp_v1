@@ -1,12 +1,13 @@
-import { ArrowLeft, Upload, Camera, Sparkles, TrendingDown, TrendingUp, Scale, Droplets } from "lucide-react";
+import { ArrowLeft, Upload, Camera, Sparkles, TrendingDown, TrendingUp, Scale, Droplets, GitCompare, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from "recharts";
 import { ChartContainer, ChartTooltipContent, ChartTooltip } from "@/components/ui/chart";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals";
 
@@ -20,6 +21,8 @@ export const BioimpedanceModule = ({ onNavigate }: BioimpedanceModuleProps) => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [latestAnalysis, setLatestAnalysis] = useState<any>(null);
+  const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
+  const [showComparison, setShowComparison] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -138,6 +141,44 @@ export const BioimpedanceModule = ({ onNavigate }: BioimpedanceModuleProps) => {
       return null;
     }
   };
+
+  const toggleCompareSelection = (id: string) => {
+    setSelectedForCompare(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(i => i !== id);
+      } else {
+        if (prev.length >= 3) {
+          toast.error("Máximo de 3 medições para comparação");
+          return prev;
+        }
+        return [...prev, id];
+      }
+    });
+  };
+
+  const getComparisonData = () => {
+    if (selectedForCompare.length < 2) return null;
+    
+    const selected = measurements
+      .filter(m => selectedForCompare.includes(m.id))
+      .sort((a, b) => new Date(a.measurement_date).getTime() - new Date(b.measurement_date).getTime());
+
+    return selected.map(m => ({
+      id: m.id,
+      date: new Date(m.measurement_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
+      fullDate: new Date(m.measurement_date).toLocaleDateString('pt-BR'),
+      weight: Number(m.weight),
+      bodyFat: m.body_fat_percentage ? Number(m.body_fat_percentage) : null,
+      muscle: m.muscle_mass ? Number(m.muscle_mass) : null,
+      water: m.water_percentage ? Number(m.water_percentage) : null,
+    }));
+  };
+
+  const calculateDifference = (val1: number, val2: number) => {
+    return (val2 - val1).toFixed(1);
+  };
+
+  const comparisonData = getComparisonData();
 
   if (loading) {
     return (
@@ -442,14 +483,29 @@ export const BioimpedanceModule = ({ onNavigate }: BioimpedanceModuleProps) => {
 
       {measurements.length > 0 && (
         <div className="px-6 mb-6">
-          <h2 className="text-lg font-bold text-foreground mb-4 pb-2 border-b-2 border-primary">
-            📋 Evolução Detalhada
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-foreground pb-2 border-b-2 border-primary">
+              📋 Evolução Detalhada
+            </h2>
+            {selectedForCompare.length >= 2 && (
+              <Button
+                onClick={() => setShowComparison(true)}
+                className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                size="sm"
+              >
+                <GitCompare className="w-4 h-4 mr-2" />
+                Comparar ({selectedForCompare.length})
+              </Button>
+            )}
+          </div>
           
           <Card className="p-4 overflow-x-auto">
             <table className="w-full text-xs md:text-sm">
               <thead>
                 <tr className="bg-muted">
+                  <th className="p-2 text-center font-semibold w-12">
+                    <GitCompare className="w-4 h-4 mx-auto" />
+                  </th>
                   <th className="p-2 text-left font-semibold">Data</th>
                   <th className="p-2 text-center font-semibold">Peso (kg)</th>
                   <th className="p-2 text-center font-semibold">Gordura (%)</th>
@@ -465,6 +521,12 @@ export const BioimpedanceModule = ({ onNavigate }: BioimpedanceModuleProps) => {
                   
                   return (
                     <tr key={m.id} className="border-b border-border hover:bg-muted/50">
+                      <td className="p-2 text-center">
+                        <Checkbox
+                          checked={selectedForCompare.includes(m.id)}
+                          onCheckedChange={() => toggleCompareSelection(m.id)}
+                        />
+                      </td>
                       <td className="p-2 font-medium bg-muted/30">
                         {new Date(m.measurement_date).toLocaleDateString('pt-BR')}
                       </td>
@@ -508,6 +570,171 @@ export const BioimpedanceModule = ({ onNavigate }: BioimpedanceModuleProps) => {
                 })}
               </tbody>
             </table>
+          </Card>
+        </div>
+      )}
+
+      {/* Modal de Comparação */}
+      {showComparison && comparisonData && comparisonData.length >= 2 && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-card border-b p-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <GitCompare className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-bold">Comparação de Medições</h3>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowComparison(false)}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Cards de Comparação */}
+              <div className="grid md:grid-cols-3 gap-4">
+                {comparisonData.map((data, idx) => (
+                  <Card key={data.id} className="p-4 bg-muted/30">
+                    <div className="text-xs text-muted-foreground mb-2">Medição {idx + 1}</div>
+                    <div className="text-sm font-bold mb-3">{data.fullDate}</div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Peso:</span>
+                        <span className="font-semibold">{data.weight.toFixed(1)} kg</span>
+                      </div>
+                      {data.bodyFat && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Gordura:</span>
+                          <span className="font-semibold">{data.bodyFat.toFixed(1)}%</span>
+                        </div>
+                      )}
+                      {data.muscle && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Músculo:</span>
+                          <span className="font-semibold">{data.muscle.toFixed(1)} kg</span>
+                        </div>
+                      )}
+                      {data.water && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Água:</span>
+                          <span className="font-semibold">{data.water.toFixed(1)}%</span>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Diferenças entre primeira e última medição */}
+              {comparisonData.length >= 2 && (
+                <Card className="p-4 bg-accent-light border-accent">
+                  <h4 className="font-semibold text-sm mb-3 text-accent-foreground">
+                    📊 Evolução: {comparisonData[0].fullDate} → {comparisonData[comparisonData.length - 1].fullDate}
+                  </h4>
+                  <div className="grid md:grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-center justify-between p-2 bg-card rounded">
+                      <span className="text-muted-foreground">Peso:</span>
+                      <span className={`font-bold ${Number(calculateDifference(comparisonData[0].weight, comparisonData[comparisonData.length - 1].weight)) < 0 ? 'text-success' : 'text-destructive'}`}>
+                        {Number(calculateDifference(comparisonData[0].weight, comparisonData[comparisonData.length - 1].weight)) < 0 ? '↓' : '↑'} 
+                        {Math.abs(Number(calculateDifference(comparisonData[0].weight, comparisonData[comparisonData.length - 1].weight)))} kg
+                      </span>
+                    </div>
+                    {comparisonData[0].bodyFat && comparisonData[comparisonData.length - 1].bodyFat && (
+                      <div className="flex items-center justify-between p-2 bg-card rounded">
+                        <span className="text-muted-foreground">Gordura:</span>
+                        <span className={`font-bold ${Number(calculateDifference(comparisonData[0].bodyFat, comparisonData[comparisonData.length - 1].bodyFat)) < 0 ? 'text-success' : 'text-destructive'}`}>
+                          {Number(calculateDifference(comparisonData[0].bodyFat, comparisonData[comparisonData.length - 1].bodyFat)) < 0 ? '↓' : '↑'} 
+                          {Math.abs(Number(calculateDifference(comparisonData[0].bodyFat, comparisonData[comparisonData.length - 1].bodyFat)))}%
+                        </span>
+                      </div>
+                    )}
+                    {comparisonData[0].muscle && comparisonData[comparisonData.length - 1].muscle && (
+                      <div className="flex items-center justify-between p-2 bg-card rounded">
+                        <span className="text-muted-foreground">Músculo:</span>
+                        <span className={`font-bold ${Number(calculateDifference(comparisonData[0].muscle, comparisonData[comparisonData.length - 1].muscle)) > 0 ? 'text-success' : 'text-destructive'}`}>
+                          {Number(calculateDifference(comparisonData[0].muscle, comparisonData[comparisonData.length - 1].muscle)) > 0 ? '↑' : '↓'} 
+                          {Math.abs(Number(calculateDifference(comparisonData[0].muscle, comparisonData[comparisonData.length - 1].muscle)))} kg
+                        </span>
+                      </div>
+                    )}
+                    {comparisonData[0].water && comparisonData[comparisonData.length - 1].water && (
+                      <div className="flex items-center justify-between p-2 bg-card rounded">
+                        <span className="text-muted-foreground">Água:</span>
+                        <span className={`font-bold ${Number(calculateDifference(comparisonData[0].water, comparisonData[comparisonData.length - 1].water)) > 0 ? 'text-success' : 'text-destructive'}`}>
+                          {Number(calculateDifference(comparisonData[0].water, comparisonData[comparisonData.length - 1].water)) > 0 ? '↑' : '↓'} 
+                          {Math.abs(Number(calculateDifference(comparisonData[0].water, comparisonData[comparisonData.length - 1].water)))}%
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              )}
+
+              {/* Gráfico de Comparação */}
+              <Card className="p-4">
+                <h4 className="text-sm font-bold text-center text-foreground mb-4">Comparação Visual</h4>
+                <ChartContainer config={{
+                  weight: { label: "Peso", color: "hsl(var(--primary))" },
+                  bodyFat: { label: "Gordura", color: "hsl(var(--destructive))" },
+                  muscle: { label: "Músculo", color: "hsl(var(--success))" }
+                }} className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={comparisonData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                      />
+                      <YAxis 
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar 
+                        dataKey="weight" 
+                        fill="hsl(var(--primary))" 
+                        name="Peso (kg)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      {comparisonData[0].bodyFat && (
+                        <Bar 
+                          dataKey="bodyFat" 
+                          fill="hsl(var(--destructive))" 
+                          name="Gordura (%)"
+                          radius={[4, 4, 0, 0]}
+                        />
+                      )}
+                      {comparisonData[0].muscle && (
+                        <Bar 
+                          dataKey="muscle" 
+                          fill="hsl(var(--success))" 
+                          name="Músculo (kg)"
+                          radius={[4, 4, 0, 0]}
+                        />
+                      )}
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </Card>
+
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedForCompare([]);
+                    setShowComparison(false);
+                  }}
+                >
+                  Limpar Seleção
+                </Button>
+                <Button
+                  onClick={() => setShowComparison(false)}
+                >
+                  Fechar
+                </Button>
+              </div>
+            </div>
           </Card>
         </div>
       )}
