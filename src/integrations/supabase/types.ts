@@ -1,0 +1,730 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
+  }
+  public: {
+    Tables: {
+      bioimpedance_measurements: {
+        Row: {
+          body_fat_percentage: number | null
+          created_at: string | null
+          id: string
+          measurement_date: string
+          muscle_mass: number | null
+          notes: string | null
+          user_id: string
+          water_percentage: number | null
+          weight: number
+        }
+        Insert: {
+          body_fat_percentage?: number | null
+          created_at?: string | null
+          id?: string
+          measurement_date: string
+          muscle_mass?: number | null
+          notes?: string | null
+          user_id: string
+          water_percentage?: number | null
+          weight: number
+        }
+        Update: {
+          body_fat_percentage?: number | null
+          created_at?: string | null
+          id?: string
+          measurement_date?: string
+          muscle_mass?: number | null
+          notes?: string | null
+          user_id?: string
+          water_percentage?: number | null
+          weight?: number
+        }
+        Relationships: []
+      }
+      body_composition_goals: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_value: number | null
+          goal_type: string
+          id: string
+          notes: string | null
+          start_date: string
+          start_value: number
+          status: string
+          target_date: string
+          target_value: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number | null
+          goal_type: string
+          id?: string
+          notes?: string | null
+          start_date?: string
+          start_value: number
+          status?: string
+          target_date: string
+          target_value: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number | null
+          goal_type?: string
+          id?: string
+          notes?: string | null
+          start_date?: string
+          start_value?: number
+          status?: string
+          target_date?: string
+          target_value?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      evolution_notes: {
+        Row: {
+          created_at: string | null
+          health_score: number | null
+          id: string
+          note_date: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          health_score?: number | null
+          id?: string
+          note_date: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          health_score?: number | null
+          id?: string
+          note_date?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      exam_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      exam_images: {
+        Row: {
+          created_at: string | null
+          exam_category_id: string | null
+          exam_date: string | null
+          exam_id: string | null
+          exam_type_id: string | null
+          id: string
+          image_url: string
+          lab_name: string | null
+          ocr_text: string | null
+          processing_status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          exam_category_id?: string | null
+          exam_date?: string | null
+          exam_id?: string | null
+          exam_type_id?: string | null
+          id?: string
+          image_url: string
+          lab_name?: string | null
+          ocr_text?: string | null
+          processing_status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          exam_category_id?: string | null
+          exam_date?: string | null
+          exam_id?: string | null
+          exam_type_id?: string | null
+          id?: string
+          image_url?: string
+          lab_name?: string | null
+          ocr_text?: string | null
+          processing_status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_images_exam_category_id_fkey"
+            columns: ["exam_category_id"]
+            isOneToOne: false
+            referencedRelation: "exam_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_images_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_images_exam_type_id_fkey"
+            columns: ["exam_type_id"]
+            isOneToOne: false
+            referencedRelation: "exam_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_parameters: {
+        Row: {
+          created_at: string | null
+          critical_high: number | null
+          critical_low: number | null
+          description: string | null
+          exam_type_id: string | null
+          id: string
+          parameter_name: string
+          reference_max: number | null
+          reference_min: number | null
+          unit: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          critical_high?: number | null
+          critical_low?: number | null
+          description?: string | null
+          exam_type_id?: string | null
+          id?: string
+          parameter_name: string
+          reference_max?: number | null
+          reference_min?: number | null
+          unit?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          critical_high?: number | null
+          critical_low?: number | null
+          description?: string | null
+          exam_type_id?: string | null
+          id?: string
+          parameter_name?: string
+          reference_max?: number | null
+          reference_min?: number | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_parameters_exam_type_id_fkey"
+            columns: ["exam_type_id"]
+            isOneToOne: false
+            referencedRelation: "exam_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_results: {
+        Row: {
+          created_at: string | null
+          exam_image_id: string | null
+          id: string
+          parameter_id: string | null
+          parameter_name: string
+          status: string | null
+          unit: string | null
+          value: number | null
+          value_text: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          exam_image_id?: string | null
+          id?: string
+          parameter_id?: string | null
+          parameter_name: string
+          status?: string | null
+          unit?: string | null
+          value?: number | null
+          value_text?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          exam_image_id?: string | null
+          id?: string
+          parameter_id?: string | null
+          parameter_name?: string
+          status?: string | null
+          unit?: string | null
+          value?: number | null
+          value_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_results_exam_image_id_fkey"
+            columns: ["exam_image_id"]
+            isOneToOne: false
+            referencedRelation: "exam_images"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_results_parameter_id_fkey"
+            columns: ["parameter_id"]
+            isOneToOne: false
+            referencedRelation: "exam_parameters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_types: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_types_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "exam_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exams: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          exam_date: string
+          exam_name: string
+          id: string
+          notes: string | null
+          results: Json | null
+          status: string
+          type_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          exam_date: string
+          exam_name: string
+          id?: string
+          notes?: string | null
+          results?: Json | null
+          status: string
+          type_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          exam_date?: string
+          exam_name?: string
+          id?: string
+          notes?: string | null
+          results?: Json | null
+          status?: string
+          type_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exams_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "exam_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exams_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "exam_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goal_notifications: {
+        Row: {
+          created_at: string
+          goal_id: string
+          id: string
+          is_read: boolean
+          message: string
+          notification_type: string
+          progress_percentage: number | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          goal_id: string
+          id?: string
+          is_read?: boolean
+          message: string
+          notification_type: string
+          progress_percentage?: number | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          goal_id?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          notification_type?: string
+          progress_percentage?: number | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_notifications_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "body_composition_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      health_alerts: {
+        Row: {
+          created_at: string
+          critical_threshold: number
+          exam_image_id: string | null
+          id: string
+          parameter_name: string
+          read_at: string | null
+          severity: string
+          status: string
+          threshold_type: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          critical_threshold: number
+          exam_image_id?: string | null
+          id?: string
+          parameter_name: string
+          read_at?: string | null
+          severity: string
+          status?: string
+          threshold_type: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          critical_threshold?: number
+          exam_image_id?: string | null
+          id?: string
+          parameter_name?: string
+          read_at?: string | null
+          severity?: string
+          status?: string
+          threshold_type?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_alerts_exam_image_id_fkey"
+            columns: ["exam_image_id"]
+            isOneToOne: false
+            referencedRelation: "exam_images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      health_analysis: {
+        Row: {
+          analysis_summary: Json | null
+          attention_points: Json | null
+          created_at: string | null
+          health_score: number | null
+          id: string
+          specialist_recommendations: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          analysis_summary?: Json | null
+          attention_points?: Json | null
+          created_at?: string | null
+          health_score?: number | null
+          id?: string
+          specialist_recommendations?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          analysis_summary?: Json | null
+          attention_points?: Json | null
+          created_at?: string | null
+          health_score?: number | null
+          id?: string
+          specialist_recommendations?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      medications: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          current_dose: string
+          id: string
+          medication_name: string
+          notes: string | null
+          schedule: Json | null
+          start_date: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          current_dose: string
+          id?: string
+          medication_name: string
+          notes?: string | null
+          schedule?: Json | null
+          start_date: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          current_dose?: string
+          id?: string
+          medication_name?: string
+          notes?: string | null
+          schedule?: Json | null
+          start_date?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
