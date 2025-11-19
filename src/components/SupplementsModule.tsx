@@ -159,7 +159,7 @@ export const SupplementsModule = ({ onNavigate }: SupplementsModuleProps) => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-50 bg-[#06B6D4] text-white p-4 pb-6 shadow-lg">
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-[#06B6D4] to-[#0891B2] text-white p-4 pb-6 shadow-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
