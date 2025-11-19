@@ -689,6 +689,39 @@ export type Database = {
         }
         Relationships: []
       }
+      oauth_token_audit: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          provider: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          provider: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          provider?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1015,8 +1048,10 @@ export type Database = {
           created_at: string
           id: string
           last_sync_at: string | null
+          last_token_rotation: string | null
           provider: string
           refresh_token: string | null
+          rotation_count: number | null
           scopes: string[] | null
           sync_enabled: boolean
           token_expires_at: string | null
@@ -1030,8 +1065,10 @@ export type Database = {
           created_at?: string
           id?: string
           last_sync_at?: string | null
+          last_token_rotation?: string | null
           provider: string
           refresh_token?: string | null
+          rotation_count?: number | null
           scopes?: string[] | null
           sync_enabled?: boolean
           token_expires_at?: string | null
@@ -1045,8 +1082,10 @@ export type Database = {
           created_at?: string
           id?: string
           last_sync_at?: string | null
+          last_token_rotation?: string | null
           provider?: string
           refresh_token?: string | null
+          rotation_count?: number | null
           scopes?: string[] | null
           sync_enabled?: boolean
           token_expires_at?: string | null
