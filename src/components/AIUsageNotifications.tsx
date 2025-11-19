@@ -1,68 +1,195 @@
-import { useEffect } from "react";
-import { useAIUsageStats, useAIAlertSettings } from "@/hooks/useAIUsageStats";
-import { toast } from "sonner";
-import { AlertTriangle, DollarSign } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, DollarSign, TrendingDown } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+
+interface AlertStatus {
+  type: 'cache_performance' | 'budget_warning' | 'fallback_frequent';
+  title: string;
+  message: string;
+  severity: 'warning' | 'error';
+}
 
 export const AIUsageNotifications = () => {
-  const { data: stats } = useAIUsageStats(1); // Last 24 hours
-  const { data: settings } = useAIAlertSettings();
+  const { user } = useAuth();
+  const [alerts, setAlerts] = useState<AlertStatus[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (!stats || !settings) return;
-
-    const fallbackCount = Number(stats.fallback_requests);
-    const dailyCost = Number(stats.total_cost_usd);
-
-    // Alert for frequent fallback usage
-    if (
-      settings.enable_fallback_alerts &&
-      fallbackCount >= settings.fallback_threshold
-    ) {
-      const fallbackRate = stats.total_requests > 0 
-        ? ((fallbackCount / Number(stats.total_requests)) * 100).toFixed(0)
-        : '0';
-
-      toast.warning(
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold">Uso Frequente de Fallback</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              {fallbackCount} requisições ({fallbackRate}%) usaram fallback para Gemini nas últimas 24h.
-              Seus créditos do Lovable AI podem estar acabando.
-            </p>
-          </div>
-        </div>,
-        {
-          duration: 8000,
-          id: 'fallback-alert'
-        }
-      );
+    if (user) {
+      checkUserRole();
     }
+  }, [user]);
 
-    // Alert for high daily cost
-    if (
-      settings.enable_cost_alerts &&
-      dailyCost >= Number(settings.daily_cost_threshold)
-    ) {
-      toast.warning(
-        <div className="flex items-start gap-3">
-          <DollarSign className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold">Custo Diário Elevado</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Você já gastou ${dailyCost.toFixed(2)} em AI hoje, ultrapassando 
-              seu limite configurado de ${Number(settings.daily_cost_threshold).toFixed(2)}.
-            </p>
-          </div>
-        </div>,
-        {
-          duration: 8000,
-          id: 'cost-alert'
-        }
-      );
+  useEffect(() => {
+    if (user && isAdmin) {
+      checkAlerts();
+      // Verificar alertas a cada 5 minutos
+      const interval = setInterval(checkAlerts, 5 * 60 * 1000);
+      
+      // Subscrever mudanças em cache_performance_daily
+      const channel = supabase
+        .channel('cache_performance_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'cache_performance_daily'
+          },
+          () => checkAlerts()
+        )
+        .subscribe();
+
+      return () => {
+        clearInterval(interval);
+        channel.unsubscribe();
+      };
     }
-  }, [stats, settings]);
+  }, [user, isAdmin]);
 
-  return null; // This component only shows notifications
+  const checkUserRole = async () => {
+    if (!user) return;
+    
+    try {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+      
+      setIsAdmin(data?.role === 'admin');
+    } catch (error) {
+      console.error('Error checking user role:', error);
+    }
+  };
+
+  const checkAlerts = async () => {
+    setLoading(true);
+    const newAlerts: AlertStatus[] = [];
+
+    try {
+      // 1. Verificar performance do cache
+      const { data: cacheAlert } = await supabase
+        .rpc('check_cache_performance_alert');
+
+      if (cacheAlert && cacheAlert.length > 0 && cacheAlert[0].should_alert) {
+        const alert = cacheAlert[0];
+        newAlerts.push({
+          type: 'cache_performance',
+          title: 'Performance de Cache Baixa',
+          message: `A taxa de acerto do cache está em ${(alert.avg_hit_rate * 100).toFixed(1)}% há ${alert.days_below_threshold} dias consecutivos. Considere revisar as estratégias de caching.`,
+          severity: 'warning'
+        });
+      }
+
+      // 2. Verificar budget de AI
+      const { data: budgetStatus } = await supabase
+        .rpc('get_budget_status');
+
+      if (budgetStatus && budgetStatus.length > 0) {
+        const budget = budgetStatus[0];
+        if (budget.alert_threshold_reached && !budget.is_over_budget) {
+          newAlerts.push({
+            type: 'budget_warning',
+            title: 'Orçamento AI Próximo do Limite',
+            message: `Você usou ${budget.percentage_used.toFixed(1)}% do orçamento mensal ($${budget.current_spending.toFixed(2)} de $${budget.monthly_limit.toFixed(2)}). Projeção para o mês: $${budget.projected_monthly_spending.toFixed(2)}.`,
+            severity: 'warning'
+          });
+        } else if (budget.is_over_budget) {
+          newAlerts.push({
+            type: 'budget_warning',
+            title: 'Orçamento AI Excedido',
+            message: `O orçamento mensal foi excedido! Uso atual: $${budget.current_spending.toFixed(2)} (limite: $${budget.monthly_limit.toFixed(2)}). Por favor, ajuste o orçamento ou reduza o uso.`,
+            severity: 'error'
+          });
+        }
+      }
+
+      // 3. Verificar uso frequente de fallback (últimos 7 dias)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const { data: usageLogs } = await supabase
+        .from('ai_usage_logs')
+        .select('provider')
+        .gte('created_at', sevenDaysAgo.toISOString());
+
+      if (usageLogs && usageLogs.length > 0) {
+        const geminiCount = usageLogs.filter(log => log.provider === 'gemini').length;
+        const totalCount = usageLogs.length;
+        const fallbackRate = geminiCount / totalCount;
+
+        if (fallbackRate > 0.3) { // Mais de 30% usando fallback
+          newAlerts.push({
+            type: 'fallback_frequent',
+            title: 'Uso Frequente de Fallback',
+            message: `${(fallbackRate * 100).toFixed(1)}% das requisições estão usando o Gemini API (fallback) nos últimos 7 dias. Verifique os créditos do Lovable AI.`,
+            severity: 'warning'
+          });
+        }
+      }
+
+      setAlerts(newAlerts);
+    } catch (error) {
+      console.error('Error checking AI alerts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewDashboard = () => {
+    // Este será chamado pelo componente pai
+    window.dispatchEvent(new CustomEvent('navigate-to-ai-monitoring'));
+  };
+
+  // Não mostrar nada se não for admin ou se não houver alertas
+  if (loading || !isAdmin || alerts.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-3">
+      {alerts.map((alert, index) => (
+        <Alert
+          key={index}
+          variant={alert.severity === 'error' ? 'destructive' : 'default'}
+          className="border-l-4"
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 mt-0.5">
+              {alert.type === 'cache_performance' && (
+                <TrendingDown className="w-5 h-5" />
+              )}
+              {alert.type === 'budget_warning' && (
+                <DollarSign className="w-5 h-5" />
+              )}
+              {alert.type === 'fallback_frequent' && (
+                <AlertTriangle className="w-5 h-5" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <AlertTitle className="mb-1">{alert.title}</AlertTitle>
+              <AlertDescription className="text-sm">
+                {alert.message}
+              </AlertDescription>
+              <div className="mt-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleViewDashboard}
+                  className="text-xs"
+                >
+                  Ver Dashboard de AI
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Alert>
+      ))}
+    </div>
+  );
 };
