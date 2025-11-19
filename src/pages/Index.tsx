@@ -92,7 +92,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-primary">
-      <div className="max-w-md mx-auto bg-background min-h-screen shadow-2xl">
+      <div className="w-full max-w-2xl mx-auto bg-background min-h-screen shadow-2xl">
         <div className="pb-20">
           {renderView()}
         </div>

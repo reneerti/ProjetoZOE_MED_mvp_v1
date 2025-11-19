@@ -180,107 +180,110 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
 
   return (
     <div className="animate-fade-in">
-      {/* Header - Fixed and Rectangular */}
-      <div className="sticky top-0 z-50 bg-gradient-header text-white p-4 pb-6 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold">ZoeMed</h1>
-            <p className="text-white/80 text-xs mt-0.5">
-              Saúde Inteligente
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowChat(true)}
-              className="text-white hover:bg-white/20 h-9 w-9"
-              title="Chat com IA sobre seus exames"
-            >
-              <Sparkles className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowAlerts(!showAlerts)}
-              className="text-white hover:bg-white/20 relative h-9 w-9"
-            >
-              <Bell className="w-4 h-4" />
-              {stats.unreadAlerts > 0 && (
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px]"
-                >
-                  {stats.unreadAlerts}
-                </Badge>
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={signOut}
-              className="text-white hover:bg-white/20 h-9 w-9"
-            >
-              <LogOut className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Health Score */}
-      <div className="px-6 -mt-3 mb-5 animate-scale-in" style={{ animationDelay: '0.1s' }}>
-        <Card 
-          className={`bg-gradient-to-br ${getScoreColor()} text-white p-4 shadow-card-hover cursor-pointer card-hover group relative overflow-hidden`}
-          onClick={() => onNavigate("evolution")}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 animate-shimmer" />
-          <div className="flex items-center justify-between relative z-10">
-            <div className="flex-1">
-              <p className="text-white/90 text-xs font-medium mb-0.5">Score de Saúde</p>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-3xl font-bold">{healthScore.toFixed(1)}</span>
-                <span className="text-white/70 text-base">/10</span>
-              </div>
-              <p className="text-white/60 text-[10px] mt-1">
-                {healthScore >= 8 ? "Excelente! Continue assim" : 
-                 healthScore >= 6 ? "Bom trabalho" : "Vamos melhorar"}
+      {/* Header + Score - Fixed Together */}
+      <div className="sticky top-0 z-50 bg-gradient-header text-white shadow-lg">
+        {/* Header */}
+        <div className="p-4 pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-bold">ZoeMed</h1>
+              <p className="text-white/80 text-xs mt-0.5">
+                Saúde Inteligente
               </p>
             </div>
-            <div className="relative w-20 h-20 flex-shrink-0">
-              <svg className="w-20 h-20 transform -rotate-90">
-                <circle
-                  cx="40"
-                  cy="40"
-                  r="34"
-                  stroke="white"
-                  strokeOpacity="0.15"
-                  strokeWidth="6"
-                  fill="none"
-                />
-                <circle
-                  cx="40"
-                  cy="40"
-                  r="34"
-                  stroke="white"
-                  strokeWidth="6"
-                  fill="none"
-                  strokeDasharray={`${2 * Math.PI * 34}`}
-                  strokeDashoffset={`${2 * Math.PI * 34 * (1 - healthScorePercent)}`}
-                  strokeLinecap="round"
-                  className="transition-all duration-1000"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Activity className={`w-7 h-7 ${getScoreIconColor()} animate-heartbeat`} />
-              </div>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowChat(true)}
+                className="text-white hover:bg-white/20 h-9 w-9"
+                title="Chat com IA sobre seus exames"
+              >
+                <Sparkles className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowAlerts(!showAlerts)}
+                className="text-white hover:bg-white/20 relative h-9 w-9"
+              >
+                <Bell className="w-4 h-4" />
+                {stats.unreadAlerts > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px]"
+                  >
+                    {stats.unreadAlerts}
+                  </Badge>
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={signOut}
+                className="text-white hover:bg-white/20 h-9 w-9"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
             </div>
           </div>
-        </Card>
+        </div>
+
+        {/* Health Score - Compact and Fixed with Header */}
+        <div className="px-4 pb-4 pt-2">
+          <Card 
+            className={`bg-gradient-to-br ${getScoreColor()} text-white p-3 shadow-lg cursor-pointer card-hover group relative overflow-hidden`}
+            onClick={() => onNavigate("evolution")}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 animate-shimmer" />
+            <div className="flex items-center justify-between relative z-10">
+              <div className="flex-1">
+                <p className="text-white/90 text-[10px] font-medium mb-0.5">Score de Saúde</p>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold">{healthScore.toFixed(1)}</span>
+                  <span className="text-white/70 text-sm">/10</span>
+                </div>
+                <p className="text-white/60 text-[9px] mt-0.5">
+                  {healthScore >= 8 ? "Excelente! Continue assim" : 
+                   healthScore >= 6 ? "Bom trabalho" : "Vamos melhorar"}
+                </p>
+              </div>
+              <div className="relative w-14 h-14 flex-shrink-0">
+                <svg className="w-14 h-14 transform -rotate-90">
+                  <circle
+                    cx="28"
+                    cy="28"
+                    r="24"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                    className="text-white/20"
+                  />
+                  <circle
+                    cx="28"
+                    cy="28"
+                    r="24"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                    strokeDasharray={`${2 * Math.PI * 24}`}
+                    strokeDashoffset={`${2 * Math.PI * 24 * (1 - healthScorePercent)}`}
+                    className="text-white transition-all duration-1000 ease-out"
+                    style={{ 
+                      filter: 'drop-shadow(0 0 4px rgba(255,255,255,0.5))',
+                    }}
+                  />
+                </svg>
+                <Activity className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 ${getScoreIconColor()} animate-heartbeat`} />
+              </div>
+            </div>
+          </Card>
+        </div>
       </div>
 
       {/* Alerts Section */}
       {showAlerts && (
-        <div className="px-6 mb-6">
+        <div className="px-4 mb-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold text-foreground">Alertas de Saúde</h2>
             <Button
@@ -297,23 +300,23 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
 
       {/* Patient Analysis Section */}
       {false && patientAnalysis && (
-        <div className="px-6 mb-6">
+        <div className="px-4 mb-6">
           <PatientAnalysisView patientView={patientAnalysis} />
         </div>
       )}
 
       {/* Modules */}
-      <div className="px-6 space-y-2.5 pb-6">
+      <div className="px-4 space-y-4 pb-6 pt-4">
         <h2 className="text-base font-semibold text-foreground mb-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>Meus Módulos</h2>
 
         <Card
-          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-[hsl(200,70%,45%)]"
+          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#3B82F6] bg-white/95 dark:bg-card/95 backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.25s' }}
           onClick={() => onNavigate("myexams")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-exams flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
-              <FileText className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-exams flex items-center justify-center flex-shrink-0 shadow-md">
+              <FileText className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -330,13 +333,13 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-[hsl(142,70%,40%)]"
+          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#10B981] bg-white/95 dark:bg-card/95 backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.3s' }}
           onClick={() => onNavigate("bioimpedance")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-bioimpedance flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
-              <Scale className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-bioimpedance flex items-center justify-center flex-shrink-0 shadow-md">
+              <Scale className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -365,13 +368,13 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-[hsl(340,75%,50%)]"
+          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#EC4899] bg-white/95 dark:bg-card/95 backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.35s' }}
           onClick={() => onNavigate("medication")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-medication flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
-              <Pill className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-medication flex items-center justify-center flex-shrink-0 shadow-md">
+              <Pill className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -388,13 +391,13 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-[hsl(180,65%,45%)]"
+          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#06B6D4] bg-white/95 dark:bg-card/95 backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.37s' }}
           onClick={() => onNavigate("supplements")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-supplements flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
-              <Sparkles className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-supplements flex items-center justify-center flex-shrink-0 shadow-md">
+              <Sparkles className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -411,13 +414,13 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-[hsl(38,92%,45%)]"
+          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#F59E0B] bg-white/95 dark:bg-card/95 backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.4s' }}
           onClick={() => onNavigate("evolution")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-evolution flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
-              <TrendingUp className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-evolution flex items-center justify-center flex-shrink-0 shadow-md">
+              <TrendingUp className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -438,13 +441,13 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-[hsl(270,65%,50%)]"
+          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#8B5CF6] bg-white/95 dark:bg-card/95 backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.45s' }}
           onClick={() => onNavigate("goals")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-goals flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
-              <Target className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-goals flex items-center justify-center flex-shrink-0 shadow-md">
+              <Target className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-foreground text-sm mb-0.5">Metas</h3>
@@ -456,13 +459,13 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-muted-foreground"
+          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-muted-foreground bg-white/95 dark:bg-card/95 backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.5s' }}
           onClick={() => onNavigate("resources")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-muted-foreground to-foreground flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
-              <Database className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-muted-foreground to-foreground flex items-center justify-center flex-shrink-0 shadow-md">
+              <Database className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-foreground text-sm mb-0.5">Recursos</h3>
