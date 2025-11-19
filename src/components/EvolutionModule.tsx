@@ -246,7 +246,7 @@ export const EvolutionModule = ({ onNavigate }: EvolutionModuleProps) => {
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-gradient-evolution text-white p-6 shadow-lg">
+      <div className="sticky top-0 z-50 bg-[#F59E0B] text-white p-6 shadow-lg">
         <div className="flex items-center gap-4 mb-4">
           <button 
             onClick={() => onNavigate("dashboard")}

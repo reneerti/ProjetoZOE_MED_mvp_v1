@@ -451,7 +451,7 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
         onChange={handleFileChange}
       />
       
-      <div className="sticky top-0 z-50 bg-gradient-exams text-white p-6 shadow-lg">
+      <div className="sticky top-0 z-50 bg-[#3B82F6] text-white p-6 shadow-lg">
         <div className="flex items-center gap-4">
           <button 
             onClick={() => onNavigate("dashboard")}

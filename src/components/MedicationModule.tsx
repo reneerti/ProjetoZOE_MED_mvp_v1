@@ -44,7 +44,7 @@ export const MedicationModule = ({ onNavigate }: MedicationModuleProps) => {
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-gradient-medication text-white p-6 shadow-lg">
+      <div className="sticky top-0 z-50 bg-[#EC4899] text-white p-6 shadow-lg">
         <div className="flex items-center gap-4 mb-4">
           <button 
             onClick={() => onNavigate("dashboard")}
