@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { revokeToken } from "../_shared/oauthHelpers.ts";
 import { decryptToken } from "../_shared/tokenEncryption.ts";
+import { getUserIdFromRequest } from "../_shared/authHelpers.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -29,11 +29,30 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-    if (userError || !user) {
+    const userId = await getUserIdFromRequest(req, supabaseClient);
+    if (!userId) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Rate limiting: 20 requests per hour
+    const { data: rateLimitData } = await supabaseClient.rpc('check_rate_limit', {
+      p_user_id: userId,
+      p_endpoint: 'disconnect-wearable',
+      p_max_requests: 20,
+      p_window_seconds: 3600,
+    });
+
+    if (rateLimitData && !rateLimitData.allowed) {
+      console.log(`Rate limit exceeded for user ${userId}`);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Please try again later.',
+          retry_after: rateLimitData.retry_after 
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -46,14 +65,14 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Disconnecting wearable connection ${connectionId} for user ${user.id}`);
+    console.log(`Disconnecting wearable connection ${connectionId} for user ${userId}`);
 
     // Get connection details
     const { data: connection, error: fetchError } = await supabaseClient
       .from('wearable_connections')
       .select('*')
       .eq('id', connectionId)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single();
 
     if (fetchError || !connection) {

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encryptToken } from "../_shared/tokenEncryption.ts";
+import { getUserIdFromRequest } from "../_shared/authHelpers.ts";
 import { auditTokenAccess } from "../_shared/oauthHelpers.ts";
 
 const corsHeaders = {
@@ -66,30 +67,26 @@ serve(async (req) => {
       }
     );
 
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user } } = await supabaseClient.auth.getUser(token);
-
-    if (!user) {
-      throw new Error('Unauthorized');
+    const userId = await getUserIdFromRequest(req, supabaseClient);
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const { action, code } = await req.json();
 
-    // Rate limiting for OAuth endpoints
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    const { data: rateLimitResult } = await supabase.rpc('check_rate_limit', {
-      p_user_id: user.id,
+    // Rate limiting: 10 requests per hour
+    const { data: rateLimitResult } = await supabaseClient.rpc('check_rate_limit', {
+      p_user_id: userId,
       p_endpoint: 'google-fit-auth',
-      p_max_requests: 5,
-      p_window_seconds: 60
+      p_max_requests: 10,
+      p_window_seconds: 3600
     });
 
     if (rateLimitResult && !rateLimitResult.allowed) {
+      console.log(`Rate limit exceeded for user ${userId}`);
       return new Response(
         JSON.stringify({
           error: 'rate_limit_exceeded',
@@ -120,7 +117,7 @@ serve(async (req) => {
       // Generate state parameter for CSRF protection
       const state = crypto.randomUUID();
       const stateData = {
-        userId: user.id,
+        userId: userId,
         state: state,
         codeVerifier: codeVerifier,
         timestamp: Date.now(),
@@ -130,7 +127,7 @@ serve(async (req) => {
       const { error: stateError } = await supabaseClient
         .from('wearable_connections')
         .upsert({
-          user_id: user.id,
+          user_id: userId,
           provider: 'google_fit_temp_state',
           access_token: JSON.stringify(stateData),
           connected_at: new Date().toISOString(),
@@ -154,7 +151,7 @@ serve(async (req) => {
         `&access_type=offline` +
         `&prompt=consent`;
 
-      console.log('Generated auth URL with PKCE for user:', user.id);
+      console.log('Generated auth URL with PKCE for user:', userId);
 
       return new Response(
         JSON.stringify({ authUrl }),
@@ -180,7 +177,7 @@ serve(async (req) => {
       const { data: tempState, error: stateError } = await supabaseClient
         .from('wearable_connections')
         .select('access_token')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('provider', 'google_fit_temp_state')
         .single();
 
@@ -216,7 +213,7 @@ serve(async (req) => {
         await supabaseClient
           .from('wearable_connections')
           .delete()
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .eq('provider', 'google_fit_temp_state');
           
         return new Response(
@@ -285,7 +282,7 @@ serve(async (req) => {
           const { error: connectionError } = await supabaseClient
             .from('wearable_connections')
             .upsert({
-              user_id: user.id,
+              user_id: userId,
               provider: 'google_fit',
               access_token: encryptedAccessToken,
               refresh_token: encryptedRefreshToken,
@@ -309,7 +306,7 @@ serve(async (req) => {
             await supabaseClient
               .from('wearable_connections')
               .delete()
-              .eq('user_id', user.id)
+              .eq('user_id', userId)
               .eq('provider', 'google_fit_temp_state');
           }
         }
@@ -348,7 +345,7 @@ serve(async (req) => {
             const steps = bucket.dataset[0]?.point[0]?.value[0]?.intVal || 0;
 
             wearableEntries.push({
-              user_id: user.id,
+              user_id: userId,
               date: date.toISOString().split('T')[0],
               steps,
               source: 'google_fit',
