@@ -5,7 +5,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { ImageUploadZone } from "./bioimpedance/ImageUploadZone";
+import { ImageUploadZoneEnhanced } from "./bioimpedance/ImageUploadZoneEnhanced";
+import { OCRPreviewDialog } from "./bioimpedance/OCRPreviewDialog";
+import { BatchUploadDialog } from "./bioimpedance/BatchUploadDialog";
+import { UploadHistoryDialog } from "./bioimpedance/UploadHistoryDialog";
 import { ComparisonTable } from "./bioimpedance/ComparisonTable";
 import { MetricCharts } from "./bioimpedance/MetricCharts";
 import { AIAnalysisPanel } from "./bioimpedance/AIAnalysisPanel";
@@ -24,6 +27,14 @@ export const BioimpedanceModuleRevised = ({ onNavigate }: BioimpedanceModuleRevi
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [latestAnalysis, setLatestAnalysis] = useState<any>(null);
+  
+  // Enhanced features states
+  const [showOCRPreview, setShowOCRPreview] = useState(false);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string>('');
+  const [extractedData, setExtractedData] = useState<any>(null);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [showBatchUpload, setShowBatchUpload] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -61,7 +72,6 @@ export const BioimpedanceModuleRevised = ({ onNavigate }: BioimpedanceModuleRevi
   const handleFileSelect = async (file: File) => {
     if (!user) return;
 
-    setUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}/${Date.now()}.${fileExt}`;
@@ -76,10 +86,64 @@ export const BioimpedanceModuleRevised = ({ onNavigate }: BioimpedanceModuleRevi
         .from('bioimpedance-scans')
         .getPublicUrl(filePath);
 
-      toast.success("Processando imagem com IA...");
+      // Save to upload history
+      const { data: uploadRecord } = await supabase
+        .from('bioimpedance_uploads')
+        .insert({
+          user_id: user.id,
+          image_url: publicUrl,
+          status: 'processing'
+        })
+        .select()
+        .single();
+
+      setCurrentImageUrl(publicUrl);
+      setShowOCRPreview(true);
+      setIsExtracting(true);
+
+      // Call preview OCR
+      const { data: previewResult, error: previewError } = await supabase.functions.invoke('preview-ocr', {
+        body: { imageUrl: publicUrl }
+      });
+
+      if (previewError || !previewResult?.success) {
+        throw new Error(previewResult?.error || 'Erro ao extrair dados');
+      }
+
+      setExtractedData(previewResult.data);
+      setIsExtracting(false);
+
+      // Update upload record
+      if (uploadRecord) {
+        await supabase
+          .from('bioimpedance_uploads')
+          .update({ 
+            extracted_data: previewResult.data,
+            status: 'success'
+          })
+          .eq('id', uploadRecord.id);
+      }
+
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Erro ao processar arquivo");
+      setShowOCRPreview(false);
+      setIsExtracting(false);
+    }
+  };
+
+  const handleConfirmData = async (confirmedData: any) => {
+    if (!user) return;
+
+    setUploading(true);
+    try {
+      toast.success("Salvando medição...");
       
       const { data: processResult, error: processError } = await supabase.functions.invoke('process-bioimpedance', {
-        body: { imageUrl: publicUrl }
+        body: { 
+          imageUrl: currentImageUrl,
+          preExtractedData: confirmedData 
+        }
       });
 
       if (processError) {
@@ -87,7 +151,7 @@ export const BioimpedanceModuleRevised = ({ onNavigate }: BioimpedanceModuleRevi
         if (processError.message?.includes('Rate limit')) {
           toast.error("Limite de processamentos atingido. Aguarde alguns instantes.");
         } else {
-          toast.error("Erro ao processar imagem. Verifique se todos os dados estão visíveis.");
+          toast.error("Erro ao salvar medição");
         }
         return;
       }
@@ -97,20 +161,46 @@ export const BioimpedanceModuleRevised = ({ onNavigate }: BioimpedanceModuleRevi
         return;
       }
 
-      toast.success("✨ Medição processada com sucesso!");
+      toast.success("✨ Medição salva com sucesso!");
       
       if (processResult?.analysis) {
         setLatestAnalysis(processResult.analysis);
       }
       
       await fetchMeasurements();
+      setShowOCRPreview(false);
+      setExtractedData(null);
+      setCurrentImageUrl('');
       
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Erro ao processar arquivo");
+      toast.error("Erro ao salvar medição");
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleCancelPreview = () => {
+    setShowOCRPreview(false);
+    setExtractedData(null);
+    setCurrentImageUrl('');
+    setIsExtracting(false);
+  };
+
+  const handleReprocess = async (uploadId: string, imageUrl: string) => {
+    toast.promise(
+      supabase.functions.invoke('process-bioimpedance', {
+        body: { imageUrl }
+      }),
+      {
+        loading: 'Reprocessando...',
+        success: () => {
+          fetchMeasurements();
+          return 'Medição reprocessada!';
+        },
+        error: 'Erro ao reprocessar'
+      }
+    );
   };
 
   const handleLoadSampleData = async () => {
@@ -188,9 +278,14 @@ export const BioimpedanceModuleRevised = ({ onNavigate }: BioimpedanceModuleRevi
       </div>
 
       <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Upload Zone */}
+        {/* Enhanced Upload Zone */}
         <div className="bg-gradient-to-br from-blue-50/30 via-purple-50/20 to-pink-50/30 dark:from-blue-950/10 dark:via-purple-950/10 dark:to-pink-950/10 p-6 rounded-2xl">
-          <ImageUploadZone onFileSelect={handleFileSelect} uploading={uploading} />
+          <ImageUploadZoneEnhanced 
+            onFileSelect={handleFileSelect}
+            onBatchUpload={() => setShowBatchUpload(true)}
+            onHistoryOpen={() => setShowHistory(true)}
+            uploading={uploading}
+          />
         </div>
 
         {measurements.length > 0 ? (
@@ -228,6 +323,32 @@ export const BioimpedanceModuleRevised = ({ onNavigate }: BioimpedanceModuleRevi
           </div>
         )}
       </div>
+
+      {/* OCR Preview Dialog */}
+      <OCRPreviewDialog
+        open={showOCRPreview}
+        onOpenChange={setShowOCRPreview}
+        imageUrl={currentImageUrl}
+        extractedData={extractedData}
+        isProcessing={isExtracting}
+        onConfirm={handleConfirmData}
+        onCancel={handleCancelPreview}
+      />
+
+      {/* Batch Upload Dialog */}
+      <BatchUploadDialog
+        open={showBatchUpload}
+        onOpenChange={setShowBatchUpload}
+        onUploadComplete={fetchMeasurements}
+        processFile={handleFileSelect}
+      />
+
+      {/* Upload History Dialog */}
+      <UploadHistoryDialog
+        open={showHistory}
+        onOpenChange={setShowHistory}
+        onReprocess={handleReprocess}
+      />
     </div>
   );
 };

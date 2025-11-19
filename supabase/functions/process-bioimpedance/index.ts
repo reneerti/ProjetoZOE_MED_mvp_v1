@@ -58,18 +58,27 @@ serve(async (req) => {
       );
     }
 
-    const { imageUrl } = await req.json();
+    const { imageUrl, preExtractedData } = await req.json();
 
     console.log('Processing bioimpedance image:', imageUrl);
+    console.log('Pre-extracted data:', preExtractedData);
 
-    // Fetch image from URL
-    const imageResponse = await fetch(imageUrl);
-    const imageBlob = await imageResponse.blob();
-    const arrayBuffer = await imageBlob.arrayBuffer();
-    const base64Image = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    let extractedData;
 
-    // Call Lovable AI Gateway for OCR and analysis
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // If data was already extracted by preview, use it
+    if (preExtractedData && preExtractedData.weight) {
+      console.log('Using pre-extracted data from preview');
+      extractedData = preExtractedData;
+    } else {
+      // Otherwise, fetch image and do full OCR
+      console.log('Performing full OCR extraction');
+      const imageResponse = await fetch(imageUrl);
+      const imageBlob = await imageResponse.blob();
+      const arrayBuffer = await imageBlob.arrayBuffer();
+      const base64Image = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+      // Call Lovable AI Gateway for OCR and analysis
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${lovableApiKey}`,
@@ -149,18 +158,18 @@ Retorne um JSON completo:
     
     console.log('AI Response:', aiContent);
 
-    // Parse JSON from AI response
-    let extractedData;
-    try {
-      const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        extractedData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No JSON found in response');
+      // Parse JSON from AI response
+      try {
+        const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          extractedData = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('No JSON found in response');
+        }
+      } catch (parseError) {
+        console.error('Error parsing AI response:', parseError);
+        throw new Error('Failed to parse AI response');
       }
-    } catch (parseError) {
-      console.error('Error parsing AI response:', parseError);
-      throw new Error('Failed to parse AI response');
     }
 
     // Validate critical data

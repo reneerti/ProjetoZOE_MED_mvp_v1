@@ -50,6 +50,48 @@ export type Database = {
         }
         Relationships: []
       }
+      bioimpedance_uploads: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          extracted_data: Json | null
+          id: string
+          image_url: string
+          manual_corrections: Json | null
+          measurement_id: string | null
+          processed_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          extracted_data?: Json | null
+          id?: string
+          image_url: string
+          manual_corrections?: Json | null
+          measurement_id?: string | null
+          processed_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          extracted_data?: Json | null
+          id?: string
+          image_url?: string
+          manual_corrections?: Json | null
+          measurement_id?: string | null
+          processed_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       body_composition_goals: {
         Row: {
           completed_at: string | null
