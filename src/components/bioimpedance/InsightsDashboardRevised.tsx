@@ -1,5 +1,8 @@
 import { Card } from "@/components/ui/card";
-import { Scale, Droplets, Activity, Flame, TrendingUp, TrendingDown, Heart, Zap } from "lucide-react";
+import { Scale, Droplets, Activity, Flame, TrendingUp, TrendingDown, Heart, Zap, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { InsightDetailDialog } from "./InsightDetailDialog";
+import { useState } from "react";
 
 interface Measurement {
   measurement_date: string;
@@ -66,6 +69,12 @@ const metricColors = {
 };
 
 export const InsightsDashboardRevised = ({ measurements }: InsightsDashboardRevisedProps) => {
+  const [selectedInsight, setSelectedInsight] = useState<{
+    title: string;
+    description: string;
+    detailedInfo: string;
+  } | null>(null);
+
   if (measurements.length < 2) {
     return (
       <Card className="p-8 bg-gradient-to-br from-muted/30 to-muted/10">
@@ -116,7 +125,9 @@ export const InsightsDashboardRevised = ({ measurements }: InsightsDashboardRevi
     change, 
     unit = "",
     colorScheme,
-    isHigherBetter = false 
+    isHigherBetter = false,
+    shortDescription = "",
+    detailedInfo = ""
   }: { 
     icon: any; 
     title: string; 
@@ -125,6 +136,8 @@ export const InsightsDashboardRevised = ({ measurements }: InsightsDashboardRevi
     unit?: string;
     colorScheme: typeof metricColors.weight;
     isHigherBetter?: boolean;
+    shortDescription?: string;
+    detailedInfo?: string;
   }) => {
     const isPositiveChange = change && (isHigherBetter ? change > 0 : change < 0);
     const TrendIcon = change && Math.abs(change) > 0.1 
@@ -132,14 +145,31 @@ export const InsightsDashboardRevised = ({ measurements }: InsightsDashboardRevi
       : null;
 
     return (
-      <Card className={`p-6 bg-gradient-to-br ${colorScheme.bg} border-2 ${colorScheme.border} hover:shadow-lg transition-all duration-300 hover:scale-[1.02]`}>
+      <Card 
+        className={`p-6 bg-gradient-to-br ${colorScheme.bg} border-2 ${colorScheme.border} hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer`}
+        onClick={() => detailedInfo && setSelectedInsight({ title, description: shortDescription, detailedInfo })}
+      >
         <div className="flex items-start justify-between">
           <div className="space-y-3 flex-1 min-w-0">
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-lg bg-background/50 ${colorScheme.icon}`}>
                 <Icon className="h-5 w-5" />
               </div>
-              <p className="text-sm font-medium text-muted-foreground truncate">{title}</p>
+              <div className="flex-1 flex items-center gap-2">
+                <p className="text-sm font-medium text-muted-foreground truncate">{title}</p>
+                {shortDescription && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground/50 hover:text-muted-foreground transition-colors" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        <p className="text-xs">{shortDescription}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
             </div>
             <div>
               <p className="text-3xl font-bold tracking-tight">{value}{unit}</p>
@@ -178,6 +208,8 @@ export const InsightsDashboardRevised = ({ measurements }: InsightsDashboardRevi
           unit="kg"
           colorScheme={metricColors.weight}
           isHigherBetter={false}
+          shortDescription="Acompanhe sua massa corporal total"
+          detailedInfo="O peso corporal é a soma de todos os tecidos do corpo incluindo músculo, gordura, ossos e água. **Variações normais:** 0,5-1kg por dia devido a hidratação e alimentação. **Meta saudável:** Manter peso estável ou perder 0,5-1kg por semana de forma gradual."
         />
 
         {latest.body_fat_percentage && (
@@ -189,6 +221,8 @@ export const InsightsDashboardRevised = ({ measurements }: InsightsDashboardRevi
             unit="%"
             colorScheme={metricColors.fat}
             isHigherBetter={false}
+            shortDescription="Percentual de gordura no corpo"
+            detailedInfo="A gordura corporal inclui gordura essencial e de reserva. **Homens:** Ideal 10-20%, Atletas 6-13%. **Mulheres:** Ideal 18-28%, Atletas 14-20%. **Atenção:** Menos de 5% (homens) ou 12% (mulheres) pode ser prejudicial à saúde."
           />
         )}
 
@@ -201,6 +235,8 @@ export const InsightsDashboardRevised = ({ measurements }: InsightsDashboardRevi
             unit="kg"
             colorScheme={metricColors.muscle}
             isHigherBetter={true}
+            shortDescription="Quantidade de músculo no corpo"
+            detailedInfo="A massa muscular é crucial para metabolismo, força e saúde óssea. **Benefícios:** Maior metabolismo basal, melhor controle glicêmico, proteção articular. **Como aumentar:** Treino de força 2-3x/semana + proteína adequada (1,6-2g/kg)."
           />
         )}
 
@@ -212,7 +248,9 @@ export const InsightsDashboardRevised = ({ measurements }: InsightsDashboardRevi
             change={waterChange}
             unit="%"
             colorScheme={metricColors.water}
-            isHigherBetter={true}
+            isHigherBetter={false}
+            shortDescription="Nível de água no organismo"
+            detailedInfo="A água corporal é vital para todas as funções metabólicas. **Ideal:** 55-65% para adultos. **Sinais de desidratação:** <50%. **Fatores:** Exercício, clima quente e alimentação afetam os níveis. **Dica:** Beba 35ml/kg de peso ao dia."
           />
         )}
 
@@ -224,6 +262,8 @@ export const InsightsDashboardRevised = ({ measurements }: InsightsDashboardRevi
             change={previousData.bmi ? latestData.bmi - previousData.bmi : null}
             colorScheme={metricColors.bmi}
             isHigherBetter={false}
+            shortDescription="Índice de Massa Corporal"
+            detailedInfo="O IMC relaciona peso e altura. **Classificação:** Abaixo 18,5 = baixo peso, 18,5-24,9 = normal, 25-29,9 = sobrepeso, acima 30 = obesidade. **Limitação:** Não diferencia músculo de gordura. Atletas podem ter IMC alto mas baixa gordura."
           />
         )}
 
@@ -235,6 +275,8 @@ export const InsightsDashboardRevised = ({ measurements }: InsightsDashboardRevi
             change={previousData.visceral_fat ? latestData.visceral_fat - previousData.visceral_fat : null}
             colorScheme={metricColors.visceral}
             isHigherBetter={false}
+            shortDescription="Gordura ao redor dos órgãos"
+            detailedInfo="Gordura visceral envolve órgãos internos e é mais perigosa que subcutânea. **Ideal:** 1-12, **Atenção:** 13-59, **Alto risco:** >60. **Riscos:** Diabetes tipo 2, doenças cardíacas, inflamação. **Como reduzir:** Exercício aeróbico, redução de carboidratos refinados."
           />
         )}
 
@@ -247,6 +289,8 @@ export const InsightsDashboardRevised = ({ measurements }: InsightsDashboardRevi
             unit="kcal"
             colorScheme={metricColors.bmr}
             isHigherBetter={true}
+            shortDescription="Gasto calórico em repouso"
+            detailedInfo="Taxa Metabólica Basal é a energia que seu corpo gasta em repouso absoluto. **Representa:** 60-75% do gasto calórico diário total. **Fatores:** Massa muscular aumenta TMB. **Aplicação:** Base para cálculo de dieta e déficit/superávit calórico."
           />
         )}
 
@@ -259,6 +303,8 @@ export const InsightsDashboardRevised = ({ measurements }: InsightsDashboardRevi
             unit=" anos"
             colorScheme={metricColors.metabolic}
             isHigherBetter={false}
+            shortDescription="Idade do seu metabolismo"
+            detailedInfo="Idade metabólica compara seu metabolismo com média da população. **Ideal:** Igual ou menor que sua idade real. **Significa:** Metabolismo mais jovem = melhor composição corporal. **Como melhorar:** Ganho de massa muscular, redução de gordura, exercício regular."
           />
         )}
       </div>
@@ -295,6 +341,14 @@ export const InsightsDashboardRevised = ({ measurements }: InsightsDashboardRevi
           </div>
         </div>
       </Card>
+
+      <InsightDetailDialog
+        open={!!selectedInsight}
+        onOpenChange={(open) => !open && setSelectedInsight(null)}
+        title={selectedInsight?.title || ""}
+        description={selectedInsight?.description || ""}
+        detailedInfo={selectedInsight?.detailedInfo || ""}
+      />
     </div>
   );
 };

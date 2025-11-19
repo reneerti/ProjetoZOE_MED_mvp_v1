@@ -1,0 +1,48 @@
+{
+  "name": "ZoeMed - Saúde Inteligente",
+  "short_name": "ZoeMed",
+  "description": "Plataforma de saúde inteligente para gestão de exames, bioimpedância, medicações e muito mais",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#475569",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "medical", "lifestyle"],
+  "screenshots": [
+    {
+      "src": "/screenshot-1.png",
+      "sizes": "540x720",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Meus Exames",
+      "short_name": "Exames",
+      "description": "Ver meus exames",
+      "url": "/?view=myexams",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Bioimpedância",
+      "short_name": "Bio",
+      "description": "Ver bioimpedância",
+      "url": "/?view=bioimpedance",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

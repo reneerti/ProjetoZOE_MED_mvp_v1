@@ -24,6 +24,8 @@ import { AdminDashboard } from "@/components/admin/AdminDashboard";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin";
 
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>(() => {
     const savedView = localStorage.getItem('currentView');
@@ -41,6 +43,12 @@ const Index = () => {
   useEffect(() => {
     localStorage.setItem('currentView', currentView);
   }, [currentView]);
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(console.error);
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -116,6 +124,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-primary">
       <OnboardingTutorial />
       <ExamNotifications />
+      <PWAInstallPrompt />
       <div className="w-full max-w-2xl mx-auto bg-background min-h-screen shadow-2xl">
         <div className="pb-20">
           {renderView()}
