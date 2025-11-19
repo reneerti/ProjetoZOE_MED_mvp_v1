@@ -252,11 +252,11 @@ export const EvolutionModule = ({ onNavigate }: EvolutionModuleProps) => {
             onClick={() => onNavigate("dashboard")}
             className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5" strokeWidth={2.4} />
           </button>
           <div>
-            <h1 className="text-2xl font-bold">Evolução Geral</h1>
-            <p className="text-white/90 text-sm">Análise integrada com IA</p>
+            <h1 className="text-2xl font-bold drop-shadow-md">Evolução Geral</h1>
+            <p className="text-white/90 text-sm drop-shadow">Análise integrada com IA</p>
           </div>
         </div>
       </div>

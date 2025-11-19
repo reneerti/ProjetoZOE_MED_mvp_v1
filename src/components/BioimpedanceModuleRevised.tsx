@@ -241,12 +241,13 @@ export const BioimpedanceModuleRevised = ({ onNavigate }: BioimpedanceModuleRevi
               variant="ghost"
               size="icon"
               onClick={() => onNavigate("dashboard")}
+              className="text-white hover:bg-white/20"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5" strokeWidth={2.4} />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">Bioimpedância</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-2xl font-bold drop-shadow-md">Bioimpedância</h1>
+              <p className="text-sm text-white/90 drop-shadow">
                 Análise completa da composição corporal
               </p>
             </div>

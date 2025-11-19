@@ -168,11 +168,11 @@ export const SupplementsModule = ({ onNavigate }: SupplementsModuleProps) => {
               onClick={() => onNavigate("dashboard")}
               className="text-white hover:bg-white/20 h-9 w-9"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5" strokeWidth={2.4} />
             </Button>
             <div>
-              <h1 className="text-xl font-bold">Suplementação</h1>
-              <p className="text-white/80 text-xs mt-0.5">Recomendações personalizadas por IA</p>
+              <h1 className="text-xl font-bold drop-shadow-md">Suplementação</h1>
+              <p className="text-white/90 text-xs mt-0.5 drop-shadow">Recomendações personalizadas por IA</p>
             </div>
           </div>
           <Button

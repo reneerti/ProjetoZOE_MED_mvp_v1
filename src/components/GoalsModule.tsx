@@ -115,18 +115,18 @@ export const GoalsModule = ({ onNavigate }: GoalsModuleProps) => {
               onClick={() => onNavigate("dashboard")}
               className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5" strokeWidth={2.4} />
             </button>
             <div>
-              <h1 className="text-2xl font-bold">Metas</h1>
-              <p className="text-white/90 text-sm">Acompanhe seus objetivos</p>
+              <h1 className="text-2xl font-bold drop-shadow-md">Metas</h1>
+              <p className="text-white/90 text-sm drop-shadow">Acompanhe seus objetivos</p>
             </div>
           </div>
           <button
             onClick={() => setShowNotifications(true)}
             className="relative w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
           >
-            <Bell className="w-5 h-5" />
+            <Bell className="w-5 h-5" strokeWidth={2.4} />
             {notifications.length > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-warning text-white text-xs rounded-full flex items-center justify-center">
                 {notifications.length}

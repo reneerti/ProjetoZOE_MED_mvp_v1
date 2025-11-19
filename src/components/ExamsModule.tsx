@@ -229,11 +229,11 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
             onClick={() => onNavigate("dashboard")}
             className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5" strokeWidth={2.4} />
           </button>
           <div>
-            <h1 className="text-2xl font-bold">Upload de Exames</h1>
-            <p className="text-white/90 text-sm">Enviar novas imagens</p>
+            <h1 className="text-2xl font-bold drop-shadow-md">Upload de Exames</h1>
+            <p className="text-white/90 text-sm drop-shadow">Enviar novas imagens</p>
           </div>
         </div>
       </div>
