@@ -58,45 +58,42 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
 
   const fetchProfileAndStats = async () => {
     try {
-      // Fetch profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single();
+      // Buscar todos os dados em paralelo para performance
+      const [
+        profileResult,
+        examsResult,
+        examImagesResult,
+        medicationsResult,
+        bioResult,
+        analysisResult,
+        alertsResult
+      ] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', user?.id).single(),
+        supabase.from('exams').select('status').eq('user_id', user?.id),
+        supabase.from('exam_images').select('id, processing_status').eq('user_id', user?.id),
+        supabase.from('medications').select('id').eq('user_id', user?.id).eq('active', true),
+        supabase.from('bioimpedance_measurements').select('*').eq('user_id', user?.id).order('measurement_date', { ascending: false }).limit(2),
+        supabase.from('health_analysis').select('health_score').eq('user_id', user?.id).order('updated_at', { ascending: false }).limit(1).single(),
+        supabase.from('health_alerts').select('id').eq('user_id', user?.id).eq('status', 'unread')
+      ]);
 
-      setProfile(profileData);
+      setProfile(profileResult.data);
 
-      // Fetch exams count and stats
-      const { data: exams } = await supabase
-        .from('exams')
-        .select('status')
-        .eq('user_id', user?.id);
+      // Contar exames processados
+      const completedExams = examImagesResult.data?.filter(e => e.processing_status === 'completed') || [];
+      const examsCount = completedExams.length;
 
-      const examsCount = exams?.length || 0;
-      const normalCount = exams?.filter(e => e.status === 'normal').length || 0;
-      const attentionCount = exams?.filter(e => e.status === 'attention').length || 0;
+      // Stats de exames (simplificado)
+      const exams = examsResult.data || [];
+      const normalCount = exams.filter(e => e.status === 'normal').length;
+      const attentionCount = exams.filter(e => e.status === 'attention').length;
 
-      // Fetch medications count
-      const { data: medications } = await supabase
-        .from('medications')
-        .select('id')
-        .eq('user_id', user?.id)
-        .eq('active', true);
-
-      const medicationsCount = medications?.length || 0;
-
-      // Fetch latest bioimpedance
-      const { data: latestBio } = await supabase
-        .from('bioimpedance_measurements')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('measurement_date', { ascending: false })
-        .limit(2);
+      const medicationsCount = medicationsResult.data?.length || 0;
 
       let latestBioimpedance = null;
       let weightChange = null;
 
+      const latestBio = bioResult.data;
       if (latestBio && latestBio.length > 0) {
         latestBioimpedance = {
           weight: Number(latestBio[0].weight),
@@ -109,14 +106,8 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         }
       }
 
-      // Fetch latest health score
-      const { data: latestEvolution } = await supabase
-        .from('evolution_notes')
-        .select('health_score')
-        .eq('user_id', user?.id)
-        .order('note_date', { ascending: false })
-        .limit(1)
-        .single();
+      const healthScore = analysisResult.data?.health_score || null;
+      const unreadAlerts = alertsResult.data?.length || 0;
 
       // Fetch unread alerts count
       const { data: alerts } = await supabase
@@ -143,10 +134,10 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         examsCount,
         weightChange,
         medicationsCount,
-        healthScore: latestEvolution?.health_score ? Number(latestEvolution.health_score) : null,
+        healthScore,
         latestBioimpedance,
         examsStats: { normal: normalCount, attention: attentionCount },
-        unreadAlerts: alerts?.length || 0
+        unreadAlerts
       });
     } catch (error) {
       console.error("Error fetching dashboard data:", error);

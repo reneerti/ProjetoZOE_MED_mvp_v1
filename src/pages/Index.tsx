@@ -4,6 +4,7 @@ import { Dashboard } from "@/components/Dashboard";
 import { ExamsModule } from "@/components/ExamsModule";
 import { MyExamsModule } from "@/components/MyExamsModule";
 import { BioimpedanceModuleRevised } from "@/components/BioimpedanceModuleRevised";
+import { ExamEvolutionCharts } from "@/components/ExamEvolutionCharts";
 import { MedicationModule } from "@/components/MedicationModule";
 import { EvolutionModule } from "@/components/EvolutionModule";
 import { GoalsModule } from "@/components/GoalsModule";
@@ -17,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { ExamNotifications } from "@/components/ExamNotifications";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>(() => {
