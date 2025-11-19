@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Dashboard } from "@/components/Dashboard";
 import { ExamsModule } from "@/components/ExamsModule";
 import { MyExamsModule } from "@/components/MyExamsModule";
-import { BioimpedanceModule } from "@/components/BioimpedanceModule";
+import { BioimpedanceModuleRevised } from "@/components/BioimpedanceModuleRevised";
 import { MedicationModule } from "@/components/MedicationModule";
 import { EvolutionModule } from "@/components/EvolutionModule";
 import { GoalsModule } from "@/components/GoalsModule";
@@ -46,7 +46,7 @@ const Index = () => {
       case "myexams":
         return <div key={viewKey} className="animate-slide-in-right"><MyExamsModule onNavigate={setCurrentView} /></div>;
       case "bioimpedance":
-        return <div key={viewKey} className="animate-slide-in-right"><BioimpedanceModule onNavigate={setCurrentView} /></div>;
+        return <div key={viewKey} className="animate-slide-in-right"><BioimpedanceModuleRevised onNavigate={setCurrentView} /></div>;
       case "medication":
         return <div key={viewKey} className="animate-slide-in-right"><MedicationModule onNavigate={setCurrentView} /></div>;
       case "evolution":
