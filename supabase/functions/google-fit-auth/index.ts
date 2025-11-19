@@ -74,6 +74,33 @@ serve(async (req) => {
 
     const { action, code } = await req.json();
 
+    // Rate limiting for OAuth endpoints
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { data: rateLimitResult } = await supabase.rpc('check_rate_limit', {
+      p_user_id: user.id,
+      p_endpoint: 'google-fit-auth',
+      p_max_requests: 5,
+      p_window_seconds: 60
+    });
+
+    if (rateLimitResult && !rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: 'rate_limit_exceeded',
+          message: 'Muitas tentativas. Por favor, aguarde antes de tentar novamente.',
+          retryAfter: rateLimitResult.retry_after
+        }),
+        { 
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
     // Initiate OAuth flow
     if (action === 'initiate') {
       const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-fit-auth`;
@@ -183,10 +210,17 @@ serve(async (req) => {
       // Verify timestamp (state should not be older than 10 minutes)
       const stateAge = Date.now() - stateData.timestamp;
       if (stateAge > 10 * 60 * 1000) {
+        // Delete expired state
+        await supabaseClient
+          .from('wearable_connections')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('provider', 'google_fit_temp_state');
+          
         return new Response(
           JSON.stringify({ 
             error: 'state_expired',
-            message: 'Estado OAuth expirado. Tente novamente.',
+            message: 'Estado OAuth expirado. Por favor, tente novamente.',
           }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -213,12 +247,14 @@ serve(async (req) => {
       const tokens = await tokenResponse.json();
 
       if (!tokenResponse.ok) {
-        console.error('Token exchange failed:', tokens);
+        const errorId = `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        console.error(`[${errorId}] Token exchange failed:`, tokens);
+        
         return new Response(
           JSON.stringify({ 
             error: 'oauth_error',
-            message: 'Falha na autenticação com Google. Verifique as credenciais ou tente novamente.',
-            details: tokens.error_description || tokens.error
+            message: 'Falha na autenticação com Google. Por favor, tente novamente.',
+            errorId
           }),
           { 
             status: 400, 

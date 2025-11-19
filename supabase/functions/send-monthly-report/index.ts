@@ -96,11 +96,20 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Erro ao enviar email:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    const errorId = `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.error(`[${errorId}] Error in send-monthly-report:`, {
+      error,
+      timestamp: new Date().toISOString(),
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+    
     return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        error: 'Erro ao enviar relatório. Por favor, tente novamente.',
+        errorId,
+        timestamp: new Date().toISOString()
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

@@ -358,10 +358,19 @@ Seja preciso na extração. Se não conseguir identificar alguma informação, u
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error in process-ocr function:", error);
-    const errorMessage = error instanceof Error ? error.message : "Erro ao processar OCR";
+    const errorId = `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.error(`[${errorId}] Error in process-ocr:`, {
+      error,
+      timestamp: new Date().toISOString(),
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+    
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ 
+        error: 'Erro ao processar OCR. Por favor, tente novamente.',
+        errorId,
+        timestamp: new Date().toISOString()
+      }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

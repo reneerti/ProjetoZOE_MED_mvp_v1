@@ -193,9 +193,19 @@ ${contextInfo}
     });
 
   } catch (error) {
-    console.error('Error in chat-exams:', error);
+    const errorId = `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.error(`[${errorId}] Error in chat-exams:`, {
+      error,
+      timestamp: new Date().toISOString(),
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+    
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Erro desconhecido' }),
+      JSON.stringify({ 
+        error: 'Erro ao processar chat. Por favor, tente novamente.',
+        errorId,
+        timestamp: new Date().toISOString()
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

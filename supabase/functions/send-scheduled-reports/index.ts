@@ -219,10 +219,19 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in scheduled reports function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorId = `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.error(`[${errorId}] Error in scheduled reports:`, {
+      error,
+      timestamp: new Date().toISOString(),
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+    
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ 
+        error: 'Erro ao enviar relatórios agendados.',
+        errorId,
+        timestamp: new Date().toISOString()
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
