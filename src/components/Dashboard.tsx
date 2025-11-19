@@ -9,6 +9,7 @@ import { HealthAlerts } from "./HealthAlerts";
 import { Badge } from "@/components/ui/badge";
 import { PatientAnalysisView } from "./PatientAnalysisView";
 import { ExamChatDialog } from "./ExamChatDialog";
+import { HealthScoreCard } from "./HealthScoreCard";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison";
 
@@ -153,52 +154,33 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
     return "Usuário";
   };
 
-  const healthScore = stats.healthScore || 7.5;
-  const healthScorePercent = healthScore / 10;
-  
-  // Score color based on criticality
-  const getScoreColor = () => {
-    if (healthScore >= 8) return 'from-success to-success/80';
-    if (healthScore >= 6) return 'from-warning to-warning/80';
-    return 'from-destructive to-destructive/80';
-  };
-
-  const getScoreIconColor = () => {
-    if (healthScore >= 8) return 'text-success-foreground';
-    if (healthScore >= 6) return 'text-warning-foreground';
-    return 'text-destructive-foreground';
-  };
-
   return (
     <div className="animate-fade-in">
-      {/* Header + Score - Fixed Together */}
-      <div className="sticky top-0 z-50 bg-gradient-to-br from-[#6366F1] via-[#8B5CF6] to-[#A855F7] text-white shadow-2xl">
-        {/* Header */}
-        <div className="p-4 pb-3">
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-card border-b border-border">
+        <div className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold drop-shadow-md">ZoeMed</h1>
-              <p className="text-white/90 text-xs mt-0.5 drop-shadow">
-                Saúde Inteligente
-              </p>
+              <h1 className="text-xl font-semibold">ZoeMed</h1>
+              <p className="text-sm text-muted-foreground">Saúde Inteligente</p>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowChat(true)}
-                className="text-white hover:bg-white/20 h-10 w-10"
+                className="h-9 w-9"
                 title="Chat com IA sobre seus exames"
               >
-                <Sparkles className="w-5 h-5" strokeWidth={2.4} />
+                <Sparkles className="w-5 h-5" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowAlerts(!showAlerts)}
-                className="text-white hover:bg-white/20 relative h-10 w-10"
+                className="relative h-9 w-9"
               >
-                <Bell className="w-5 h-5" strokeWidth={2.4} />
+                <Bell className="w-5 h-5" />
                 {stats.unreadAlerts > 0 && (
                   <Badge 
                     variant="destructive" 
@@ -212,67 +194,18 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
                 variant="ghost"
                 size="icon"
                 onClick={signOut}
-                className="text-white hover:bg-white/20 h-10 w-10"
+                className="h-9 w-9"
               >
-                <LogOut className="w-5 h-5" strokeWidth={2.4} />
+                <LogOut className="w-5 h-5" />
               </Button>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Health Score - Compact and Fixed with Header */}
-        <div className="px-4 pb-4 pt-2">
-          <Card 
-            className={`bg-gradient-to-br ${getScoreColor()} text-white p-3 shadow-lg cursor-pointer card-hover group relative overflow-hidden`}
-            onClick={() => onNavigate("evolution")}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 animate-shimmer" />
-            <div className="flex items-center justify-between relative z-10">
-              <div className="flex-1">
-                <p className="text-white font-medium mb-0.5 text-xs sm:text-sm">Score de Saúde</p>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl sm:text-3xl font-bold">{healthScore.toFixed(1)}</span>
-                  <span className="text-white/80 text-sm sm:text-base">/10</span>
-                </div>
-                <p className="text-white/70 text-[10px] sm:text-xs mt-0.5">
-                  {healthScore >= 8 ? "Excelente! Continue assim" : 
-                   healthScore >= 6 ? "Bom trabalho" : "Vamos melhorar"}
-                </p>
-              </div>
-              <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle
-                    cx="50%"
-                    cy="50%"
-                    r="28"
-                    stroke="white"
-                    strokeOpacity="0.25"
-                    strokeWidth="5"
-                    fill="none"
-                  />
-                  <circle
-                    cx="50%"
-                    cy="50%"
-                    r="28"
-                    stroke="white"
-                    strokeWidth="5"
-                    fill="none"
-                    strokeDasharray={`${2 * Math.PI * 28}`}
-                    strokeDashoffset={`${2 * Math.PI * 28 * (1 - healthScorePercent)}`}
-                    strokeLinecap="round"
-                    className="transition-all duration-1000 ease-out"
-                    style={{ 
-                      filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.6))',
-                    }}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Activity className="w-7 h-7 sm:w-8 sm:h-8 text-white animate-heartbeat drop-shadow-lg" />
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
+      {/* Health Score Section */}
+      <div className="p-6">
+        <HealthScoreCard score={stats.healthScore ? stats.healthScore * 100 : null} />
       </div>
 
       {/* Alerts Section */}
@@ -444,16 +377,14 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
                 <h3 className="font-semibold text-foreground text-sm">Evolução Geral</h3>
-                <Badge 
-                  variant={healthScore >= 8 ? "default" : healthScore >= 6 ? "secondary" : "outline"}
-                  className={`text-[10px] h-5 ${healthScore >= 8 ? "bg-success text-success-foreground" : ""}`}
-                >
-                  {healthScore.toFixed(1)}
-                </Badge>
+                {stats.healthScore && (
+                  <Badge variant="outline" className="text-[10px] h-5">
+                    {(stats.healthScore * 10).toFixed(0)}
+                  </Badge>
+                )}
               </div>
               <p className="text-xs text-muted-foreground truncate">
-                {healthScore >= 8 ? "Progresso excelente" : 
-                 healthScore >= 6 ? "Bom progresso" : "Continue se cuidando"}
+                Acompanhe sua jornada de saúde
               </p>
             </div>
           </div>
