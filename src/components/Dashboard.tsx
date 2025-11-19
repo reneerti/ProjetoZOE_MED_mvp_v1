@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity, FileText, Scale, Pill, TrendingUp, LogOut, Bell, Sparkles, Target, Database } from "lucide-react";
+import { Activity, FileText, Scale, Pill, TrendingUp, LogOut, Bell, Sparkles, Target, Database, Settings } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +37,7 @@ interface DashboardStats {
 export const Dashboard = ({ onNavigate }: DashboardProps) => {
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({
     examsCount: 0,
     weightChange: null,
@@ -67,7 +68,8 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         medicationsResult,
         bioResult,
         analysisResult,
-        alertsResult
+        alertsResult,
+        rolesResult
       ] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user?.id).single(),
         supabase.from('exams').select('status').eq('user_id', user?.id),
@@ -75,10 +77,12 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         supabase.from('medications').select('id').eq('user_id', user?.id).eq('active', true),
         supabase.from('bioimpedance_measurements').select('*').eq('user_id', user?.id).order('measurement_date', { ascending: false }).limit(2),
         supabase.from('health_analysis').select('health_score').eq('user_id', user?.id).order('updated_at', { ascending: false }).limit(1).single(),
-        supabase.from('health_alerts').select('id').eq('user_id', user?.id).eq('status', 'unread')
+        supabase.from('health_alerts').select('id').eq('user_id', user?.id).eq('status', 'unread'),
+        supabase.from('user_roles').select('role').eq('user_id', user?.id).single()
       ]);
 
       setProfile(profileResult.data);
+      setIsAdmin(rolesResult.data?.role === 'admin');
 
       // Contar exames processados
       const completedExams = examImagesResult.data?.filter(e => e.processing_status === 'completed') || [];
@@ -430,6 +434,26 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
             </div>
           </div>
         </Card>
+
+        {isAdmin && (
+          <Card
+            className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-primary bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
+            style={{ animationDelay: '0.55s' }}
+            onClick={() => onNavigate("admin")}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-lg">
+                <Settings className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-foreground text-sm mb-0.5">Administração</h3>
+                <p className="text-xs text-muted-foreground truncate">
+                  Gestão do sistema
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
       </div>
 
       <ExamChatDialog open={showChat} onOpenChange={setShowChat} />
