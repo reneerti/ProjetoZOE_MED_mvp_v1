@@ -269,10 +269,11 @@ export const BioimpedanceModuleRevised = ({ onNavigate }: BioimpedanceModuleRevi
               variant="default"
               size="sm"
               onClick={() => navigate('/metrics-evolution', { state: { measurements } })}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 w-full sm:w-auto"
             >
               <TrendingUp className="h-4 w-4 mr-2" />
-              Ver Evolução Completa
+              <span className="hidden sm:inline">Ver Evolução Completa</span>
+              <span className="sm:hidden">Evolução</span>
             </Button>
           )}
         </div>

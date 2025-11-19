@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, Loader2, Upload, Camera, Trash2, Eye, FileText, Activity } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, Loader2, Upload, Camera, Trash2, Eye, FileText, Activity, BarChart3 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PatientAnalysisView } from "./PatientAnalysisView";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/imageCompression";
+import { ImagePreviewDialog } from "./bioimpedance/ImagePreviewDialog";
+import { UploadStatsDialog } from "./bioimpedance/UploadStatsDialog";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals";
 
@@ -51,6 +53,14 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
   const [patientAnalysis, setPatientAnalysis] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("upload");
   const [analyzing, setAnalyzing] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [originalSize, setOriginalSize] = useState<number>(0);
+  const [compressedSize, setCompressedSize] = useState<number>(0);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [userId, setUserId] = useState<string>("");
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -275,44 +285,68 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
     }
   };
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileSelect = async (file: File) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Você precisa estar logado para fazer upload de exames.");
+      return;
+    }
+
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Apenas imagens nos formatos JPG, PNG ou WEBP são aceitas.");
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error("Arquivo muito grande. O tamanho máximo é 10MB.");
+      return;
+    }
+
+    setUserId(user.id);
+    setOriginalSize(file.size);
+    setPreviewUrl(URL.createObjectURL(file));
+    setPreviewFile(file);
+    setShowPreview(true);
+    setIsCompressing(true);
+
+    // Compress in background
     try {
-      setUploading(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Você precisa estar logado para fazer upload de exames.");
-        return;
-      }
-
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-      if (!validTypes.includes(file.type)) {
-        toast.error("Apenas imagens nos formatos JPG, PNG ou WEBP são aceitas.");
-        return;
-      }
-
-      const maxSize = 10 * 1024 * 1024;
-      if (file.size > maxSize) {
-        toast.error("Arquivo muito grande. O tamanho máximo é 10MB.");
-        return;
-      }
-
-      // Compress image before upload
-      toast.info("Comprimindo imagem para upload otimizado...");
-      
-      const compressedFile = await compressImage(file, {
+      const compressed = await compressImage(file, {
         maxWidth: 1920,
         maxHeight: 1920,
         quality: 0.85,
         maxSizeMB: 2
       });
+      setPreviewFile(compressed);
+      setCompressedSize(compressed.size);
+    } catch (error) {
+      console.error('Compression error:', error);
+      setCompressedSize(file.size);
+    } finally {
+      setIsCompressing(false);
+    }
+  };
 
-      const fileExt = compressedFile.name.split('.').pop();
+  const handleFileUpload = async () => {
+    if (!previewFile) return;
+    
+    try {
+      setUploading(true);
+      setShowPreview(false);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      toast.info("Fazendo upload do exame comprimido...");
+
+      const fileExt = previewFile.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('exam-images')
-        .upload(fileName, compressedFile);
+        .upload(fileName, previewFile);
 
       if (uploadError) throw uploadError;
 
@@ -405,7 +439,7 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      handleFileUpload(file);
+      handleFileSelect(file);
     }
   };
 
@@ -446,6 +480,23 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
 
   return (
     <div className="animate-fade-in pb-24">
+      <UploadStatsDialog open={showStats} onOpenChange={setShowStats} userId={userId} />
+      <ImagePreviewDialog
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        imageUrl={previewUrl}
+        fileName={previewFile?.name || ""}
+        originalSize={originalSize}
+        compressedSize={compressedSize}
+        isCompressing={isCompressing}
+        onConfirm={handleFileUpload}
+        onCancel={() => {
+          setShowPreview(false);
+          setPreviewFile(null);
+          setPreviewUrl("");
+        }}
+      />
+      
       <input
         ref={cameraInputRef}
         type="file"
@@ -519,6 +570,16 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
                 <span className="text-sm">Upload Imagem</span>
               </Button>
             </div>
+
+            {/* Stats Button */}
+            <Button 
+              variant="outline" 
+              onClick={() => setShowStats(true)}
+              className="w-full"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Ver Estatísticas de Upload
+            </Button>
 
             {/* Uploaded Exams List */}
             <div className="space-y-3">
