@@ -180,8 +180,8 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
 
   return (
     <div className="animate-fade-in">
-      {/* Header */}
-      <div className="bg-gradient-header text-white p-4 pb-6 rounded-b-3xl animate-slide-in-left">
+      {/* Header - Fixed and Rectangular */}
+      <div className="sticky top-0 z-50 bg-gradient-header text-white p-4 pb-6 shadow-lg">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold">ZoeMed</h1>
@@ -307,12 +307,12 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         <h2 className="text-base font-semibold text-foreground mb-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>Meus Módulos</h2>
 
         <Card
-          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-primary"
+          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-[hsl(200,70%,45%)]"
           style={{ animationDelay: '0.25s' }}
           onClick={() => onNavigate("myexams")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
+            <div className="w-10 h-10 rounded-lg bg-gradient-exams flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
               <FileText className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">
@@ -330,12 +330,12 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-accent"
+          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-[hsl(142,70%,40%)]"
           style={{ animationDelay: '0.3s' }}
           onClick={() => onNavigate("bioimpedance")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent to-primary flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
+            <div className="w-10 h-10 rounded-lg bg-gradient-bioimpedance flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
               <Scale className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">
@@ -365,12 +365,12 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-primary"
+          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-[hsl(340,75%,50%)]"
           style={{ animationDelay: '0.35s' }}
           onClick={() => onNavigate("medication")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
+            <div className="w-10 h-10 rounded-lg bg-gradient-medication flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
               <Pill className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">
@@ -388,12 +388,12 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-accent"
+          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-[hsl(180,65%,45%)]"
           style={{ animationDelay: '0.37s' }}
           onClick={() => onNavigate("supplements")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent to-primary-glow flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
+            <div className="w-10 h-10 rounded-lg bg-gradient-supplements flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
               <Sparkles className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">
@@ -411,12 +411,12 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-success"
+          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-[hsl(38,92%,45%)]"
           style={{ animationDelay: '0.4s' }}
           onClick={() => onNavigate("evolution")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-success to-accent flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
+            <div className="w-10 h-10 rounded-lg bg-gradient-evolution flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
               <TrendingUp className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">
@@ -438,12 +438,12 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-warning"
+          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-[hsl(270,65%,50%)]"
           style={{ animationDelay: '0.45s' }}
           onClick={() => onNavigate("goals")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-warning to-success flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
+            <div className="w-10 h-10 rounded-lg bg-gradient-goals flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
               <Target className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">

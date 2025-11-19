@@ -234,7 +234,7 @@ export const BioimpedanceModuleRevised = ({ onNavigate }: BioimpedanceModuleRevi
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="sticky top-0 z-50 bg-gradient-bioimpedance text-white shadow-lg border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
