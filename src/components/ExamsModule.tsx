@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import { ExamHistoryModal } from "./ExamHistoryModal";
+import { compressImage } from "@/lib/imageCompression";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals";
 
@@ -55,12 +56,25 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
         return;
       }
 
-      const fileExt = file.name.split('.').pop();
+      // Compress image before upload
+      toast({
+        title: "Comprimindo imagem...",
+        description: "Otimizando para upload rápido",
+      });
+      
+      const compressedFile = await compressImage(file, {
+        maxWidth: 1920,
+        maxHeight: 1920,
+        quality: 0.85,
+        maxSizeMB: 2
+      });
+
+      const fileExt = compressedFile.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('exam-images')
-        .upload(fileName, file);
+        .upload(fileName, compressedFile);
 
       if (uploadError) throw uploadError;
 
