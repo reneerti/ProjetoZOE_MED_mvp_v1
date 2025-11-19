@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sanitizeStructuredData } from '../_shared/promptSanitizer.ts';
+import { callAIWithFallback } from '../_shared/aiFallback.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -96,13 +97,7 @@ serve(async (req) => {
     // Sanitize stats to prevent injection via calculated fields
     const sanitizedStats = sanitizeStructuredData(stats);
 
-    // Usar Lovable AI para análise avançada
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    
-    if (!lovableApiKey) {
-      console.error('LOVABLE_API_KEY not configured');
-      return simpleAnalysis(supabaseClient, user.id, sanitizedStats, wearableData);
-    }
+    console.log('Analyzing wearable data with AI fallback...');
 
     const systemPrompt = `Você é um especialista em saúde e análise de dados de wearables. 
 Responda sempre em JSON válido.
@@ -144,23 +139,16 @@ Responda APENAS em JSON válido no formato:
   "summary": "resumo em português"
 }`;
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: aiPrompt }
-        ],
-      }),
+    const aiResponse = await callAIWithFallback({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: aiPrompt }
+      ],
     });
 
     if (!aiResponse.ok) {
-      console.error('AI API error:', await aiResponse.text());
+      console.error('AI error, using simple analysis:', await aiResponse.text());
       return simpleAnalysis(supabaseClient, user.id, stats, wearableData);
     }
 

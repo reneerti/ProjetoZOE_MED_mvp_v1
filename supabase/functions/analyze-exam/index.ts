@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 import { sanitizeStructuredData, createSecurePromptTemplate } from '../_shared/promptSanitizer.ts';
+import { callAIWithFallback } from '../_shared/aiFallback.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -90,13 +91,7 @@ serve(async (req) => {
     // Sanitize exam data to prevent prompt injection
     const sanitizedExamData = sanitizeStructuredData(examData);
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
-    console.log("Processing exam analysis for authenticated user");
+    console.log("Processing exam analysis for authenticated user with AI fallback");
 
     const systemPrompt = `Você é um assistente médico especializado em análise de exames laboratoriais. 
 Sua função é analisar resultados de exames e fornecer insights claros e úteis em português do Brasil.
@@ -123,37 +118,21 @@ Por favor, forneça:
 3. Recomendações gerais
 4. Lembrando sempre que é necessário consultar um médico`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ],
-      }),
+    const response = await callAIWithFallback({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Limite de requisições excedido. Tente novamente mais tarde." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Créditos insuficientes. Por favor, adicione fundos ao workspace." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error("Erro ao comunicar com o serviço de IA");
+      console.error("AI error:", response.status, errorText);
+      return new Response(
+        JSON.stringify({ error: "Erro ao analisar exame. Por favor, tente novamente." }),
+        { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const data = await response.json();

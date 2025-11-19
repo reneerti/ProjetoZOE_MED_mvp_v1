@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.79.0';
 import { sanitizeUserInput, validateAndSanitize, INPUT_LIMITS } from '../_shared/promptSanitizer.ts';
+import { callAIWithFallback } from '../_shared/aiFallback.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -151,41 +152,32 @@ ${contextInfo}
 - Finalize sempre com dica útil ou pergunta sugerida para o médico`;
 
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
+    console.log('Initiating chat with AI fallback (streaming)...');
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages
-        ],
-        stream: true
-      }),
+    const response = await callAIWithFallback({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...messages
+      ],
+      stream: true
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('AI error:', response.status, errorText);
+      
+      let errorMessage = 'Erro ao comunicar com o serviço de IA.';
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns instantes.' }), {
-          status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        errorMessage = 'Limite de requisições excedido. Tente novamente em alguns instantes.';
+      } else if (response.status === 402) {
+        errorMessage = 'Créditos insuficientes.';
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'Créditos insuficientes.' }), {
-          status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      throw new Error('AI gateway error');
+      
+      return new Response(JSON.stringify({ error: errorMessage }), {
+        status: response.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     return new Response(response.body, {

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.79.0";
 import { sanitizeStructuredData } from '../_shared/promptSanitizer.ts';
+import { callAIWithFallback } from '../_shared/aiFallback.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -112,57 +113,49 @@ Para cada suplemento, forneça:
 6. Justificativa baseada nos dados apresentados
 `;
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+    console.log('Generating supplement suggestions with AI fallback...');
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        tools: [{
-          type: 'function',
-          function: {
-            name: 'suggest_supplements',
-            description: 'Retorna sugestões de suplementos personalizadas',
-            parameters: {
-              type: 'object',
-              properties: {
-                supplements: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      name: { type: 'string' },
-                      dose: { type: 'string' },
-                      unit: { type: 'string' },
-                      type: { type: 'string' },
-                      frequency: { type: 'string' },
-                      timeOfDay: { type: 'string' },
-                      reasoning: { type: 'string' }
-                    },
-                    required: ['name', 'dose', 'unit', 'type', 'frequency', 'reasoning']
-                  }
+    const aiResponse = await callAIWithFallback({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      tools: [{
+        type: 'function',
+        function: {
+          name: 'suggest_supplements',
+          description: 'Retorna sugestões de suplementos personalizadas',
+          parameters: {
+            type: 'object',
+            properties: {
+              supplements: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    dose: { type: 'string' },
+                    unit: { type: 'string' },
+                    type: { type: 'string' },
+                    frequency: { type: 'string' },
+                    timeOfDay: { type: 'string' },
+                    reasoning: { type: 'string' }
+                  },
+                  required: ['name', 'dose', 'unit', 'type', 'frequency', 'reasoning']
                 }
-              },
-              required: ['supplements']
-            }
+              }
+            },
+            required: ['supplements']
           }
-        }],
-        tool_choice: { type: 'function', function: { name: 'suggest_supplements' } }
-      })
+        }
+      }],
+      tool_choice: { type: 'function', function: { name: 'suggest_supplements' } }
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error('AI Gateway error:', aiResponse.status, errorText);
+      console.error('AI error:', aiResponse.status, errorText);
       throw new Error('Failed to get AI recommendations');
     }
 

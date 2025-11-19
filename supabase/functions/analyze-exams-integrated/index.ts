@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callAIWithFallback } from '../_shared/aiFallback.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -133,126 +134,39 @@ serve(async (req) => {
     console.log(`✅ [2/5] ${examResults?.length || 0} resultados de parâmetros carregados`);
 
     // Chamar Gemini AI para análise integrada
-    console.log("🤖 [3/5] Chamando Lovable AI (Gemini 2.5 Pro) para análise integrada...");
+    console.log("🤖 [3/5] Chamando AI com fallback automático (Lovable AI → Gemini) para análise integrada...");
     const aiStartTime = Date.now();
-    
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
 
     const prompt = `Você é um assistente médico especializado em análise de exames laboratoriais.
 
 Analise os seguintes exames do paciente e forneça:
-
-1. **Score de Saúde (0-10)**: Uma pontuação geral baseada em todos os exames
-2. **Análise Integrada**: Insights sobre o estado geral de saúde, considerando todos os exames juntos
-3. **Pontos de Atenção**: Lista de parâmetros alterados que merecem atenção, agrupados por categoria
-4. **Evolução**: Se houver exames da mesma categoria em datas diferentes, analise a evolução
-5. **Recomendações de Especialistas**: Sugira especialistas médicos que o paciente deve consultar com base nos resultados
-6. **Análise para o Paciente**: Versão simplificada em linguagem clara, sem termos médicos complexos
-
-Exames do paciente:
-${JSON.stringify(examsSummary, null, 2)}
-
-IMPORTANTE: 
-- Seja claro e objetivo
-- Use linguagem acessível mas técnica quando necessário
-- Identifique padrões entre diferentes exames
-- Destaque qualquer tendência preocupante ou melhora
-- Seja conservador nas recomendações - sempre sugira consultar médico quando houver dúvidas
-
-Responda em formato JSON com a seguinte estrutura:
-{
-  "health_score": número de 0 a 10,
-  "summary": "texto de resumo geral",
-  "attention_points": [
-    {
-      "category": "nome da categoria",
-      "parameter": "nome do parâmetro",
-      "value": "valor encontrado",
-      "status": "alto/baixo/crítico",
-      "recommendation": "o que fazer"
-    }
-  ],
-  "evolution": [
-    {
-      "category": "nome da categoria",
-      "trend": "melhorando/piorando/estável",
-      "details": "detalhes da evolução"
-    }
-  ],
-  "specialists": [
-    {
-      "specialty": "nome da especialidade",
-      "reason": "motivo da recomendação",
-      "priority": "alta/média/baixa"
-    }
-  ],
-  "patient_view": {
-    "summary": {
-      "normal_count": número de exames normais,
-      "attention_count": número de exames que precisam atenção,
-      "critical_count": número de exames críticos,
-      "message": "mensagem encorajadora para o paciente"
-    },
-    "grouped_results": [
-      {
-        "group_name": "nome simples da categoria (ex: Açúcar no Sangue, Gorduras, Fígado)",
-        "icon": "emoji apropriado",
-        "status": "normal|warning|critical",
-        "simple_explanation": "explicação em linguagem MUITO simples (máximo 2 frases)",
-        "key_values": [
-          {
-            "name": "nome do parâmetro",
-            "value": "valor com unidade",
-            "status": "normal|warning|critical",
-            "simple_meaning": "o que significa em termos simples"
-          }
-        ]
-      }
-    ],
-    "key_insights": [
-      {
-        "title": "título curto e claro",
-        "description": "explicação simples do achado importante",
-        "color": "green|yellow|red|blue",
-        "action": "o que fazer sobre isso (linguagem simples)"
-      }
+...
     ]
   }
 }`;
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-pro',
-        messages: [
-          { role: 'user', content: prompt }
-        ]
-      }),
+    const aiResponse = await callAIWithFallback({
+      model: 'google/gemini-2.5-pro',
+      messages: [
+        { role: 'user', content: prompt }
+      ]
     });
 
     if (!aiResponse.ok) {
-      if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente mais tarde.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Créditos insuficientes. Adicione créditos ao seu workspace Lovable AI.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
       const errorText = await aiResponse.text();
-      console.error('AI Gateway error:', aiResponse.status, errorText);
-      throw new Error('Erro ao processar análise com IA');
+      console.error('AI error:', aiResponse.status, errorText);
+      
+      let errorMessage = 'Erro ao processar análise com IA';
+      if (aiResponse.status === 429) {
+        errorMessage = 'Limite de requisições excedido. Tente novamente mais tarde.';
+      } else if (aiResponse.status === 402) {
+        errorMessage = 'Créditos insuficientes. Adicione créditos ao seu workspace Lovable AI.';
+      }
+      
+      return new Response(
+        JSON.stringify({ error: errorMessage }),
+        { status: aiResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const aiData = await aiResponse.json();
