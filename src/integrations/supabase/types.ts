@@ -299,6 +299,33 @@ export type Database = {
         }
         Relationships: []
       }
+      cache_performance_daily: {
+        Row: {
+          cache_hit_rate: number
+          created_at: string
+          date: string
+          id: string
+          total_hits: number
+          total_requests: number
+        }
+        Insert: {
+          cache_hit_rate: number
+          created_at?: string
+          date: string
+          id?: string
+          total_hits: number
+          total_requests: number
+        }
+        Update: {
+          cache_hit_rate?: number
+          created_at?: string
+          date?: string
+          id?: string
+          total_hits?: number
+          total_requests?: number
+        }
+        Relationships: []
+      }
       controller_patients: {
         Row: {
           controller_id: string
@@ -1333,6 +1360,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_cache_performance_alert: {
+        Args: never
+        Returns: {
+          avg_hit_rate: number
+          days_below_threshold: number
+          should_alert: boolean
+        }[]
+      }
       check_rate_limit: {
         Args: {
           p_endpoint: string
@@ -1435,10 +1470,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      invalidate_all_cache: { Args: never; Returns: number }
+      invalidate_cache_by_function: {
+        Args: { _function_name: string }
+        Returns: number
+      }
       is_patient_of_controller: {
         Args: { _controller_id: string; _patient_id: string }
         Returns: boolean
       }
+      record_daily_cache_performance: { Args: never; Returns: undefined }
       validate_password_strength: {
         Args: { password_text: string }
         Returns: {

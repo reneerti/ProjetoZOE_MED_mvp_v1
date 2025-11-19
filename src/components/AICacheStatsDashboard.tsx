@@ -1,13 +1,55 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCacheStats } from "@/hooks/useAIUsageStats";
+import { useCacheStats, invalidateCacheByFunction, invalidateAllCache, useCachePerformanceAlert } from "@/hooks/useAIUsageStats";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Database, TrendingUp, DollarSign, Clock, HardDrive, Target } from "lucide-react";
+import { Database, TrendingUp, DollarSign, Clock, HardDrive, Target, Trash2, AlertTriangle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const AICacheStatsDashboard = () => {
-  const { data: stats, isLoading } = useCacheStats();
+  const { data: stats, isLoading, refetch } = useCacheStats();
+  const { data: alertData } = useCachePerformanceAlert();
+  const [invalidatingFunction, setInvalidatingFunction] = useState<string | null>(null);
+  const [showInvalidateAllDialog, setShowInvalidateAllDialog] = useState(false);
+
+  const handleInvalidateFunction = async (functionName: string) => {
+    try {
+      setInvalidatingFunction(functionName);
+      const deletedCount = await invalidateCacheByFunction(functionName);
+      toast.success(`${deletedCount} entradas de cache removidas para ${functionName}`);
+      refetch();
+    } catch (error) {
+      toast.error("Erro ao invalidar cache");
+      console.error(error);
+    } finally {
+      setInvalidatingFunction(null);
+    }
+  };
+
+  const handleInvalidateAll = async () => {
+    try {
+      const deletedCount = await invalidateAllCache();
+      toast.success(`Todo o cache foi limpo (${deletedCount} entradas removidas)`);
+      setShowInvalidateAllDialog(false);
+      refetch();
+    } catch (error) {
+      toast.error("Erro ao limpar cache");
+      console.error(error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -33,6 +75,50 @@ export const AICacheStatsDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Performance Alert */}
+      {alertData?.should_alert && (
+        <Card className="border-red-500 bg-red-50 dark:bg-red-950/20">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <CardTitle className="text-red-900 dark:text-red-100">
+                Alerta de Performance de Cache
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-red-800 dark:text-red-200">
+              A taxa de acerto de cache está abaixo de 15% por {alertData.days_below_threshold} dias consecutivos.
+              Taxa média: {Number(alertData.avg_hit_rate).toFixed(1)}%
+            </p>
+            <p className="text-sm text-red-800 dark:text-red-200 mt-2">
+              <strong>Ação recomendada:</strong> Revise os padrões de uso ou considere ajustar o TTL do cache.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Cache Controls */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Controle de Cache</CardTitle>
+              <CardDescription>Gerenciar e invalidar cache manualmente</CardDescription>
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setShowInvalidateAllDialog(true)}
+              disabled={!stats || stats.total_cached_responses === 0}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Limpar Todo Cache
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
+
       {/* Cache Performance Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -188,9 +274,19 @@ export const AICacheStatsDashboard = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-green-600">{hitRate}%</p>
-                        <p className="text-xs text-muted-foreground">taxa de acerto</p>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-green-600">{hitRate}%</p>
+                          <p className="text-xs text-muted-foreground">taxa de acerto</p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleInvalidateFunction(func.function_name)}
+                          disabled={invalidatingFunction === func.function_name}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   );
@@ -205,6 +301,25 @@ export const AICacheStatsDashboard = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Invalidate All Dialog */}
+      <AlertDialog open={showInvalidateAllDialog} onOpenChange={setShowInvalidateAllDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Limpar Todo o Cache?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isso removerá todas as {stats?.total_cached_responses || 0} respostas em cache.
+              Esta ação não pode ser desfeita e forçará novas chamadas de API para todas as requisições subsequentes.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleInvalidateAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Limpar Cache
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Performance Recommendations */}
       {hitRate < 20 && stats.total_cached_responses > 10 && (
