@@ -11,6 +11,7 @@ import { PatientAnalysisView } from "./PatientAnalysisView";
 import { ExamChatDialog } from "./ExamChatDialog";
 import { HealthScoreCard } from "./HealthScoreCard";
 import { WearableTokenNotifications } from "./wearables/WearableTokenNotifications";
+import { AIUsageNotifications } from "./AIUsageNotifications";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables" | "ai-monitoring";
 
@@ -218,6 +219,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
       {/* Health Score Section */}
       <div className="p-6 space-y-4">
         <WearableTokenNotifications />
+        <AIUsageNotifications />
         <HealthScoreCard score={stats.healthScore ? stats.healthScore * 100 : null} />
       </div>
 

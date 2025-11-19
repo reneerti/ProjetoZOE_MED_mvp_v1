@@ -51,6 +51,16 @@ const Index = () => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(console.error);
     }
+
+    // Listener para navegar ao dashboard de AI
+    const handleNavigateToAI = () => {
+      setCurrentView('ai-monitoring');
+    };
+    window.addEventListener('navigate-to-ai-monitoring', handleNavigateToAI);
+    
+    return () => {
+      window.removeEventListener('navigate-to-ai-monitoring', handleNavigateToAI);
+    };
   }, []);
 
   if (loading) {
