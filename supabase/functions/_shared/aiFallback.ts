@@ -35,14 +35,68 @@ interface AIResponse {
 }
 
 /**
+ * Logs AI usage to database for monitoring
+ */
+async function logAIUsage(
+  userId: string,
+  functionName: string,
+  provider: 'lovable_ai' | 'gemini_api' | 'fallback',
+  model: string,
+  success: boolean,
+  responseTimeMs: number,
+  errorMessage?: string
+) {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseKey) return;
+
+    // Estimate cost based on provider and model
+    let estimatedCost = 0;
+    if (provider === 'lovable_ai') {
+      estimatedCost = 0.001; // ~$0.001 per request (Lovable AI)
+    } else if (provider === 'gemini_api') {
+      estimatedCost = 0.0002; // ~$0.0002 per request (Gemini is cheaper)
+    }
+
+    await fetch(`${supabaseUrl}/rest/v1/ai_usage_logs`, {
+      method: 'POST',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        function_name: functionName,
+        provider,
+        model,
+        success,
+        response_time_ms: responseTimeMs,
+        estimated_cost_usd: estimatedCost,
+        error_message: errorMessage
+      })
+    });
+  } catch (error) {
+    console.error('Failed to log AI usage:', error);
+    // Don't throw - logging shouldn't break the main flow
+  }
+}
+
+/**
  * Attempts to call AI with automatic fallback
  * Returns response body (not JSON) for streaming support
  */
 export async function callAIWithFallback(
-  options: AIRequestOptions
+  options: AIRequestOptions,
+  userId?: string,
+  functionName?: string
 ): Promise<Response> {
   const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
   const GOOGLE_AI_API_KEY = Deno.env.get('GOOGLE_AI_API_KEY');
+  const startTime = Date.now();
 
   // Try Lovable AI first
   if (LOVABLE_API_KEY) {
@@ -64,9 +118,15 @@ export async function callAIWithFallback(
         }),
       });
 
-      // If successful, return the response
+      // If successful, log and return the response
       if (response.ok) {
         console.log('✓ Lovable AI successful');
+        const responseTime = Date.now() - startTime;
+        
+        if (userId && functionName) {
+          logAIUsage(userId, functionName, 'lovable_ai', options.model || 'google/gemini-2.5-flash', true, responseTime);
+        }
+        
         return response;
       }
 
@@ -78,7 +138,13 @@ export async function callAIWithFallback(
       // If 429 (rate limit) or 402 (no credits), try fallback
       if ((status === 429 || status === 402) && GOOGLE_AI_API_KEY) {
         console.log('→ Attempting Gemini API fallback...');
-        return await callGeminiAPI(options, GOOGLE_AI_API_KEY);
+        
+        if (userId && functionName) {
+          const responseTime = Date.now() - startTime;
+          logAIUsage(userId, functionName, 'fallback', options.model || 'google/gemini-2.5-flash', false, responseTime, `Lovable AI ${status === 429 ? 'rate limited' : 'no credits'}, using fallback`);
+        }
+        
+        return await callGeminiAPI(options, GOOGLE_AI_API_KEY, userId, functionName, startTime);
       }
 
       // For other errors, return the Lovable AI error response
@@ -93,7 +159,13 @@ export async function callAIWithFallback(
       // Try fallback on network or other errors
       if (GOOGLE_AI_API_KEY) {
         console.log('→ Attempting Gemini API fallback due to error...');
-        return await callGeminiAPI(options, GOOGLE_AI_API_KEY);
+        
+        if (userId && functionName) {
+          const responseTime = Date.now() - startTime;
+          logAIUsage(userId, functionName, 'fallback', options.model || 'google/gemini-2.5-flash', false, responseTime, 'Lovable AI error, using fallback');
+        }
+        
+        return await callGeminiAPI(options, GOOGLE_AI_API_KEY, userId, functionName, startTime);
       }
       
       throw error;
@@ -103,7 +175,7 @@ export async function callAIWithFallback(
   // If no Lovable AI key, try Gemini directly
   if (GOOGLE_AI_API_KEY) {
     console.log('No Lovable AI key, using Gemini API directly...');
-    return await callGeminiAPI(options, GOOGLE_AI_API_KEY);
+    return await callGeminiAPI(options, GOOGLE_AI_API_KEY, userId, functionName, startTime);
   }
 
   throw new Error('No AI API keys configured (LOVABLE_API_KEY or GOOGLE_AI_API_KEY)');
@@ -115,8 +187,12 @@ export async function callAIWithFallback(
  */
 async function callGeminiAPI(
   options: AIRequestOptions,
-  apiKey: string
+  apiKey: string,
+  userId?: string,
+  functionName?: string,
+  startTime?: number
 ): Promise<Response> {
+  const callStartTime = startTime || Date.now();
   // Map model name
   const modelMap: Record<string, string> = {
     'google/gemini-2.5-flash': 'gemini-2.0-flash-exp',
@@ -192,6 +268,11 @@ async function callGeminiAPI(
       const openAIFormat = convertGeminiToOpenAI(geminiData, options.tools);
       
       console.log('✓ Gemini API successful');
+      
+      const responseTime = Date.now() - callStartTime;
+      if (userId && functionName) {
+        logAIUsage(userId, functionName, 'gemini_api', geminiModel, true, responseTime);
+      }
       
       return new Response(JSON.stringify(openAIFormat), {
         status: 200,

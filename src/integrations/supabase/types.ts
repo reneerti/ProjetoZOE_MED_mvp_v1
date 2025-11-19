@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_usage_alerts: {
+        Row: {
+          created_at: string
+          daily_cost_threshold: number | null
+          enable_cost_alerts: boolean
+          enable_fallback_alerts: boolean
+          fallback_threshold: number
+          id: string
+          last_alert_sent_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_cost_threshold?: number | null
+          enable_cost_alerts?: boolean
+          enable_fallback_alerts?: boolean
+          fallback_threshold?: number
+          id?: string
+          last_alert_sent_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_cost_threshold?: number | null
+          enable_cost_alerts?: boolean
+          enable_fallback_alerts?: boolean
+          fallback_threshold?: number
+          id?: string
+          last_alert_sent_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_usage_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          estimated_cost_usd: number | null
+          function_name: string
+          id: string
+          model: string | null
+          provider: string
+          response_time_ms: number | null
+          success: boolean
+          tokens_used: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          estimated_cost_usd?: number | null
+          function_name: string
+          id?: string
+          model?: string | null
+          provider: string
+          response_time_ms?: number | null
+          success?: boolean
+          tokens_used?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          estimated_cost_usd?: number | null
+          function_name?: string
+          id?: string
+          model?: string | null
+          provider?: string
+          response_time_ms?: number | null
+          success?: boolean
+          tokens_used?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       bioimpedance_measurements: {
         Row: {
           body_fat_percentage: number | null
@@ -1194,6 +1272,19 @@ export type Database = {
           total_storage_mb: number
           total_uploads: number
           total_users: number
+        }[]
+      }
+      get_ai_usage_stats: {
+        Args: { _days?: number; _user_id: string }
+        Returns: {
+          avg_response_time_ms: number
+          daily_stats: Json
+          fallback_requests: number
+          gemini_api_requests: number
+          lovable_ai_requests: number
+          success_rate: number
+          total_cost_usd: number
+          total_requests: number
         }[]
       }
       get_all_users_admin: {

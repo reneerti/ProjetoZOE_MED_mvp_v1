@@ -124,7 +124,7 @@ Por favor, forneça:
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ],
-    });
+    }, user.id, 'analyze-exam');
 
     if (!response.ok) {
       const errorText = await response.text();

@@ -150,7 +150,7 @@ Analise os seguintes exames do paciente e forneça:
       messages: [
         { role: 'user', content: prompt }
       ]
-    });
+    }, user.id, 'analyze-exams-integrated');
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
