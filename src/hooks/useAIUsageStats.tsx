@@ -202,3 +202,35 @@ export const useCacheStats = () => {
     refetchInterval: 30000, // Refetch every 30s
   });
 };
+
+export const invalidateCacheByFunction = async (functionName: string) => {
+  const { data, error } = await supabase.rpc('invalidate_cache_by_function' as any, {
+    _function_name: functionName
+  });
+  if (error) throw error;
+  return data as number;
+};
+
+export const invalidateAllCache = async () => {
+  const { data, error } = await supabase.rpc('invalidate_all_cache' as any);
+  if (error) throw error;
+  return data as number;
+};
+
+export interface CachePerformanceAlert {
+  should_alert: boolean;
+  avg_hit_rate: number;
+  days_below_threshold: number;
+}
+
+export const useCachePerformanceAlert = () => {
+  return useQuery({
+    queryKey: ['cache-performance-alert'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('check_cache_performance_alert' as any).single();
+      if (error) throw error;
+      return data as CachePerformanceAlert;
+    },
+    refetchInterval: 3600000, // Refetch every hour
+  });
+};
