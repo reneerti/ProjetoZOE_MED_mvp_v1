@@ -1394,6 +1394,19 @@ export type Database = {
           remaining_budget: number
         }[]
       }
+      get_cache_stats: {
+        Args: never
+        Returns: {
+          avg_cache_age_hours: number
+          cache_hit_rate: number
+          cache_size_mb: number
+          estimated_cost_saved: number
+          most_cached_functions: Json
+          total_cache_hits: number
+          total_cached_responses: number
+          total_cached_tokens: number
+        }[]
+      }
       get_controller_patients: {
         Args: { _controller_id: string }
         Returns: {
