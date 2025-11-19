@@ -1,7 +1,7 @@
 import { Home, FileText, TrendingUp, User } from "lucide-react";
 import { useState, useEffect } from "react";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts";
 
 interface BottomNavProps {
   currentView: View;

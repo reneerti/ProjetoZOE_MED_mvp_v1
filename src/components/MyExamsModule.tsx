@@ -11,7 +11,7 @@ import { compressImage } from "@/lib/imageCompression";
 import { ImagePreviewDialog } from "./bioimpedance/ImagePreviewDialog";
 import { UploadStatsDialog } from "./bioimpedance/UploadStatsDialog";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "exam-charts";
 
 interface MyExamsModuleProps {
   onNavigate: (view: View) => void;
@@ -330,71 +330,59 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
   };
 
   const handleFileUpload = async () => {
-    if (!previewFile) return;
-    
+    if (!previewFile || !userId) return;
+
     try {
       setUploading(true);
-      setShowPreview(false);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      toast.info("Fazendo upload do exame comprimido...");
-
       const fileExt = previewFile.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-      
+      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+
+      // Upload da imagem comprimida
       const { error: uploadError } = await supabase.storage
         .from('exam-images')
         .upload(fileName, previewFile);
 
       if (uploadError) throw uploadError;
 
-      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+      // Obter URL pública
+      const { data: { publicUrl } } = supabase.storage
         .from('exam-images')
-        .createSignedUrl(fileName, 3600);
+        .getPublicUrl(fileName);
 
-      if (signedUrlError) throw signedUrlError;
-
-      const { data: newExam, error: insertError } = await supabase
+      // Inserir registro no banco
+      const { data: examImage, error: insertError } = await supabase
         .from('exam_images')
         .insert({
-          user_id: user.id,
-          image_url: fileName,
-          processing_status: 'pending'
+          user_id: userId,
+          image_url: publicUrl,
+          processing_status: 'processing'
         })
         .select()
         .single();
 
       if (insertError) throw insertError;
 
-      toast.success("Exame enviado. Processando OCR...");
+      toast.success("Upload concluído! Processando automaticamente...");
+      
+      // Processar OCR automaticamente em background
+      supabase.functions.invoke('process-ocr', {
+        body: {
+          imageUrl: publicUrl,
+          examImageId: examImage.id
+        }
+      }).then(({ error: ocrError }) => {
+        if (ocrError) {
+          console.error('OCR Error:', ocrError);
+        }
+      });
 
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (newExam && session) {
-        supabase.functions
-          .invoke('process-ocr', {
-            body: {
-              imageUrl: signedUrlData.signedUrl,
-              examImageId: newExam.id
-            },
-            headers: {
-              Authorization: `Bearer ${session.access_token}`
-            }
-          })
-          .then(({ error: ocrError }) => {
-            if (ocrError) {
-              console.error('OCR processing error');
-              toast.error("Erro ao processar OCR. Tente novamente.");
-            }
-          });
-      }
-
-      loadUploadedExams();
+      await loadUploadedExams();
+      setShowPreview(false);
+      setPreviewFile(null);
+      setPreviewUrl("");
     } catch (error: any) {
-      console.error('Error uploading file');
-      toast.error(error.message || "Não foi possível enviar o arquivo.");
+      console.error('Upload error:', error);
+      toast.error("Erro ao fazer upload: " + error.message);
     } finally {
       setUploading(false);
     }
@@ -457,22 +445,18 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
   };
 
   const runIntegratedAnalysis = async () => {
-    setAnalyzing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('analyze-exams-integrated');
-
+      setAnalyzing(true);
+      
+      const { error } = await supabase.functions.invoke('analyze-exams-integrated');
+      
       if (error) throw error;
-
-      if (data.error) {
-        toast.error(data.error);
-        return;
-      }
-
-      toast.success("Análise integrada concluída!");
+      
       await loadPatientAnalysis();
+      toast.success("Análise atualizada!");
     } catch (error: any) {
-      console.error('Error running analysis:', error);
-      toast.error(error.message || "Erro ao executar análise integrada");
+      console.error('Analysis error:', error);
+      toast.error("Erro ao analisar exames");
     } finally {
       setAnalyzing(false);
     }
@@ -643,6 +627,34 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
           </TabsContent>
 
           <TabsContent value="results" className="space-y-4 mt-0">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Análise de Resultados</h3>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onNavigate("exam-charts")}
+                  disabled={groupedExams.length === 0}
+                >
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Gráficos
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={runIntegratedAnalysis}
+                  disabled={analyzing}
+                >
+                  {analyzing ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Activity className="w-4 h-4 mr-2" />
+                  )}
+                  Atualizar
+                </Button>
+              </div>
+            </div>
+
             {patientAnalysis ? (
               <PatientAnalysisView patientView={patientAnalysis} />
             ) : (
