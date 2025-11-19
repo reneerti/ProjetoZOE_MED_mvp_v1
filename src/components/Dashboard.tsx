@@ -181,13 +181,13 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
   return (
     <div className="animate-fade-in">
       {/* Header + Score - Fixed Together */}
-      <div className="sticky top-0 z-50 bg-gradient-header text-white shadow-lg">
+      <div className="sticky top-0 z-50 bg-gradient-to-br from-[#6B46C1] via-[#7C3AED] to-[#8B5CF6] text-white shadow-2xl">
         {/* Header */}
         <div className="p-4 pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold">ZoeMed</h1>
-              <p className="text-white/80 text-xs mt-0.5">
+              <h1 className="text-xl font-bold drop-shadow-md">ZoeMed</h1>
+              <p className="text-white/90 text-xs mt-0.5 drop-shadow">
                 Saúde Inteligente
               </p>
             </div>
@@ -196,18 +196,18 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowChat(true)}
-                className="text-white hover:bg-white/20 h-9 w-9"
+                className="text-white hover:bg-white/20 h-10 w-10"
                 title="Chat com IA sobre seus exames"
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-5 h-5" strokeWidth={2.4} />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowAlerts(!showAlerts)}
-                className="text-white hover:bg-white/20 relative h-9 w-9"
+                className="text-white hover:bg-white/20 relative h-10 w-10"
               >
-                <Bell className="w-4 h-4" />
+                <Bell className="w-5 h-5" strokeWidth={2.4} />
                 {stats.unreadAlerts > 0 && (
                   <Badge 
                     variant="destructive" 
@@ -221,9 +221,9 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
                 variant="ghost"
                 size="icon"
                 onClick={signOut}
-                className="text-white hover:bg-white/20 h-9 w-9"
+                className="text-white hover:bg-white/20 h-10 w-10"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-5 h-5" strokeWidth={2.4} />
               </Button>
             </div>
           </div>
@@ -318,8 +318,8 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
           onClick={() => onNavigate("myexams")}
         >
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-gradient-exams flex items-center justify-center flex-shrink-0 shadow-lg">
-              <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.4} />
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gradient-exams flex items-center justify-center flex-shrink-0 shadow-lg">
+              <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -341,8 +341,8 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
           onClick={() => onNavigate("bioimpedance")}
         >
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-gradient-bioimpedance flex items-center justify-center flex-shrink-0 shadow-lg">
-              <Scale className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.4} />
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gradient-bioimpedance flex items-center justify-center flex-shrink-0 shadow-lg">
+              <Scale className="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -376,8 +376,8 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
           onClick={() => onNavigate("medication")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-medication flex items-center justify-center flex-shrink-0 shadow-md">
-              <Pill className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" strokeWidth={2.4} />
+            <div className="w-12 h-12 rounded-lg bg-gradient-medication flex items-center justify-center flex-shrink-0 shadow-lg">
+              <Pill className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -399,8 +399,8 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
           onClick={() => onNavigate("supplements")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-supplements flex items-center justify-center flex-shrink-0 shadow-md">
-              <Sparkles className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" strokeWidth={2.4} />
+            <div className="w-12 h-12 rounded-lg bg-gradient-supplements flex items-center justify-center flex-shrink-0 shadow-lg">
+              <Sparkles className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -422,8 +422,8 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
           onClick={() => onNavigate("evolution")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-evolution flex items-center justify-center flex-shrink-0 shadow-md">
-              <TrendingUp className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" strokeWidth={2.4} />
+            <div className="w-12 h-12 rounded-lg bg-gradient-evolution flex items-center justify-center flex-shrink-0 shadow-lg">
+              <TrendingUp className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -449,8 +449,8 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
           onClick={() => onNavigate("goals")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-goals flex items-center justify-center flex-shrink-0 shadow-md">
-              <Target className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" strokeWidth={2.4} />
+            <div className="w-12 h-12 rounded-lg bg-gradient-goals flex items-center justify-center flex-shrink-0 shadow-lg">
+              <Target className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-foreground text-sm mb-0.5">Metas</h3>
@@ -467,8 +467,8 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
           onClick={() => onNavigate("resources")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-muted-foreground to-foreground flex items-center justify-center flex-shrink-0 shadow-md">
-              <Database className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" strokeWidth={2.4} />
+            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-muted-foreground to-foreground flex items-center justify-center flex-shrink-0 shadow-lg">
+              <Database className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-foreground text-sm mb-0.5">Recursos</h3>
