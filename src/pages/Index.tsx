@@ -5,6 +5,8 @@ import { ExamsModule } from "@/components/ExamsModule";
 import { MyExamsModule } from "@/components/MyExamsModule";
 import { BioimpedanceModuleRevised } from "@/components/BioimpedanceModuleRevised";
 import { ExamEvolutionCharts } from "@/components/ExamEvolutionCharts";
+import { CriticalAlertsDashboard } from "@/components/CriticalAlertsDashboard";
+import { PeriodComparisonView } from "@/components/PeriodComparisonView";
 import { MedicationModule } from "@/components/MedicationModule";
 import { EvolutionModule } from "@/components/EvolutionModule";
 import { GoalsModule } from "@/components/GoalsModule";
@@ -18,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { ExamNotifications } from "@/components/ExamNotifications";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>(() => {
@@ -95,6 +97,12 @@ const Index = () => {
         return <div key={viewKey} className="animate-slide-in-right"><ProfileModule onNavigate={setCurrentView} /></div>;
       case "supplements":
         return <div key={viewKey} className="animate-slide-in-right"><SupplementsModule onNavigate={setCurrentView} /></div>;
+      case "exam-charts":
+        return <div key={viewKey} className="animate-slide-in-right"><ExamEvolutionCharts onNavigate={setCurrentView} /></div>;
+      case "alerts":
+        return <div key={viewKey} className="animate-slide-in-right"><CriticalAlertsDashboard onNavigate={setCurrentView} /></div>;
+      case "period-comparison":
+        return <div key={viewKey} className="animate-slide-in-right"><PeriodComparisonView onNavigate={setCurrentView} /></div>;
       default:
         return <div key={viewKey} className="animate-fade-in"><Dashboard onNavigate={setCurrentView} /></div>;
     }

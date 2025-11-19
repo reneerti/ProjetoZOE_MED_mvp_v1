@@ -10,7 +10,7 @@ import { compressImage } from "@/lib/imageCompression";
 import { ImagePreviewDialog } from "./bioimpedance/ImagePreviewDialog";
 import { UploadStatsDialog } from "./bioimpedance/UploadStatsDialog";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison";
 
 interface ExamsModuleProps {
   onNavigate: (view: View) => void;
