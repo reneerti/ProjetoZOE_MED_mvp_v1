@@ -1,16 +1,1 @@
-project_id = "stduwlejzanwslklvmum"
-
-[functions.process-bioimpedance]
-verify_jwt = true
-
-[functions.seed-bioimpedance-data]
-verify_jwt = true
-
-[functions.preview-ocr]
-verify_jwt = true
-
-[functions.cleanup-old-uploads]
-verify_jwt = true
-
-[functions.suggest-supplements]
-verify_jwt = true
+project_id = "hwddjlwapelbrcoyoohg"
