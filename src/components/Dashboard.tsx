@@ -11,7 +11,7 @@ import { PatientAnalysisView } from "./PatientAnalysisView";
 import { ExamChatDialog } from "./ExamChatDialog";
 import { HealthScoreCard } from "./HealthScoreCard";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin";
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
@@ -157,12 +157,17 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-card border-b border-border">
+      <div className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border">
         <div className="p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold">ZoeMed</h1>
-              <p className="text-sm text-muted-foreground">Saúde Inteligente</p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
+                <Activity className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-foreground">ZoeMed</h1>
+                <p className="text-xs text-muted-foreground">Saúde Inteligente</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button

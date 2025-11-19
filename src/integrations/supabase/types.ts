@@ -140,6 +140,30 @@ export type Database = {
         }
         Relationships: []
       }
+      controller_patients: {
+        Row: {
+          controller_id: string
+          created_at: string
+          id: string
+          patient_id: string
+          updated_at: string
+        }
+        Insert: {
+          controller_id: string
+          created_at?: string
+          id?: string
+          patient_id: string
+          updated_at?: string
+        }
+        Update: {
+          controller_id?: string
+          created_at?: string
+          id?: string
+          patient_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       evolution_notes: {
         Row: {
           created_at: string | null
@@ -662,6 +686,36 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          id: string
+          max_exams_per_month: number | null
+          modules_enabled: Json
+          name: string
+          price_monthly: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_exams_per_month?: number | null
+          modules_enabled?: Json
+          name: string
+          price_monthly?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_exams_per_month?: number | null
+          modules_enabled?: Json
+          name?: string
+          price_monthly?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       supplement_logs: {
         Row: {
           created_at: string
@@ -826,6 +880,50 @@ export type Database = {
         }
         Relationships: []
       }
+      user_subscriptions: {
+        Row: {
+          active: boolean
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          exams_used_this_month: number
+          id: string
+          plan_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          current_period_end: string
+          current_period_start?: string
+          exams_used_this_month?: number
+          id?: string
+          plan_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          exams_used_this_month?: number
+          id?: string
+          plan_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wearable_data: {
         Row: {
           calories: number | null
@@ -903,6 +1001,12 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_controller_patients: {
+        Args: { _controller_id: string }
+        Returns: {
+          patient_id: string
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -925,9 +1029,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_patient_of_controller: {
+        Args: { _controller_id: string; _patient_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "controller"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1055,7 +1163,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "controller"],
     },
   },
 } as const

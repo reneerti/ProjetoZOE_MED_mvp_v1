@@ -20,7 +20,9 @@ import { Button } from "@/components/ui/button";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { ExamNotifications } from "@/components/ExamNotifications";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
+
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>(() => {
@@ -103,6 +105,8 @@ const Index = () => {
         return <div key={viewKey} className="animate-slide-in-right"><CriticalAlertsDashboard onNavigate={setCurrentView} /></div>;
       case "period-comparison":
         return <div key={viewKey} className="animate-slide-in-right"><PeriodComparisonView onNavigate={setCurrentView} /></div>;
+      case "admin":
+        return <div key={viewKey} className="animate-slide-in-right"><AdminDashboard onNavigate={setCurrentView} /></div>;
       default:
         return <div key={viewKey} className="animate-fade-in"><Dashboard onNavigate={setCurrentView} /></div>;
     }
