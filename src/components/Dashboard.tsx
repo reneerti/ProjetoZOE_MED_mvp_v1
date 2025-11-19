@@ -319,7 +319,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         >
           <div className="flex items-center gap-3 sm:gap-4">
             <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-gradient-exams flex items-center justify-center flex-shrink-0 shadow-lg">
-              <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
+              <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.4} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -342,7 +342,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         >
           <div className="flex items-center gap-3 sm:gap-4">
             <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-gradient-bioimpedance flex items-center justify-center flex-shrink-0 shadow-lg">
-              <Scale className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
+              <Scale className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.4} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -377,7 +377,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-medication flex items-center justify-center flex-shrink-0 shadow-md">
-              <Pill className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
+              <Pill className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" strokeWidth={2.4} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -400,7 +400,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-supplements flex items-center justify-center flex-shrink-0 shadow-md">
-              <Sparkles className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
+              <Sparkles className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" strokeWidth={2.4} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -423,7 +423,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-evolution flex items-center justify-center flex-shrink-0 shadow-md">
-              <TrendingUp className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
+              <TrendingUp className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" strokeWidth={2.4} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
@@ -450,7 +450,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-goals flex items-center justify-center flex-shrink-0 shadow-md">
-              <Target className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
+              <Target className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" strokeWidth={2.4} />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-foreground text-sm mb-0.5">Metas</h3>
@@ -468,7 +468,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-muted-foreground to-foreground flex items-center justify-center flex-shrink-0 shadow-md">
-              <Database className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
+              <Database className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" strokeWidth={2.4} />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-foreground text-sm mb-0.5">Recursos</h3>
