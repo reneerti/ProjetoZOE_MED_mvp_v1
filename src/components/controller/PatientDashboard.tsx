@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, AlertTriangle, TrendingUp, TrendingDown, Users, Activity, FileText } from "lucide-react";
+import { ArrowLeft, AlertTriangle, TrendingUp, TrendingDown, Users, Activity, FileText, Mail, Download, Filter } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { usePDFExport } from "@/hooks/usePDFExport";
+import { useEmailReport } from "@/hooks/useEmailReport";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables";
 
@@ -41,6 +43,7 @@ interface CriticalAlert {
 
 export const PatientDashboard = ({ onNavigate }: PatientDashboardProps) => {
   const [patients, setPatients] = useState<PatientData[]>([]);
+  const [filteredPatients, setFilteredPatients] = useState<PatientData[]>([]);
   const [criticalAlerts, setCriticalAlerts] = useState<CriticalAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -49,10 +52,61 @@ export const PatientDashboard = ({ onNavigate }: PatientDashboardProps) => {
     criticalAlerts: 0,
     avgHealthScore: 0
   });
+  
+  // Filtros
+  const [scoreFilter, setScoreFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
+  const [alertFilter, setAlertFilter] = useState<'all' | 'critical' | 'none'>('all');
+  const [examPeriodFilter, setExamPeriodFilter] = useState<'all' | 'week' | 'month' | 'old'>('all');
+  
+  const { generateMonthlyReport } = usePDFExport();
+  const { sendMonthlyReport } = useEmailReport();
 
   useEffect(() => {
     loadControllerData();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [patients, scoreFilter, alertFilter, examPeriodFilter]);
+
+  const applyFilters = () => {
+    let filtered = [...patients];
+
+    // Filtro por health score
+    if (scoreFilter === 'high') {
+      filtered = filtered.filter(p => p.health_score && p.health_score >= 80);
+    } else if (scoreFilter === 'medium') {
+      filtered = filtered.filter(p => p.health_score && p.health_score >= 60 && p.health_score < 80);
+    } else if (scoreFilter === 'low') {
+      filtered = filtered.filter(p => !p.health_score || p.health_score < 60);
+    }
+
+    // Filtro por alertas
+    if (alertFilter === 'critical') {
+      filtered = filtered.filter(p => p.critical_alerts > 0);
+    } else if (alertFilter === 'none') {
+      filtered = filtered.filter(p => p.critical_alerts === 0);
+    }
+
+    // Filtro por período do último exame
+    if (examPeriodFilter !== 'all') {
+      const now = new Date();
+      filtered = filtered.filter(p => {
+        if (!p.last_exam_date) return examPeriodFilter === 'old';
+        
+        const examDate = new Date(p.last_exam_date);
+        const diffDays = Math.floor((now.getTime() - examDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (examPeriodFilter === 'week') return diffDays <= 7;
+        if (examPeriodFilter === 'month') return diffDays <= 30;
+        if (examPeriodFilter === 'old') return diffDays > 30;
+        
+        return true;
+      });
+    }
+
+    setFilteredPatients(filtered);
+  };
 
   const loadControllerData = async () => {
     try {
@@ -239,10 +293,152 @@ export const PatientDashboard = ({ onNavigate }: PatientDashboardProps) => {
             <h1 className="text-xl font-bold">Dashboard do Controlador</h1>
             <p className="text-sm text-white/80">Visão geral dos pacientes</p>
           </div>
+          <div className="ml-auto flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={async () => {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                  const now = new Date();
+                  await generateMonthlyReport(user.id, String(now.getMonth() + 1), String(now.getFullYear()));
+                }
+              }}
+              className="text-white hover:bg-white/20"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              PDF
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={async () => {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                  const now = new Date();
+                  await sendMonthlyReport(user.id, String(now.getMonth() + 1), String(now.getFullYear()));
+                }
+              }}
+              className="text-white hover:bg-white/20"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Email
+            </Button>
+          </div>
         </div>
       </div>
 
       <div className="p-4 space-y-6">
+        {/* Filtros */}
+        <Card className="p-4">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Activity className="w-5 h-5" />
+            Filtros Avançados
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm font-medium text-muted-foreground mb-2 block">Health Score</label>
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  variant={scoreFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setScoreFilter('all')}
+                >
+                  Todos
+                </Button>
+                <Button
+                  variant={scoreFilter === 'high' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setScoreFilter('high')}
+                  className="text-green-600"
+                >
+                  80-100
+                </Button>
+                <Button
+                  variant={scoreFilter === 'medium' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setScoreFilter('medium')}
+                  className="text-yellow-600"
+                >
+                  60-79
+                </Button>
+                <Button
+                  variant={scoreFilter === 'low' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setScoreFilter('low')}
+                  className="text-red-600"
+                >
+                  0-59
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-muted-foreground mb-2 block">Alertas Críticos</label>
+              <div className="flex gap-2">
+                <Button
+                  variant={alertFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setAlertFilter('all')}
+                >
+                  Todos
+                </Button>
+                <Button
+                  variant={alertFilter === 'critical' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setAlertFilter('critical')}
+                >
+                  Com Alertas
+                </Button>
+                <Button
+                  variant={alertFilter === 'none' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setAlertFilter('none')}
+                >
+                  Sem Alertas
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-muted-foreground mb-2 block">Último Exame</label>
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  variant={examPeriodFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setExamPeriodFilter('all')}
+                >
+                  Todos
+                </Button>
+                <Button
+                  variant={examPeriodFilter === 'week' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setExamPeriodFilter('week')}
+                >
+                  7 dias
+                </Button>
+                <Button
+                  variant={examPeriodFilter === 'month' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setExamPeriodFilter('month')}
+                >
+                  30 dias
+                </Button>
+                <Button
+                  variant={examPeriodFilter === 'old' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setExamPeriodFilter('old')}
+                >
+                  +30 dias
+                </Button>
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 text-sm text-muted-foreground">
+            Mostrando {filteredPatients.length} de {patients.length} pacientes
+          </div>
+        </Card>
+
         {/* Estatísticas Gerais */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="p-4">
