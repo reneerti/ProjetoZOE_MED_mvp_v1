@@ -1,7 +1,7 @@
-import { Upload, Image as ImageIcon, X } from "lucide-react";
+import { Upload, Image as ImageIcon, X, Camera } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 interface ImageUploadZoneProps {
   onFileSelect: (file: File) => void;
@@ -12,6 +12,8 @@ export const ImageUploadZone = ({ onFileSelect, uploading }: ImageUploadZoneProp
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -71,6 +73,14 @@ export const ImageUploadZone = ({ onFileSelect, uploading }: ImageUploadZoneProp
   const handleCancel = () => {
     setPreviewUrl(null);
     setSelectedFile(null);
+  };
+
+  const handleCameraClick = () => {
+    cameraInputRef.current?.click();
+  };
+
+  const handleFileClick = () => {
+    fileInputRef.current?.click();
   };
 
   if (previewUrl || selectedFile) {
@@ -134,7 +144,7 @@ export const ImageUploadZone = ({ onFileSelect, uploading }: ImageUploadZoneProp
 
   return (
     <Card 
-      className={`p-8 border-2 border-dashed transition-colors ${
+      className={`p-8 border-2 border-dashed transition-colors bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/10 dark:to-purple-950/10 ${
         dragActive ? 'border-primary bg-primary/5' : 'border-border'
       }`}
       onDragEnter={handleDrag}
@@ -142,38 +152,65 @@ export const ImageUploadZone = ({ onFileSelect, uploading }: ImageUploadZoneProp
       onDragOver={handleDrag}
       onDrop={handleDrop}
     >
-      <label className="cursor-pointer block">
-        <input
-          type="file"
-          className="hidden"
-          accept=".jpg,.jpeg,.png,.pdf"
-          onChange={handleChange}
-        />
-        
-        <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <Upload className="h-8 w-8 text-primary" />
-          </div>
-          
-          <div>
-            <p className="text-lg font-semibold mb-1">
-              Arraste sua imagem aqui
-            </p>
-            <p className="text-sm text-muted-foreground">
-              ou clique para selecionar
-            </p>
-          </div>
-
-          <div className="pt-2">
-            <p className="text-xs text-muted-foreground">
-              Formatos suportados: JPG, PNG, PDF
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Tamanho máximo: 10MB
-            </p>
-          </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        accept=".jpg,.jpeg,.png,.pdf"
+        onChange={handleChange}
+      />
+      
+      <input
+        ref={cameraInputRef}
+        type="file"
+        className="hidden"
+        accept="image/*"
+        capture="environment"
+        onChange={handleChange}
+      />
+      
+      <div className="text-center space-y-6">
+        <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
+          <Upload className="h-8 w-8 text-white" />
         </div>
-      </label>
+        
+        <div>
+          <p className="text-lg font-semibold mb-1">
+            Adicione sua medição
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Tire uma foto ou selecione um arquivo
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
+          <Button
+            type="button"
+            variant="default"
+            className="flex-1"
+            onClick={handleCameraClick}
+          >
+            <Camera className="h-4 w-4 mr-2" />
+            Tirar Foto
+          </Button>
+          
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1"
+            onClick={handleFileClick}
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Escolher Arquivo
+          </Button>
+        </div>
+
+        <div className="pt-2">
+          <p className="text-xs text-muted-foreground">
+            Formatos: JPG, PNG, PDF • Máx: 10MB
+          </p>
+        </div>
+      </div>
     </Card>
   );
 };
