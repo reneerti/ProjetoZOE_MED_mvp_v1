@@ -236,9 +236,19 @@ Responda APENAS em JSON válido no formato:
     );
 
   } catch (error) {
-    console.error('Error analyzing wearable data:', error);
+    const errorId = `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.error(`[${errorId}] Error analyzing wearable data:`, {
+      error,
+      timestamp: new Date().toISOString(),
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+    
     return new Response(
-      JSON.stringify({ error: (error as Error).message }),
+      JSON.stringify({ 
+        error: 'Erro ao analisar dados de wearables. Por favor, tente novamente.',
+        errorId,
+        timestamp: new Date().toISOString()
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

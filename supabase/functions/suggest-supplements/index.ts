@@ -202,9 +202,19 @@ Para cada suplemento, forneça:
     );
 
   } catch (error) {
-    console.error('Error:', error);
+    const errorId = `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.error(`[${errorId}] Error in suggest-supplements:`, {
+      error,
+      timestamp: new Date().toISOString(),
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+    
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ 
+        error: 'Erro ao sugerir suplementos. Por favor, tente novamente.',
+        errorId,
+        timestamp: new Date().toISOString()
+      }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
