@@ -10,8 +10,10 @@ import { toast } from "sonner";
 import { compressImage } from "@/lib/imageCompression";
 import { ImagePreviewDialog } from "./bioimpedance/ImagePreviewDialog";
 import { UploadStatsDialog } from "./bioimpedance/UploadStatsDialog";
+import { useSubscription } from "@/hooks/useSubscription";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller";
 
 interface MyExamsModuleProps {
   onNavigate: (view: View) => void;
@@ -45,6 +47,7 @@ interface GroupedExam {
 }
 
 export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
+  const { checkExamLimit, incrementExamCount } = useSubscription();
   const [groupedExams, setGroupedExams] = useState<GroupedExam[]>([]);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -61,6 +64,8 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
   const [compressedSize, setCompressedSize] = useState<number>(0);
   const [isCompressing, setIsCompressing] = useState(false);
   const [userId, setUserId] = useState<string>("");
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
+  const [limitMessage, setLimitMessage] = useState("");
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -292,6 +297,14 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
       return;
     }
 
+    // Verificar limite de exames
+    const limitCheck = checkExamLimit();
+    if (!limitCheck.allowed) {
+      setLimitMessage(limitCheck.message || "Limite de exames atingido");
+      setShowLimitDialog(true);
+      return;
+    }
+
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
       toast.error("Apenas imagens nos formatos JPG, PNG ou WEBP são aceitas.");
@@ -361,6 +374,9 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
         .single();
 
       if (insertError) throw insertError;
+
+      // Incrementar contador de exames
+      await incrementExamCount();
 
       toast.success("Upload concluído! Processando automaticamente...");
       
@@ -686,6 +702,22 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Limite de Exames Atingido</AlertDialogTitle>
+            <AlertDialogDescription>
+              {limitMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowLimitDialog(false)}>
+              Entendi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -21,8 +21,9 @@ import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { ExamNotifications } from "@/components/ExamNotifications";
 
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { PatientDashboard } from "@/components/controller/PatientDashboard";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller";
 
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
@@ -115,6 +116,8 @@ const Index = () => {
         return <div key={viewKey} className="animate-slide-in-right"><PeriodComparisonView onNavigate={setCurrentView} /></div>;
       case "admin":
         return <div key={viewKey} className="animate-slide-in-right"><AdminDashboard onNavigate={setCurrentView} /></div>;
+      case "controller":
+        return <div key={viewKey} className="animate-slide-in-right"><PatientDashboard onNavigate={setCurrentView} /></div>;
       default:
         return <div key={viewKey} className="animate-fade-in"><Dashboard onNavigate={setCurrentView} /></div>;
     }

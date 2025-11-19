@@ -11,7 +11,7 @@ import { PatientAnalysisView } from "./PatientAnalysisView";
 import { ExamChatDialog } from "./ExamChatDialog";
 import { HealthScoreCard } from "./HealthScoreCard";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller";
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
@@ -38,6 +38,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isController, setIsController] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({
     examsCount: 0,
     weightChange: null,
@@ -83,6 +84,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
 
       setProfile(profileResult.data);
       setIsAdmin(rolesResult.data?.role === 'admin');
+      setIsController(rolesResult.data?.role === 'controller');
 
       // Contar exames processados
       const completedExams = examImagesResult.data?.filter(e => e.processing_status === 'completed') || [];
@@ -449,6 +451,26 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
                 <h3 className="font-semibold text-foreground text-sm mb-0.5">Administração</h3>
                 <p className="text-xs text-muted-foreground truncate">
                   Gestão do sistema
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+        
+        {isController && (
+          <Card
+            className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-indigo-600 bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
+            style={{ animationDelay: '0.6s' }}
+            onClick={() => onNavigate("controller")}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <Database className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-foreground text-sm mb-0.5">Meus Pacientes</h3>
+                <p className="text-xs text-muted-foreground truncate">
+                  Dashboard do controlador
                 </p>
               </div>
             </div>
