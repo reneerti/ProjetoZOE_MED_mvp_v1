@@ -31,14 +31,21 @@ serve(async (req) => {
 
     console.log('Updating goal progress for user:', user.id);
 
-    // Get the measurement
+    // Get the measurement - SECURITY: Verify ownership
     const { data: measurement, error: measurementError } = await supabase
       .from('bioimpedance_measurements')
       .select('*')
       .eq('id', measurementId)
+      .eq('user_id', user.id)
       .single();
 
-    if (measurementError) throw measurementError;
+    if (measurementError || !measurement) {
+      console.error('Measurement not found or unauthorized:', measurementError);
+      return new Response(
+        JSON.stringify({ error: 'Measurement not found or unauthorized' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Get active goals
     const { data: goals, error: goalsError } = await supabase
