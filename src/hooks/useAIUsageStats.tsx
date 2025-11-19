@@ -175,3 +175,30 @@ export const updateBudgetConfig = async (config: {
     if (error) throw error;
   }
 };
+
+export interface CacheStats {
+  total_cached_responses: number;
+  total_cache_hits: number;
+  cache_hit_rate: number;
+  estimated_cost_saved: number;
+  total_cached_tokens: number;
+  avg_cache_age_hours: number;
+  most_cached_functions: Array<{
+    function_name: string;
+    cache_count: number;
+    hits: number;
+  }>;
+  cache_size_mb: number;
+}
+
+export const useCacheStats = () => {
+  return useQuery({
+    queryKey: ['cache-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_cache_stats').single();
+      if (error) throw error;
+      return data as CacheStats;
+    },
+    refetchInterval: 30000, // Refetch every 30s
+  });
+};

@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AIBudgetManager } from "./AIBudgetManager";
+import { AICacheStatsDashboard } from "./AICacheStatsDashboard";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -114,9 +115,10 @@ export const AIMonitoringDashboard = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="usage" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="usage">Uso de AI</TabsTrigger>
           <TabsTrigger value="budget">Orçamento</TabsTrigger>
+          <TabsTrigger value="cache">Cache</TabsTrigger>
         </TabsList>
 
         <TabsContent value="usage" className="space-y-6">
@@ -306,6 +308,10 @@ export const AIMonitoringDashboard = () => {
 
         <TabsContent value="budget" className="space-y-6">
           <AIBudgetManager />
+        </TabsContent>
+
+        <TabsContent value="cache" className="space-y-6">
+          <AICacheStatsDashboard />
         </TabsContent>
       </Tabs>
     </div>
