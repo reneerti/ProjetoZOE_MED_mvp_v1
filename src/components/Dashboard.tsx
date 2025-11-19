@@ -12,7 +12,7 @@ import { ExamChatDialog } from "./ExamChatDialog";
 import { HealthScoreCard } from "./HealthScoreCard";
 import { WearableTokenNotifications } from "./wearables/WearableTokenNotifications";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables" | "ai-monitoring";
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
@@ -457,6 +457,24 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
               <h3 className="font-semibold text-foreground text-sm mb-0.5">Recursos</h3>
               <p className="text-xs text-muted-foreground truncate">
                 Gerenciar uso e custos
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card
+          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#8B5CF6] bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
+          style={{ animationDelay: '0.52s' }}
+          onClick={() => onNavigate("ai-monitoring")}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-[#8B5CF6] flex items-center justify-center flex-shrink-0 shadow-lg">
+              <Sparkles className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-foreground text-sm mb-0.5">Monitoramento IA</h3>
+              <p className="text-xs text-muted-foreground truncate">
+                Uso de Lovable AI e Gemini
               </p>
             </div>
           </div>

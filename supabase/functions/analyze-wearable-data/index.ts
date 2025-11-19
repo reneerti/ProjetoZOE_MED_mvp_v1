@@ -145,7 +145,7 @@ Responda APENAS em JSON válido no formato:
         { role: 'system', content: systemPrompt },
         { role: 'user', content: aiPrompt }
       ],
-    });
+    }, user.id, 'analyze-wearable-data');
 
     if (!aiResponse.ok) {
       console.error('AI error, using simple analysis:', await aiResponse.text());

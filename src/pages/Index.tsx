@@ -24,8 +24,10 @@ import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { PatientDashboard } from "@/components/controller/PatientDashboard";
 import { WearablesModule } from "@/components/WearablesModule";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { AIMonitoringDashboard } from "@/components/AIMonitoringDashboard";
+import { AIUsageNotifications } from "@/components/AIUsageNotifications";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables" | "ai-monitoring";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>(() => {
@@ -120,6 +122,30 @@ const Index = () => {
         return <div key={viewKey} className="animate-slide-in-right"><PatientDashboard onNavigate={setCurrentView} /></div>;
       case "wearables":
         return <div key={viewKey} className="animate-slide-in-right"><WearablesModule onNavigate={setCurrentView} /></div>;
+      case "ai-monitoring":
+        return (
+          <div key={viewKey} className="animate-slide-in-right">
+            <div className="sticky top-0 z-50 bg-gradient-header text-white p-4 pb-6 shadow-lg mb-6">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setCurrentView("dashboard")}
+                  className="text-white hover:bg-white/20 h-9 w-9"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+                <div>
+                  <h1 className="text-xl font-bold">Monitoramento de IA</h1>
+                  <p className="text-white/80 text-xs mt-0.5">Uso de Lovable AI e Gemini</p>
+                </div>
+              </div>
+            </div>
+            <div className="px-6">
+              <AIMonitoringDashboard />
+            </div>
+          </div>
+        );
       default:
         return <div key={viewKey} className="animate-fade-in"><Dashboard onNavigate={setCurrentView} /></div>;
     }
@@ -129,6 +155,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-primary">
       <OnboardingTutorial />
       <ExamNotifications />
+      <AIUsageNotifications />
       <PWAInstallPrompt />
       <div className="w-full max-w-2xl mx-auto bg-background min-h-screen shadow-2xl">
         <div className="pb-20">

@@ -158,10 +158,10 @@ ${contextInfo}
       model: 'google/gemini-2.5-flash',
       messages: [
         { role: 'system', content: systemPrompt },
-        ...messages
+        ...sanitizedMessages
       ],
       stream: true
-    });
+    }, user.id, 'chat-exams');
 
     if (!response.ok) {
       const errorText = await response.text();
