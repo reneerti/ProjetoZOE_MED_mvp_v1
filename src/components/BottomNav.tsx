@@ -16,7 +16,7 @@ export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl bg-white/98 dark:bg-card/98 backdrop-blur-md border-t border-border shadow-2xl z-50">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl bg-white/80 dark:bg-card/80 backdrop-blur-sm border-t border-border/50 shadow-md z-50">
       <div className="flex items-center justify-around py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -28,11 +28,11 @@ export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
               className={`flex flex-col items-center justify-center py-2 px-4 rounded-lg transition-all ${
                 isActive
                   ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground/60 hover:text-foreground"
               }`}
             >
-              <Icon className={`w-6 h-6 mb-1 ${isActive ? "animate-pulse-glow" : ""}`} />
-              <span className="text-xs font-medium">{item.label}</span>
+              <Icon className={`w-5 h-5 mb-1`} strokeWidth={2} />
+              <span className="text-[10px] font-medium">{item.label}</span>
             </button>
           );
         })}

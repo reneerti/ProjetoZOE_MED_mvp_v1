@@ -108,7 +108,7 @@ export const GoalsModule = ({ onNavigate }: GoalsModuleProps) => {
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-gradient-goals text-white p-6 shadow-lg">
+      <div className="sticky top-0 z-50 bg-[#8B5CF6] text-white p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <button 
