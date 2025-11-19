@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity, FileText, Scale, Pill, TrendingUp, LogOut, Bell, Sparkles, Target, Database, Settings } from "lucide-react";
+import { Activity, FileText, Scale, Pill, TrendingUp, LogOut, Bell, Sparkles, Target, Database, Settings, Watch } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +11,7 @@ import { PatientAnalysisView } from "./PatientAnalysisView";
 import { ExamChatDialog } from "./ExamChatDialog";
 import { HealthScoreCard } from "./HealthScoreCard";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables";
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
@@ -371,6 +371,29 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
               </div>
               <p className="text-xs text-muted-foreground truncate">
                 Recomendações personalizadas
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card
+          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#8B5CF6] bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
+          style={{ animationDelay: '0.39s' }}
+          onClick={() => onNavigate("wearables")}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-[#8B5CF6] flex items-center justify-center flex-shrink-0 shadow-lg">
+              <Watch className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="font-semibold text-foreground text-sm">Wearables</h3>
+                <Badge variant="secondary" className="text-[10px] h-5 bg-primary/10 text-primary">
+                  Novo
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground truncate">
+                Dados de dispositivos conectados
               </p>
             </div>
           </div>
