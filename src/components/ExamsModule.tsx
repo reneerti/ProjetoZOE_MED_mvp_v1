@@ -1,4 +1,4 @@
-import { ArrowLeft, Upload, Camera, FileText, AlertCircle, Loader2, History, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Upload, Camera, FileText, AlertCircle, Loader2, History, CheckCircle, XCircle, BarChart3 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
 import { ExamHistoryModal } from "./ExamHistoryModal";
 import { compressImage } from "@/lib/imageCompression";
+import { ImagePreviewDialog } from "./bioimpedance/ImagePreviewDialog";
+import { UploadStatsDialog } from "./bioimpedance/UploadStatsDialog";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals";
 
@@ -18,63 +20,95 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [originalSize, setOriginalSize] = useState<number>(0);
+  const [compressedSize, setCompressedSize] = useState<number>(0);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [userId, setUserId] = useState<string>("");
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-
-  const handleFileUpload = async (file: File) => {
-    try {
-      setUploading(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Erro",
-          description: "Você precisa estar logado para fazer upload de exames.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-      if (!validTypes.includes(file.type)) {
-        toast({
-          title: "Erro",
-          description: "Apenas imagens nos formatos JPG, PNG ou WEBP são aceitas.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const maxSize = 10 * 1024 * 1024;
-      if (file.size > maxSize) {
-        toast({
-          title: "Erro",
-          description: "Arquivo muito grande. O tamanho máximo é 10MB.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Compress image before upload
+  const handleFileSelect = async (file: File) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       toast({
-        title: "Comprimindo imagem...",
-        description: "Otimizando para upload rápido",
+        title: "Erro",
+        description: "Você precisa estar logado para fazer upload de exames.",
+        variant: "destructive",
       });
-      
-      const compressedFile = await compressImage(file, {
+      return;
+    }
+
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Erro",
+        description: "Apenas imagens nos formatos JPG, PNG ou WEBP são aceitas.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast({
+        title: "Erro",
+        description: "Arquivo muito grande. O tamanho máximo é 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUserId(user.id);
+    setOriginalSize(file.size);
+    setPreviewUrl(URL.createObjectURL(file));
+    setPreviewFile(file);
+    setShowPreview(true);
+    setIsCompressing(true);
+
+    // Compress in background
+    try {
+      const compressed = await compressImage(file, {
         maxWidth: 1920,
         maxHeight: 1920,
         quality: 0.85,
         maxSizeMB: 2
       });
+      setPreviewFile(compressed);
+      setCompressedSize(compressed.size);
+    } catch (error) {
+      console.error('Compression error:', error);
+      setCompressedSize(file.size);
+    } finally {
+      setIsCompressing(false);
+    }
+  };
 
-      const fileExt = compressedFile.name.split('.').pop();
+
+  const handleFileUpload = async () => {
+    if (!previewFile) return;
+    
+    try {
+      setUploading(true);
+      setShowPreview(false);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      toast({
+        title: "Enviando...",
+        description: "Fazendo upload do exame comprimido",
+      });
+
+      const fileExt = previewFile.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('exam-images')
-        .upload(fileName, compressedFile);
+        .upload(fileName, previewFile);
 
       if (uploadError) throw uploadError;
 
@@ -148,7 +182,7 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      handleFileUpload(file);
+      handleFileSelect(file);
     }
   };
 
@@ -236,6 +270,22 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
   return (
     <div className="animate-fade-in pb-24">
       <ExamHistoryModal open={showHistory} onOpenChange={setShowHistory} />
+      <UploadStatsDialog open={showStats} onOpenChange={setShowStats} userId={userId} />
+      <ImagePreviewDialog
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        imageUrl={previewUrl}
+        fileName={previewFile?.name || ""}
+        originalSize={originalSize}
+        compressedSize={compressedSize}
+        isCompressing={isCompressing}
+        onConfirm={handleFileUpload}
+        onCancel={() => {
+          setShowPreview(false);
+          setPreviewFile(null);
+          setPreviewUrl("");
+        }}
+      />
       
       <div className="sticky top-0 z-50 bg-gradient-to-r from-[#3B82F6] to-[#2563EB] text-white p-6 shadow-lg">
         <div className="flex items-center gap-4">
@@ -297,14 +347,43 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
           </Button>
         </div>
 
-        <Button
-          onClick={() => setShowHistory(true)}
-          variant="outline"
-          className="w-full"
-        >
-          <History className="w-4 h-4 mr-2" />
-          Ver Histórico de Uploads
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowHistory(true)}
+            className="flex-1"
+          >
+            <History className="w-4 h-4 mr-2" />
+            Histórico
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowStats(true)}
+            className="flex-1"
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Estatísticas
+          </Button>
+        </div>
+
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowHistory(true)}
+            className="flex-1"
+          >
+            <History className="w-4 h-4 mr-2" />
+            Histórico
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowStats(true)}
+            className="flex-1"
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Estatísticas
+          </Button>
+        </div>
 
         <Card className="p-4 border-l-4 border-l-primary mt-4">
           <div className="flex items-start gap-3">

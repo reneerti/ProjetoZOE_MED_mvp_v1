@@ -18,7 +18,10 @@ import { Button } from "@/components/ui/button";
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements";
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<View>("dashboard");
+  const [currentView, setCurrentView] = useState<View>(() => {
+    const savedView = localStorage.getItem('currentView');
+    return (savedView as View) || "dashboard";
+  });
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -27,6 +30,10 @@ const Index = () => {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    localStorage.setItem('currentView', currentView);
+  }, [currentView]);
 
   if (loading) {
     return (
