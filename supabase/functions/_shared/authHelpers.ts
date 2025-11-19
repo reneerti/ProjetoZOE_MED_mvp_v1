@@ -1,4 +1,24 @@
-import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.79.0';
+import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+/**
+ * Extrai e valida o user ID do request
+ */
+export async function getUserIdFromRequest(
+  req: Request,
+  supabase: SupabaseClient
+): Promise<string | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return null;
+  }
+
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
+    return null;
+  }
+
+  return user.id;
+}
 
 /**
  * Verifica se um usuário tem permissão para acessar dados de um paciente
