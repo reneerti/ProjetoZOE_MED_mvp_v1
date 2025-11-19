@@ -57,7 +57,15 @@ serve(async (req) => {
       );
     }
 
+    // LOG 1: Início da análise integrada
+    console.log("═══════════════════════════════════════");
+    console.log("🧬 ANALYZE-EXAMS-INTEGRATED INICIADO");
+    console.log("═══════════════════════════════════════");
+    console.log("📋 User ID:", user.id);
+    const startTime = Date.now();
+
     // Buscar todos os exames do usuário com resultados
+    console.log("🔍 [1/5] Buscando exames processados...");
     const { data: examImages, error: examError } = await supabase
       .from('exam_images')
       .select(`
@@ -77,11 +85,12 @@ serve(async (req) => {
       .order('exam_date', { ascending: false });
 
     if (examError) {
-      console.error('Error fetching exams:', examError);
+      console.error('❌ Erro ao buscar exames:', examError);
       throw examError;
     }
 
     if (!examImages || examImages.length === 0) {
+      console.log("⚠️ Nenhum exame processado encontrado");
       return new Response(
         JSON.stringify({ 
           error: 'Nenhum exame processado encontrado. Faça upload de exames primeiro.' 
@@ -90,7 +99,10 @@ serve(async (req) => {
       );
     }
 
+    console.log(`✅ [1/5] ${examImages.length} exames encontrados`);
+
     // Buscar resultados de exames
+    console.log("🔍 [2/5] Buscando resultados dos exames...");
     const { data: examResults, error: resultsError } = await supabase
       .from('exam_results')
       .select(`
@@ -118,7 +130,12 @@ serve(async (req) => {
       results: examResults?.filter(r => r.exam_image_id === exam.id) || []
     }));
 
+    console.log(`✅ [2/5] ${examResults?.length || 0} resultados de parâmetros carregados`);
+
     // Chamar Gemini AI para análise integrada
+    console.log("🤖 [3/5] Chamando Lovable AI (Gemini 2.5 Pro) para análise integrada...");
+    const aiStartTime = Date.now();
+    
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
@@ -242,7 +259,15 @@ Responda em formato JSON com a seguinte estrutura:
     const analysisText = aiData.choices[0].message.content;
     const analysis = JSON.parse(analysisText);
 
+    // LOG 4: Análise concluída
+    const aiEndTime = Date.now();
+    console.log(`✅ [3/5] Análise IA concluída em ${aiEndTime - aiStartTime}ms`);
+    console.log(`📊 Health Score calculado: ${analysis.health_score}/10`);
+    console.log(`📌 Pontos de atenção: ${analysis.attention_points?.length || 0}`);
+    console.log(`👨‍⚕️ Especialistas recomendados: ${analysis.specialists?.length || 0}`);
+
     // Buscar parâmetros de referência para detectar valores críticos
+    console.log("🔍 [4/5] Verificando valores críticos e criando alertas...");
     const { data: examParameters } = await supabase
       .from('exam_parameters')
       .select('*');
@@ -313,13 +338,16 @@ Responda em formato JSON com a seguinte estrutura:
         .insert(criticalAlerts);
 
       if (alertsError) {
-        console.error('Error creating alerts:', alertsError);
+        console.error('❌ Erro ao criar alertas:', alertsError);
       } else {
-        console.log(`Created ${criticalAlerts.length} health alerts`);
+        console.log(`✅ ${criticalAlerts.length} alertas críticos criados`);
       }
+    } else {
+      console.log('✅ Nenhum alerta crítico detectado');
     }
 
     // Salvar análise no banco de dados
+    console.log("💾 [5/5] Salvando análise no banco de dados...");
     const { data: savedAnalysis, error: saveError } = await supabase
       .from('health_analysis')
       .upsert({
@@ -340,8 +368,23 @@ Responda em formato JSON com a seguinte estrutura:
       .single();
 
     if (saveError) {
-      console.error('Error saving analysis:', saveError);
+      console.error('❌ Erro ao salvar análise:', saveError);
+      throw saveError;
     }
+
+    // LOG 5: Processo concluído
+    const endTime = Date.now();
+    const totalTime = endTime - startTime;
+    console.log("═══════════════════════════════════════");
+    console.log("✅ [5/5] ANALYZE-EXAMS-INTEGRATED CONCLUÍDO");
+    console.log(`⏱️  Tempo total: ${totalTime}ms (${(totalTime / 1000).toFixed(2)}s)`);
+    console.log(`📊 Resumo:`);
+    console.log(`   - Exames analisados: ${examImages.length}`);
+    console.log(`   - Parâmetros processados: ${examResults?.length || 0}`);
+    console.log(`   - Health Score: ${analysis.health_score}/10`);
+    console.log(`   - Alertas criados: ${criticalAlerts.length}`);
+    console.log(`   - Tempo AI: ${aiEndTime - aiStartTime}ms`);
+    console.log("═══════════════════════════════════════");
 
     return new Response(
       JSON.stringify({ 

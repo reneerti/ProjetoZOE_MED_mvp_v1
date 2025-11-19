@@ -127,14 +127,22 @@ serve(async (req) => {
       );
     }
 
-    console.log("Processing OCR for authenticated user, exam image ID:", examImageId);
-    console.log("Image URL:", imageUrl);
+    // LOG 1: Início do processamento OCR
+    console.log("═══════════════════════════════════════");
+    console.log("🚀 PROCESS-OCR INICIADO");
+    console.log("═══════════════════════════════════════");
+    console.log("📋 User ID:", user.id);
+    console.log("📋 Exam Image ID:", examImageId);
+    console.log("📋 Image URL:", imageUrl.substring(0, 80) + "...");
+    const startTime = Date.now();
 
     // Update status to processing
     await supabase
       .from('exam_images')
       .update({ processing_status: 'processing' })
       .eq('id', examImageId);
+    
+    console.log("✅ [1/6] Status atualizado para 'processing'");
 
     // Download the image/PDF to get base64
     const imageResponse = await fetch(imageUrl);
@@ -144,6 +152,10 @@ serve(async (req) => {
     }
 
     const imageBuffer = await imageResponse.arrayBuffer();
+    
+    // LOG 2: Download concluído
+    const downloadTime = Date.now();
+    console.log(`✅ [2/6] Imagem baixada: ${(imageBuffer.byteLength / 1024).toFixed(2)} KB em ${downloadTime - startTime}ms`);
     
     // Convert ArrayBuffer to base64 in chunks to avoid call stack overflow
     const bytes = new Uint8Array(imageBuffer);
@@ -164,7 +176,11 @@ serve(async (req) => {
     }
     const dataUrl = `data:${mimeType};base64,${base64Image}`;
 
-    console.log("Image downloaded, size:", imageBuffer.byteLength, "bytes, type:", mimeType);
+    // LOG 3: Base64 convertido
+    const base64Time = Date.now();
+    // LOG 4: Iniciando chamada para Lovable AI
+    const aiStartTime = Date.now();
+    console.log("🤖 [4/6] Chamando Lovable AI (Gemini 2.5 Flash) para OCR...");
 
     // Use Lovable AI with vision to extract structured data from the image
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -247,11 +263,21 @@ Seja preciso na extração. Se não conseguir identificar alguma informação, u
       throw new Error("Nenhum texto extraído da imagem");
     }
 
+    // LOG 5: OCR concluído
+    const ocrTime = Date.now();
+    console.log(`✅ [5/6] OCR concluído em ${ocrTime - aiStartTime}ms`);
+    console.log(`📊 Texto extraído: ${extractedText.substring(0, 200)}...`);
+
     let extractedData;
     try {
       extractedData = JSON.parse(extractedText);
+      console.log(`✅ JSON parseado com sucesso:`, {
+        exam_name: extractedData.exam_name,
+        category: extractedData.category,
+        parameters: extractedData.parameters?.length || 0
+      });
     } catch (parseError) {
-      console.error('Error parsing AI response:', parseError);
+      console.error('⚠️ Erro ao parsear JSON, usando texto bruto');
       extractedData = { full_text: extractedText };
     }
 
@@ -303,12 +329,25 @@ Seja preciso na extração. Se não conseguir identificar alguma informação, u
           .insert(resultsToInsert);
 
         if (resultsError) {
-          console.error('Error inserting exam results:', resultsError);
+          console.error('❌ Erro ao inserir resultados:', resultsError);
+        } else {
+          console.log(`✅ ${resultsToInsert.length} parâmetros inseridos na tabela exam_results`);
         }
       }
     }
 
-    console.log("OCR processing completed successfully for exam:", examImageId);
+    // LOG 6: Processo concluído
+    const endTime = Date.now();
+    const totalTime = endTime - startTime;
+    console.log("═══════════════════════════════════════");
+    console.log(`✅ [6/6] PROCESS-OCR CONCLUÍDO COM SUCESSO`);
+    console.log(`⏱️  Tempo total: ${totalTime}ms (${(totalTime / 1000).toFixed(2)}s)`);
+    console.log(`📊 Breakdown:`);
+    console.log(`   - Download: ${downloadTime - startTime}ms`);
+    console.log(`   - Base64: ${base64Time - downloadTime}ms`);
+    console.log(`   - AI OCR: ${ocrTime - aiStartTime}ms`);
+    console.log(`   - DB Save: ${endTime - ocrTime}ms`);
+    console.log("═══════════════════════════════════════");
 
     return new Response(
       JSON.stringify({ 
