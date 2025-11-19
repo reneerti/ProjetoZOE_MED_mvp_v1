@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { decryptToken, encryptToken } from "../_shared/tokenEncryption.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -58,60 +59,94 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Found ${connections.length} active Google Fit connections`);
+    // Sync data for each connection
+    let successfulSyncs = 0;
+    let failedSyncs = 0;
 
-    let successCount = 0;
-    let failCount = 0;
-
-    // Sync data for each user
     for (const connection of connections) {
+      console.log(`Processing sync for user: ${connection.user_id}, provider: ${connection.provider}`);
+      
       try {
-        console.log(`Syncing data for user ${connection.user_id}...`);
+        if (!connection.access_token || !connection.refresh_token) {
+          console.log(`Missing tokens for connection ${connection.id}, skipping`);
+          failedSyncs++;
+          continue;
+        }
 
-        // Check if token is expired
-        const tokenExpired = new Date(connection.token_expires_at) < new Date();
-        let accessToken = connection.access_token;
+        // Decrypt tokens
+        let accessToken: string;
+        try {
+          accessToken = connection.tokens_encrypted 
+            ? await decryptToken(connection.access_token)
+            : connection.access_token;
+        } catch (decryptError) {
+          console.error(`Failed to decrypt access token for connection ${connection.id}:`, decryptError);
+          failedSyncs++;
+          continue;
+        }
 
-        // Refresh token if expired
-        if (tokenExpired && connection.refresh_token) {
-          console.log('Token expired, refreshing...');
+        // Check if token needs refresh
+        const tokenExpiry = connection.token_expires_at ? new Date(connection.token_expires_at) : null;
+        const currentTime = new Date();
+
+        // Refresh token if expired or expiring soon (within 5 minutes)
+        if (tokenExpiry && tokenExpiry.getTime() < currentTime.getTime() + 5 * 60 * 1000) {
+          console.log(`Token expired or expiring soon for connection ${connection.id}, refreshing with rotation...`);
           
-          const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-              client_id: clientId,
-              client_secret: clientSecret,
-              refresh_token: connection.refresh_token,
-              grant_type: 'refresh_token',
-            }),
-          });
+          try {
+            const refreshToken = connection.tokens_encrypted 
+              ? await decryptToken(connection.refresh_token)
+              : connection.refresh_token;
 
-          const refreshData = await refreshResponse.json();
+            // Refresh and rotate token
+            const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({
+                client_id: clientId,
+                client_secret: clientSecret,
+                refresh_token: refreshToken,
+                grant_type: 'refresh_token',
+              }),
+            });
 
-          if (refreshResponse.ok && refreshData.access_token) {
-            accessToken = refreshData.access_token;
+            if (!refreshResponse.ok) {
+              throw new Error('Token refresh failed');
+            }
+
+            const tokenData = await refreshResponse.json();
             
-            // Update stored token
+            // Encrypt new tokens
+            const newEncryptedAccessToken = await encryptToken(tokenData.access_token);
+            const newEncryptedRefreshToken = tokenData.refresh_token 
+              ? await encryptToken(tokenData.refresh_token)
+              : connection.refresh_token;
+
+            // Update connection with rotated tokens
             await supabaseClient
               .from('wearable_connections')
               .update({
-                access_token: refreshData.access_token,
-                token_expires_at: new Date(Date.now() + (refreshData.expires_in * 1000)).toISOString(),
+                access_token: newEncryptedAccessToken,
+                refresh_token: newEncryptedRefreshToken,
+                token_expires_at: new Date(Date.now() + tokenData.expires_in * 1000).toISOString(),
+                last_token_rotation: new Date().toISOString(),
+                rotation_count: (connection.rotation_count || 0) + 1,
+                tokens_encrypted: true,
               })
               .eq('id', connection.id);
 
-            console.log('Token refreshed successfully');
-          } else {
-            console.error('Failed to refresh token:', refreshData);
-            failCount++;
+            accessToken = tokenData.access_token;
+            console.log(`Token refreshed and rotated successfully for connection ${connection.id}`);
+          } catch (refreshError) {
+            console.error(`Error refreshing token for connection ${connection.id}:`, refreshError);
+            failedSyncs++;
             continue;
           }
         }
 
         // Fetch last 7 days of data
-        const now = Date.now();
-        const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+        const nowMillis = Date.now();
+        const sevenDaysAgo = nowMillis - (7 * 24 * 60 * 60 * 1000);
 
         // Fetch steps data
         const stepsResponse = await fetch(
@@ -128,14 +163,14 @@ serve(async (req) => {
               }],
               bucketByTime: { durationMillis: 86400000 },
               startTimeMillis: sevenDaysAgo,
-              endTimeMillis: now,
+              endTimeMillis: nowMillis,
             }),
           }
         );
 
         if (!stepsResponse.ok) {
           console.error('Failed to fetch steps data');
-          failCount++;
+          failedSyncs++;
           continue;
         }
 
@@ -170,7 +205,7 @@ serve(async (req) => {
 
           if (insertError) {
             console.error('Error saving wearable data:', insertError);
-            failCount++;
+            failedSyncs++;
             continue;
           }
 
@@ -183,22 +218,22 @@ serve(async (req) => {
           .update({ last_sync_at: new Date().toISOString() })
           .eq('id', connection.id);
 
-        successCount++;
+        successfulSyncs++;
 
       } catch (error) {
         console.error(`Error syncing user ${connection.user_id}:`, error);
-        failCount++;
+        failedSyncs++;
       }
     }
 
-    console.log(`Sync completed: ${successCount} successful, ${failCount} failed`);
+    console.log(`Sync completed: ${successfulSyncs} successful, ${failedSyncs} failed`);
 
     return new Response(
       JSON.stringify({ 
         success: true,
         message: `Sync completed`,
-        syncedUsers: successCount,
-        failedUsers: failCount,
+        syncedUsers: successfulSyncs,
+        failedSyncs: failedSyncs,
         totalConnections: connections.length,
         timestamp: new Date().toISOString()
       }),

@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encryptToken } from "../_shared/tokenEncryption.ts";
+import { auditTokenAccess } from "../_shared/oauthHelpers.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -275,17 +277,25 @@ serve(async (req) => {
 
         // Store refresh token for future automatic syncs
         if (tokens.refresh_token) {
+          console.log('Encrypting tokens before storage...');
+          
+          const encryptedAccessToken = await encryptToken(tokens.access_token);
+          const encryptedRefreshToken = await encryptToken(tokens.refresh_token);
+          
           const { error: connectionError } = await supabaseClient
             .from('wearable_connections')
             .upsert({
               user_id: user.id,
               provider: 'google_fit',
-              access_token: tokens.access_token,
-              refresh_token: tokens.refresh_token,
+              access_token: encryptedAccessToken,
+              refresh_token: encryptedRefreshToken,
               token_expires_at: new Date(Date.now() + (tokens.expires_in * 1000)).toISOString(),
               scopes: grantedScopes,
               connected_at: new Date().toISOString(),
               sync_enabled: true,
+              tokens_encrypted: true,
+              last_token_rotation: new Date().toISOString(),
+              rotation_count: 1,
             }, {
               onConflict: 'user_id,provider'
             });
@@ -293,7 +303,7 @@ serve(async (req) => {
           if (connectionError) {
             console.error('Error storing connection:', connectionError);
           } else {
-            console.log('Refresh token stored for automatic sync');
+            console.log('Encrypted tokens stored successfully for automatic sync');
             
             // Clean up temporary state
             await supabaseClient

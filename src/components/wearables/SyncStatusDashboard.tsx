@@ -72,6 +72,26 @@ export const SyncStatusDashboard = () => {
     }
   };
 
+  const handleDisconnect = async (connectionId: string, provider: string) => {
+    if (!confirm(`Deseja realmente desconectar do ${provider}? Os dados já sincronizados serão mantidos.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase.functions.invoke('disconnect-wearable', {
+        body: { connectionId }
+      });
+      
+      if (error) throw error;
+      
+      toast.success('Dispositivo desconectado com sucesso!');
+      fetchConnections();
+    } catch (error) {
+      console.error('Error disconnecting wearable:', error);
+      toast.error('Erro ao desconectar dispositivo');
+    }
+  };
+
   const getStatusBadge = (connection: WearableConnection) => {
     const now = new Date();
     const tokenExpires = connection.token_expires_at ? new Date(connection.token_expires_at) : null;
@@ -177,6 +197,15 @@ export const SyncStatusDashboard = () => {
                 )}
               </div>
             </div>
+            
+            <Button 
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDisconnect(connection.id, connection.provider)}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              Desconectar
+            </Button>
           </div>
         ))}
         
