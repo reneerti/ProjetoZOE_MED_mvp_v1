@@ -8,6 +8,7 @@ import { MedicationModule } from "@/components/MedicationModule";
 import { EvolutionModule } from "@/components/EvolutionModule";
 import { GoalsModule } from "@/components/GoalsModule";
 import { ResourceDashboard } from "@/components/ResourceDashboard";
+import { ProfileModule } from "@/components/ProfileModule";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, ArrowLeft } from "lucide-react";
@@ -79,6 +80,8 @@ const Index = () => {
             </div>
           </div>
         );
+      case "profile":
+        return <div key={viewKey} className="animate-slide-in-right"><ProfileModule onNavigate={setCurrentView} /></div>;
       default:
         return <div key={viewKey} className="animate-fade-in"><Dashboard onNavigate={setCurrentView} /></div>;
     }
