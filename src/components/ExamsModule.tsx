@@ -9,8 +9,10 @@ import { ExamHistoryModal } from "./ExamHistoryModal";
 import { compressImage } from "@/lib/imageCompression";
 import { ImagePreviewDialog } from "./bioimpedance/ImagePreviewDialog";
 import { UploadStatsDialog } from "./bioimpedance/UploadStatsDialog";
+import { useSubscription } from "@/hooks/useSubscription";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller";
 
 interface ExamsModuleProps {
   onNavigate: (view: View) => void;
@@ -18,6 +20,7 @@ interface ExamsModuleProps {
 
 export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
   const { toast } = useToast();
+  const { checkExamLimit, incrementExamCount } = useSubscription();
   const [uploading, setUploading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showStats, setShowStats] = useState(false);
@@ -28,6 +31,8 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
   const [compressedSize, setCompressedSize] = useState<number>(0);
   const [isCompressing, setIsCompressing] = useState(false);
   const [userId, setUserId] = useState<string>("");
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
+  const [limitMessage, setLimitMessage] = useState("");
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -39,6 +44,14 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
         description: "Você precisa estar logado para fazer upload de exames.",
         variant: "destructive",
       });
+      return;
+    }
+
+    // Verificar limite de exames
+    const limitCheck = checkExamLimit();
+    if (!limitCheck.allowed) {
+      setLimitMessage(limitCheck.message || "Limite de exames atingido");
+      setShowLimitDialog(true);
       return;
     }
 
@@ -399,6 +412,22 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
           </div>
         </Card>
       </div>
+
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Limite de Exames Atingido</AlertDialogTitle>
+            <AlertDialogDescription>
+              {limitMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowLimitDialog(false)}>
+              Entendi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
