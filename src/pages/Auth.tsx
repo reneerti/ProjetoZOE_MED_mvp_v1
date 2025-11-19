@@ -58,18 +58,27 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-          },
+        // Use server-side validation edge function for signup
+        const { data, error } = await supabase.functions.invoke('signup-with-validation', {
+          body: { email, password }
         });
 
-        if (error) throw error;
-        
+        if (error) {
+          throw new Error(error.message || 'Erro ao criar conta');
+        }
+
+        if (data?.error) {
+          // Server returned validation errors
+          const errorMsg = Array.isArray(data.details) 
+            ? `Requisitos de senha: ${data.details.join(', ')}` 
+            : data.error;
+          toast.error(errorMsg);
+          return;
+        }
+
         toast.success("Conta criada com sucesso! Você já pode fazer login.");
-        navigate("/");
+        setIsSignUp(false);
+        setPassword('');
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,

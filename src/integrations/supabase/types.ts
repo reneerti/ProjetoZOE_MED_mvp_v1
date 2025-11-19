@@ -1200,6 +1200,13 @@ export type Database = {
         Args: { _controller_id: string; _patient_id: string }
         Returns: boolean
       }
+      validate_password_strength: {
+        Args: { password_text: string }
+        Returns: {
+          errors: string[]
+          valid: boolean
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "user" | "controller"
