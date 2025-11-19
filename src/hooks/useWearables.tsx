@@ -21,16 +21,44 @@ export const useWearables = () => {
   const [wearableData, setWearableData] = useState<WearableData[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Placeholder para integração futura
-  // Apple Health e Google Fit requerem apps nativos ou SDKs específicos
+  // OAuth 2.0 - Google Fit
+  const initiateGoogleFitAuth = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('google-fit-auth', {
+        body: { action: 'initiate' }
+      });
+      
+      if (error) throw error;
+      return data.authUrl;
+    } catch (error) {
+      console.error("Error initiating Google Fit auth:", error);
+      toast.error("Erro ao iniciar autenticação com Google Fit");
+      return null;
+    }
+  };
+
+  // OAuth 2.0 - Apple HealthKit
+  const initiateAppleHealthAuth = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('apple-health-auth', {
+        body: { action: 'initiate' }
+      });
+      
+      if (error) throw error;
+      return data.authUrl;
+    } catch (error) {
+      console.error("Error initiating Apple Health auth:", error);
+      toast.error("Erro ao iniciar autenticação com Apple Health");
+      return null;
+    }
+  };
+
   const connectAppleHealth = () => {
-    toast.info("Integração com Apple Health em desenvolvimento");
-    // Futura implementação: HealthKit integration
+    toast.info("Use o botão 'Conectar Apple Health' para autorizar");
   };
 
   const connectGoogleFit = () => {
-    toast.info("Integração com Google Fit em desenvolvimento");
-    // Futura implementação: Google Fit API
+    toast.info("Use o botão 'Conectar Google Fit' para autorizar");
   };
 
   const addManualData = async (data: Partial<WearableData>) => {
@@ -89,6 +117,8 @@ export const useWearables = () => {
     connectAppleHealth,
     connectGoogleFit,
     addManualData,
-    fetchWearableData
+    fetchWearableData,
+    initiateGoogleFitAuth,
+    initiateAppleHealthAuth
   };
 };

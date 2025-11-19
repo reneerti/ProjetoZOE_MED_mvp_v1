@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables";
 
 interface PatientDashboardProps {
   onNavigate: (view: View) => void;
@@ -21,6 +21,12 @@ interface PatientData {
   critical_alerts: number;
   last_exam_date: string | null;
   health_score: number | null;
+  latest_wearable?: {
+    steps: number | null;
+    heart_rate: number | null;
+    sleep_hours: number | null;
+    date: string;
+  } | null;
 }
 
 interface CriticalAlert {
@@ -122,6 +128,15 @@ export const PatientDashboard = ({ onNavigate }: PatientDashboardProps) => {
             .limit(1)
             .single();
 
+          // Buscar dados de wearables mais recentes
+          const { data: wearableData } = await supabase
+            .from('wearable_data')
+            .select('*')
+            .eq('user_id', patient.id)
+            .order('date', { ascending: false })
+            .limit(1)
+            .single();
+
           return {
             id: patient.id,
             display_name: patient.display_name || 'Sem nome',
@@ -129,7 +144,13 @@ export const PatientDashboard = ({ onNavigate }: PatientDashboardProps) => {
             total_exams: examCount || 0,
             critical_alerts: alertCount || 0,
             last_exam_date: lastExam?.exam_date || null,
-            health_score: healthData?.health_score || null
+            health_score: healthData?.health_score || null,
+            latest_wearable: wearableData ? {
+              steps: wearableData.steps,
+              heart_rate: wearableData.heart_rate,
+              sleep_hours: wearableData.sleep_hours,
+              date: wearableData.date
+            } : null
           };
         })
       );
@@ -320,6 +341,29 @@ export const PatientDashboard = ({ onNavigate }: PatientDashboardProps) => {
                       </p>
                     </div>
                   </div>
+
+                  {patient.latest_wearable && (
+                    <div className="mt-3 pt-3 border-t grid grid-cols-3 gap-2 text-xs">
+                      {patient.latest_wearable.steps && (
+                        <div className="text-center">
+                          <p className="text-muted-foreground">Passos</p>
+                          <p className="font-semibold text-primary">{patient.latest_wearable.steps.toLocaleString()}</p>
+                        </div>
+                      )}
+                      {patient.latest_wearable.heart_rate && (
+                        <div className="text-center">
+                          <p className="text-muted-foreground">BPM</p>
+                          <p className="font-semibold text-destructive">{patient.latest_wearable.heart_rate}</p>
+                        </div>
+                      )}
+                      {patient.latest_wearable.sleep_hours && (
+                        <div className="text-center">
+                          <p className="text-muted-foreground">Sono</p>
+                          <p className="font-semibold text-info">{patient.latest_wearable.sleep_hours}h</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </Card>
               ))
             )}
