@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_budget_config: {
+        Row: {
+          alert_threshold_percentage: number
+          budget_period_end: string
+          budget_period_start: string
+          created_at: string
+          current_month_spending: number
+          enable_budget_alerts: boolean
+          id: string
+          monthly_limit_usd: number
+          updated_at: string
+        }
+        Insert: {
+          alert_threshold_percentage?: number
+          budget_period_end?: string
+          budget_period_start?: string
+          created_at?: string
+          current_month_spending?: number
+          enable_budget_alerts?: boolean
+          id?: string
+          monthly_limit_usd?: number
+          updated_at?: string
+        }
+        Update: {
+          alert_threshold_percentage?: number
+          budget_period_end?: string
+          budget_period_start?: string
+          created_at?: string
+          current_month_spending?: number
+          enable_budget_alerts?: boolean
+          id?: string
+          monthly_limit_usd?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_response_cache: {
+        Row: {
+          cache_key: string
+          created_at: string
+          expires_at: string
+          function_name: string
+          hit_count: number
+          id: string
+          last_accessed_at: string
+          model: string | null
+          prompt_hash: string
+          provider: string
+          response_data: Json
+          tokens_used: number | null
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          expires_at: string
+          function_name: string
+          hit_count?: number
+          id?: string
+          last_accessed_at?: string
+          model?: string | null
+          prompt_hash: string
+          provider: string
+          response_data: Json
+          tokens_used?: number | null
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          expires_at?: string
+          function_name?: string
+          hit_count?: number
+          id?: string
+          last_accessed_at?: string
+          model?: string | null
+          prompt_hash?: string
+          provider?: string
+          response_data?: Json
+          tokens_used?: number | null
+        }
+        Relationships: []
+      }
       ai_usage_alerts: {
         Row: {
           created_at: string
@@ -1261,6 +1342,7 @@ export type Database = {
         }
         Returns: Json
       }
+      cleanup_expired_cache: { Args: never; Returns: number }
       cleanup_old_rate_limits: { Args: never; Returns: number }
       get_admin_stats: {
         Args: never
@@ -1296,6 +1378,20 @@ export type Database = {
           last_upload: string
           total_uploads: number
           user_id: string
+        }[]
+      }
+      get_budget_status: {
+        Args: never
+        Returns: {
+          alert_threshold_reached: boolean
+          current_spending: number
+          days_elapsed: number
+          days_in_month: number
+          is_over_budget: boolean
+          monthly_limit: number
+          percentage_used: number
+          projected_monthly_spending: number
+          remaining_budget: number
         }[]
       }
       get_controller_patients: {
