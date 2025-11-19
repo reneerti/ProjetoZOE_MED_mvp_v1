@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.seed-bioimpedance-data]
 verify_jwt = true
+
+[functions.preview-ocr]
+verify_jwt = true
