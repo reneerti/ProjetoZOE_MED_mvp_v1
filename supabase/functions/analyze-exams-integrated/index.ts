@@ -28,6 +28,35 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
+    // Rate limiting: 5 requests per minute for comprehensive integrated analysis (most expensive)
+    const { data: rateLimitResult } = await supabase.rpc('check_rate_limit', {
+      p_user_id: user.id,
+      p_endpoint: 'analyze-exams-integrated',
+      p_max_requests: 5,
+      p_window_seconds: 60
+    });
+
+    if (rateLimitResult && !rateLimitResult.allowed) {
+      console.log('Rate limit exceeded for user:', user.id);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Limite de análises excedido. Esta é uma operação intensiva. Por favor, aguarde antes de solicitar nova análise.',
+          retry_after: rateLimitResult.retry_after,
+          reset_at: rateLimitResult.reset_at
+        }), 
+        {
+          status: 429,
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': String(rateLimitResult.retry_after || 60),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': rateLimitResult.reset_at
+          },
+        }
+      );
+    }
+
     // Buscar todos os exames do usuário com resultados
     const { data: examImages, error: examError } = await supabase
       .from('exam_images')

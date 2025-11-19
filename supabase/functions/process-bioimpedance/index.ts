@@ -29,6 +29,35 @@ serve(async (req) => {
       });
     }
 
+    // Rate limiting: 10 requests per minute for AI-powered bioimpedance processing
+    const { data: rateLimitResult } = await supabase.rpc('check_rate_limit', {
+      p_user_id: user.id,
+      p_endpoint: 'process-bioimpedance',
+      p_max_requests: 10,
+      p_window_seconds: 60
+    });
+
+    if (rateLimitResult && !rateLimitResult.allowed) {
+      console.log('Rate limit exceeded for user:', user.id);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Please wait before processing more images.',
+          retry_after: rateLimitResult.retry_after,
+          reset_at: rateLimitResult.reset_at
+        }), 
+        {
+          status: 429,
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': String(rateLimitResult.retry_after || 60),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': rateLimitResult.reset_at
+          },
+        }
+      );
+    }
+
     const { imageUrl } = await req.json();
 
     console.log('Processing bioimpedance image:', imageUrl);
