@@ -222,11 +222,15 @@ export type Database = {
           exam_date: string | null
           exam_id: string | null
           exam_type_id: string | null
+          file_type: string | null
           id: string
           image_url: string
           lab_name: string | null
           ocr_text: string | null
           processing_status: string | null
+          reporting_doctor: string | null
+          requesting_doctor: string | null
+          upload_date: string | null
           user_id: string
         }
         Insert: {
@@ -235,11 +239,15 @@ export type Database = {
           exam_date?: string | null
           exam_id?: string | null
           exam_type_id?: string | null
+          file_type?: string | null
           id?: string
           image_url: string
           lab_name?: string | null
           ocr_text?: string | null
           processing_status?: string | null
+          reporting_doctor?: string | null
+          requesting_doctor?: string | null
+          upload_date?: string | null
           user_id: string
         }
         Update: {
@@ -248,11 +256,15 @@ export type Database = {
           exam_date?: string | null
           exam_id?: string | null
           exam_type_id?: string | null
+          file_type?: string | null
           id?: string
           image_url?: string
           lab_name?: string | null
           ocr_text?: string | null
           processing_status?: string | null
+          reporting_doctor?: string | null
+          requesting_doctor?: string | null
+          upload_date?: string | null
           user_id?: string
         }
         Relationships: [
@@ -653,6 +665,33 @@ export type Database = {
           display_name?: string | null
           id?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: string
+          keys: Json
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          keys: Json
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          keys?: Json
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
