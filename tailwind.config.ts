@@ -76,6 +76,16 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      backgroundImage: {
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-header": "var(--gradient-header)",
+        "gradient-exams": "var(--gradient-exams)",
+        "gradient-bioimpedance": "var(--gradient-bioimpedance)",
+        "gradient-medication": "var(--gradient-medication)",
+        "gradient-evolution": "var(--gradient-evolution)",
+        "gradient-goals": "var(--gradient-goals)",
+        "gradient-supplements": "var(--gradient-supplements)",
+      },
       keyframes: {
         "accordion-down": {
           from: {

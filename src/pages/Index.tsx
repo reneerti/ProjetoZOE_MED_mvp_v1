@@ -60,7 +60,7 @@ const Index = () => {
       case "resources":
         return (
           <div key={viewKey} className="animate-slide-in-right">
-            <div className="bg-gradient-header text-white p-4 pb-6 rounded-b-3xl mb-6">
+            <div className="sticky top-0 z-50 bg-gradient-header text-white p-4 pb-6 shadow-lg mb-6">
               <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"

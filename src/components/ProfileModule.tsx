@@ -134,7 +134,7 @@ export const ProfileModule = ({ onNavigate }: ProfileModuleProps) => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="bg-gradient-header text-white p-4 pb-6 rounded-b-3xl mb-6">
+      <div className="sticky top-0 z-50 bg-gradient-header text-white p-4 pb-6 shadow-lg">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
