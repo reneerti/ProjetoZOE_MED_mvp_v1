@@ -118,10 +118,10 @@ serve(async (req) => {
       results: examResults?.filter(r => r.exam_image_id === exam.id) || []
     }));
 
-    // Chamar Claude AI para análise integrada
-    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-    if (!ANTHROPIC_API_KEY) {
-      throw new Error('ANTHROPIC_API_KEY not configured');
+    // Chamar Gemini AI para análise integrada
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     const prompt = `Você é um assistente médico especializado em análise de exames laboratoriais.
@@ -206,16 +206,14 @@ Responda em formato JSON com a seguinte estrutura:
   }
 }`;
 
-    const aiResponse = await fetch('https://api.anthropic.com/v1/messages', {
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 4096,
+        model: 'google/gemini-2.5-pro',
         messages: [
           { role: 'user', content: prompt }
         ]
@@ -241,7 +239,7 @@ Responda em formato JSON com a seguinte estrutura:
     }
 
     const aiData = await aiResponse.json();
-    const analysisText = aiData.content[0].text;
+    const analysisText = aiData.choices[0].message.content;
     const analysis = JSON.parse(analysisText);
 
     // Buscar parâmetros de referência para detectar valores críticos
