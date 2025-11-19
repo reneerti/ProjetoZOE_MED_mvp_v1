@@ -29,6 +29,14 @@ export const useWearables = () => {
       });
       
       if (error) throw error;
+
+      // Check for configuration errors
+      if (data?.error === 'configuration_error') {
+        toast.error(data.message || "Credenciais do Google Fit não configuradas");
+        console.error('Google Fit configuration error:', data.details);
+        return null;
+      }
+
       return data.authUrl;
     } catch (error) {
       console.error("Error initiating Google Fit auth:", error);
