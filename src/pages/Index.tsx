@@ -7,11 +7,13 @@ import { BioimpedanceModuleRevised } from "@/components/BioimpedanceModuleRevise
 import { MedicationModule } from "@/components/MedicationModule";
 import { EvolutionModule } from "@/components/EvolutionModule";
 import { GoalsModule } from "@/components/GoalsModule";
+import { ResourceDashboard } from "@/components/ResourceDashboard";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>("dashboard");
@@ -53,6 +55,30 @@ const Index = () => {
         return <div key={viewKey} className="animate-slide-in-right"><EvolutionModule onNavigate={setCurrentView} /></div>;
       case "goals":
         return <div key={viewKey} className="animate-slide-in-right"><GoalsModule onNavigate={setCurrentView} /></div>;
+      case "resources":
+        return (
+          <div key={viewKey} className="animate-slide-in-right">
+            <div className="bg-gradient-header text-white p-4 pb-6 rounded-b-3xl mb-6">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setCurrentView("dashboard")}
+                  className="text-white hover:bg-white/20 h-9 w-9"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+                <div>
+                  <h1 className="text-xl font-bold">Recursos</h1>
+                  <p className="text-white/80 text-xs mt-0.5">Gerenciar uso e custos</p>
+                </div>
+              </div>
+            </div>
+            <div className="px-6">
+              <ResourceDashboard />
+            </div>
+          </div>
+        );
       default:
         return <div key={viewKey} className="animate-fade-in"><Dashboard onNavigate={setCurrentView} /></div>;
     }

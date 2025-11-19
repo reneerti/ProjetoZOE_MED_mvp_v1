@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity, FileText, Scale, Pill, TrendingUp, LogOut, Bell, Sparkles, Target } from "lucide-react";
+import { Activity, FileText, Scale, Pill, TrendingUp, LogOut, Bell, Sparkles, Target, Database } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { PatientAnalysisView } from "./PatientAnalysisView";
 import { ExamChatDialog } from "./ExamChatDialog";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources";
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
@@ -427,6 +427,24 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
               <h3 className="font-semibold text-foreground text-sm mb-0.5">Metas</h3>
               <p className="text-xs text-muted-foreground truncate">
                 Defina e acompanhe seus objetivos
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card
+          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-muted-foreground"
+          style={{ animationDelay: '0.5s' }}
+          onClick={() => onNavigate("resources")}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-muted-foreground to-foreground flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
+              <Database className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-foreground text-sm mb-0.5">Recursos</h3>
+              <p className="text-xs text-muted-foreground truncate">
+                Gerenciar uso e custos
               </p>
             </div>
           </div>

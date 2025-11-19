@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.preview-ocr]
 verify_jwt = true
+
+[functions.cleanup-old-uploads]
+verify_jwt = true
