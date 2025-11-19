@@ -318,7 +318,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
           onClick={() => onNavigate("myexams")}
         >
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gradient-exams flex items-center justify-center flex-shrink-0 shadow-lg">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#3B82F6] flex items-center justify-center flex-shrink-0 shadow-lg">
               <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
             <div className="flex-1 min-w-0">
@@ -341,7 +341,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
           onClick={() => onNavigate("bioimpedance")}
         >
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gradient-bioimpedance flex items-center justify-center flex-shrink-0 shadow-lg">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#10B981] flex items-center justify-center flex-shrink-0 shadow-lg">
               <Scale className="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
             <div className="flex-1 min-w-0">
@@ -371,12 +371,12 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#EC4899] bg-white/95 dark:bg-card/95 backdrop-blur-sm animate-scale-in group"
+          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#EC4899] bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.35s' }}
           onClick={() => onNavigate("medication")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-gradient-medication flex items-center justify-center flex-shrink-0 shadow-lg">
+            <div className="w-12 h-12 rounded-xl bg-[#EC4899] flex items-center justify-center flex-shrink-0 shadow-lg">
               <Pill className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
             <div className="flex-1 min-w-0">
@@ -394,12 +394,12 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#06B6D4] bg-white/95 dark:bg-card/95 backdrop-blur-sm animate-scale-in group"
+          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#06B6D4] bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.37s' }}
           onClick={() => onNavigate("supplements")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-gradient-supplements flex items-center justify-center flex-shrink-0 shadow-lg">
+            <div className="w-12 h-12 rounded-xl bg-[#06B6D4] flex items-center justify-center flex-shrink-0 shadow-lg">
               <Sparkles className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
             <div className="flex-1 min-w-0">
@@ -417,12 +417,12 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#F59E0B] bg-white/95 dark:bg-card/95 backdrop-blur-sm animate-scale-in group"
+          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#F59E0B] bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.4s' }}
           onClick={() => onNavigate("evolution")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-gradient-evolution flex items-center justify-center flex-shrink-0 shadow-lg">
+            <div className="w-12 h-12 rounded-xl bg-[#F59E0B] flex items-center justify-center flex-shrink-0 shadow-lg">
               <TrendingUp className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
             <div className="flex-1 min-w-0">
@@ -444,12 +444,12 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#8B5CF6] bg-white/95 dark:bg-card/95 backdrop-blur-sm animate-scale-in group"
+          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#8B5CF6] bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.45s' }}
           onClick={() => onNavigate("goals")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-gradient-goals flex items-center justify-center flex-shrink-0 shadow-lg">
+            <div className="w-12 h-12 rounded-xl bg-[#8B5CF6] flex items-center justify-center flex-shrink-0 shadow-lg">
               <Target className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
             <div className="flex-1 min-w-0">
@@ -462,12 +462,12 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-muted-foreground bg-white/95 dark:bg-card/95 backdrop-blur-sm animate-scale-in group"
+          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#64748B] bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.5s' }}
           onClick={() => onNavigate("resources")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-muted-foreground to-foreground flex items-center justify-center flex-shrink-0 shadow-lg">
+            <div className="w-12 h-12 rounded-xl bg-[#64748B] flex items-center justify-center flex-shrink-0 shadow-lg">
               <Database className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
             <div className="flex-1 min-w-0">
