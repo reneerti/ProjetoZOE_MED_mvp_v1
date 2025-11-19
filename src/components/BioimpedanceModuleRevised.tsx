@@ -1,14 +1,15 @@
-import { ArrowLeft, Database } from "lucide-react";
+import { ArrowLeft, Database, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { ImageUploadZone } from "./bioimpedance/ImageUploadZone";
 import { ComparisonTable } from "./bioimpedance/ComparisonTable";
 import { MetricCharts } from "./bioimpedance/MetricCharts";
 import { AIAnalysisPanel } from "./bioimpedance/AIAnalysisPanel";
-import { InsightsDashboard } from "./bioimpedance/InsightsDashboard";
+import { InsightsDashboardRevised } from "./bioimpedance/InsightsDashboardRevised";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals";
 
@@ -18,6 +19,7 @@ interface BioimpedanceModuleRevisedProps {
 
 export const BioimpedanceModuleRevised = ({ onNavigate }: BioimpedanceModuleRevisedProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [measurements, setMeasurements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -170,26 +172,50 @@ export const BioimpedanceModuleRevised = ({ onNavigate }: BioimpedanceModuleRevi
               Carregar Exemplo
             </Button>
           )}
+          
+          {measurements.length > 1 && (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => navigate('/metrics-evolution', { state: { measurements } })}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            >
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Ver Evolução Completa
+            </Button>
+          )}
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8 space-y-8">
         {/* Upload Zone */}
-        <ImageUploadZone onFileSelect={handleFileSelect} uploading={uploading} />
+        <div className="bg-gradient-to-br from-blue-50/30 via-purple-50/20 to-pink-50/30 dark:from-blue-950/10 dark:via-purple-950/10 dark:to-pink-950/10 p-6 rounded-2xl">
+          <ImageUploadZone onFileSelect={handleFileSelect} uploading={uploading} />
+        </div>
 
         {measurements.length > 0 ? (
           <>
             {/* Insights Dashboard */}
-            <InsightsDashboard measurements={measurements} />
+            <div className="bg-gradient-to-br from-purple-50/30 to-pink-50/20 dark:from-purple-950/10 dark:to-pink-950/10 p-6 rounded-2xl">
+              <InsightsDashboardRevised measurements={measurements} />
+            </div>
 
             {/* AI Analysis */}
-            {latestAnalysis && <AIAnalysisPanel analysis={latestAnalysis} />}
+            {latestAnalysis && (
+              <div className="bg-gradient-to-br from-green-50/30 to-emerald-50/20 dark:from-green-950/10 dark:to-emerald-950/10 p-6 rounded-2xl">
+                <AIAnalysisPanel analysis={latestAnalysis} />
+              </div>
+            )}
 
-            {/* Charts */}
-            <MetricCharts measurements={measurements} />
+            {/* Charts Preview */}
+            <div className="bg-gradient-to-br from-orange-50/30 to-amber-50/20 dark:from-orange-950/10 dark:to-amber-950/10 p-6 rounded-2xl">
+              <MetricCharts measurements={measurements} />
+            </div>
 
             {/* Comparison Table */}
-            <ComparisonTable measurements={measurements} />
+            <div className="bg-gradient-to-br from-cyan-50/30 to-blue-50/20 dark:from-cyan-950/10 dark:to-blue-950/10 p-6 rounded-2xl">
+              <ComparisonTable measurements={measurements} />
+            </div>
           </>
         ) : (
           <div className="text-center py-12">
