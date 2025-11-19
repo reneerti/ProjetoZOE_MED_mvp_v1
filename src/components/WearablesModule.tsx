@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
-import { ArrowLeft, Watch, TrendingUp, Activity, Heart, Moon, Flame, Plus } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Watch, TrendingUp, Activity, Heart, Moon, Flame, Plus, HelpCircle, Smartphone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useWearables } from "@/hooks/useWearables";
 import { Badge } from "@/components/ui/badge";
 import { WearablesEvolutionCharts } from "./WearablesEvolutionCharts";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { GoogleFitSetupTutorial } from "./wearables/GoogleFitSetupTutorial";
+import { ManualDataDialog } from "./wearables/ManualDataDialog";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables";
 
@@ -20,53 +20,31 @@ export const WearablesModule = ({ onNavigate }: WearablesModuleProps) => {
   const { 
     wearableData, 
     loading, 
-    connectGoogleFit, 
-    connectAppleHealth,
     addManualData,
     initiateGoogleFitAuth,
     initiateAppleHealthAuth
   } = useWearables();
   
   const [showManualDialog, setShowManualDialog] = useState(false);
-  const [manualData, setManualData] = useState({
-    date: new Date().toISOString().split('T')[0],
-    steps: "",
-    heart_rate: "",
-    sleep_hours: "",
-    calories: ""
-  });
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const latestData = wearableData[0];
+  const hasConnectedSource = wearableData.some(d => d.source !== 'manual');
 
-  const handleManualAdd = async () => {
-    const data = {
-      date: manualData.date,
-      steps: manualData.steps ? parseInt(manualData.steps) : null,
-      heart_rate: manualData.heart_rate ? parseInt(manualData.heart_rate) : null,
-      sleep_hours: manualData.sleep_hours ? parseFloat(manualData.sleep_hours) : null,
-      calories: manualData.calories ? parseInt(manualData.calories) : null
-    };
-
+  const handleManualSave = async (data: any) => {
     await addManualData(data);
-    setShowManualDialog(false);
-    setManualData({
-      date: new Date().toISOString().split('T')[0],
-      steps: "",
-      heart_rate: "",
-      sleep_hours: "",
-      calories: ""
-    });
   };
 
   const handleGoogleFitConnect = async () => {
     try {
+      toast.info("Redirecionando para autenticação do Google...");
       const authUrl = await initiateGoogleFitAuth();
       if (authUrl) {
         window.location.href = authUrl;
       }
     } catch (error) {
       console.error("Error connecting to Google Fit:", error);
-      toast.error("Erro ao conectar com Google Fit");
+      toast.error("Erro ao conectar com Google Fit. Verifique se as credenciais estão configuradas.");
     }
   };
 
@@ -102,7 +80,27 @@ export const WearablesModule = ({ onNavigate }: WearablesModuleProps) => {
               <p className="text-sm text-white/80">Dados de dispositivos conectados</p>
             </div>
           </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowTutorial(true)}
+            className="text-white/90 hover:bg-white/20"
+          >
+            <HelpCircle className="w-4 h-4 mr-2" />
+            Como Configurar
+          </Button>
         </div>
+
+        {/* Alert se não houver fonte conectada */}
+        {!hasConnectedSource && wearableData.length > 0 && (
+          <Alert className="bg-blue-50 border-blue-200">
+            <Smartphone className="w-4 h-4 text-blue-600" />
+            <AlertDescription className="text-blue-900">
+              Você está usando entrada manual. Para sincronização automática, conecte o Google Fit abaixo.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Resumo Rápido */}
         {latestData && (
@@ -150,94 +148,79 @@ export const WearablesModule = ({ onNavigate }: WearablesModuleProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button 
-              onClick={handleGoogleFitConnect}
-              className="w-full"
-              variant="outline"
-            >
-              <img 
-                src="https://www.gstatic.com/images/branding/product/1x/gfit_512dp.png" 
-                alt="Google Fit" 
-                className="w-5 h-5 mr-2"
-              />
-              Conectar Google Fit
-            </Button>
+            <div className="space-y-2">
+              <Button 
+                onClick={handleGoogleFitConnect}
+                className="w-full justify-between bg-white hover:bg-gray-50 text-gray-900 border h-auto py-3"
+              >
+                <div className="flex items-center">
+                  <img 
+                    src="https://www.gstatic.com/images/branding/product/2x/google_fit_2020q4_512dp.png" 
+                    alt="Google Fit"
+                    className="w-8 h-8 mr-3"
+                  />
+                  <div className="text-left">
+                    <div className="font-semibold">Google Fit</div>
+                    <div className="text-xs text-muted-foreground">Sincronização automática</div>
+                  </div>
+                </div>
+                <Activity className="w-5 h-5 text-muted-foreground" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowTutorial(true)}
+                className="w-full text-xs text-muted-foreground"
+              >
+                <HelpCircle className="w-3 h-3 mr-1" />
+                Precisa de ajuda para configurar?
+              </Button>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">ou</span>
+              </div>
+            </div>
+            
             <Button 
               onClick={handleAppleHealthConnect}
-              className="w-full"
-              variant="outline"
+              disabled
+              className="w-full justify-between bg-gray-100 text-gray-400 border border-dashed h-auto py-3 cursor-not-allowed"
             >
-              <Activity className="w-5 h-5 mr-2" />
-              Conectar Apple Health
-            </Button>
-            <Dialog open={showManualDialog} onOpenChange={setShowManualDialog}>
-              <DialogTrigger asChild>
-                <Button className="w-full" variant="secondary">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Adicionar Dados Manualmente
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Adicionar Dados Manualmente</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="date">Data</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={manualData.date}
-                      onChange={(e) => setManualData({ ...manualData, date: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="steps">Passos</Label>
-                    <Input
-                      id="steps"
-                      type="number"
-                      placeholder="Ex: 10000"
-                      value={manualData.steps}
-                      onChange={(e) => setManualData({ ...manualData, steps: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="heart_rate">Frequência Cardíaca (BPM)</Label>
-                    <Input
-                      id="heart_rate"
-                      type="number"
-                      placeholder="Ex: 75"
-                      value={manualData.heart_rate}
-                      onChange={(e) => setManualData({ ...manualData, heart_rate: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="sleep_hours">Horas de Sono</Label>
-                    <Input
-                      id="sleep_hours"
-                      type="number"
-                      step="0.1"
-                      placeholder="Ex: 7.5"
-                      value={manualData.sleep_hours}
-                      onChange={(e) => setManualData({ ...manualData, sleep_hours: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="calories">Calorias Queimadas</Label>
-                    <Input
-                      id="calories"
-                      type="number"
-                      placeholder="Ex: 2000"
-                      value={manualData.calories}
-                      onChange={(e) => setManualData({ ...manualData, calories: e.target.value })}
-                    />
-                  </div>
-                  <Button onClick={handleManualAdd} className="w-full">
-                    Adicionar
-                  </Button>
+              <div className="flex items-center">
+                <Heart className="w-8 h-8 mr-3 text-gray-400" />
+                <div className="text-left">
+                  <div className="font-semibold">Apple Health</div>
+                  <div className="text-xs">Requer app nativo iOS</div>
                 </div>
-              </DialogContent>
-            </Dialog>
+              </div>
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">entrada manual</span>
+              </div>
+            </div>
+
+            <Button 
+              onClick={() => setShowManualDialog(true)}
+              variant="outline" 
+              className="w-full justify-start h-auto py-3"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              <div className="text-left">
+                <div className="font-semibold">Adicionar Dados Manualmente</div>
+                <div className="text-xs text-muted-foreground">Registre seus dados de saúde</div>
+              </div>
+            </Button>
           </CardContent>
         </Card>
 
@@ -284,6 +267,19 @@ export const WearablesModule = ({ onNavigate }: WearablesModuleProps) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialogs */}
+      <GoogleFitSetupTutorial
+        open={showTutorial}
+        onOpenChange={setShowTutorial}
+        onConnect={handleGoogleFitConnect}
+      />
+
+      <ManualDataDialog
+        open={showManualDialog}
+        onOpenChange={setShowManualDialog}
+        onSave={handleManualSave}
+      />
     </div>
   );
 };
