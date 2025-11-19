@@ -18,7 +18,7 @@ interface PatientStats {
 }
 
 export const usePDFExport = () => {
-  const generateMonthlyReport = async (controllerId: string, month: string, year: string) => {
+  const generateMonthlyReportHTML = async (controllerId: string, month: string, year: string): Promise<string | null> => {
     try {
       toast.info("Gerando relatório PDF...");
 
@@ -29,7 +29,7 @@ export const usePDFExport = () => {
 
       if (!patients || patients.length === 0) {
         toast.error("Nenhum paciente encontrado");
-        return;
+        return null;
       }
 
       const patientIds = patients.map(p => p.patient_id);
@@ -264,6 +264,29 @@ export const usePDFExport = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
+      return html;
+    } catch (error) {
+      console.error('Error generating report HTML:', error);
+      toast.error("Erro ao gerar relatório");
+      return null;
+    }
+  };
+
+  const generateMonthlyReport = async (controllerId: string, month: string, year: string) => {
+    try {
+      const htmlContent = await generateMonthlyReportHTML(controllerId, month, year);
+      if (!htmlContent) return;
+
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `relatorio-${month}-${year}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
       toast.success("Relatório gerado com sucesso!");
     } catch (error) {
       console.error('Error generating report:', error);
@@ -271,5 +294,5 @@ export const usePDFExport = () => {
     }
   };
 
-  return { generateMonthlyReport };
+  return { generateMonthlyReport, generateMonthlyReportHTML };
 };

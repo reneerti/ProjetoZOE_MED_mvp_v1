@@ -1,4 +1,4 @@
-import logoImage from "@/assets/zoe-med-logo-new.png";
+import logoImage from "@/assets/zoe-med-logo-gray.png";
 
 interface LogoProps {
   className?: string;

@@ -164,6 +164,51 @@ export type Database = {
         }
         Relationships: []
       }
+      email_reports_history: {
+        Row: {
+          controller_id: string
+          created_at: string | null
+          email_id: string | null
+          error_message: string | null
+          id: string
+          month: string
+          recipient_email: string
+          report_type: string
+          sent_at: string | null
+          status: string
+          updated_at: string | null
+          year: string
+        }
+        Insert: {
+          controller_id: string
+          created_at?: string | null
+          email_id?: string | null
+          error_message?: string | null
+          id?: string
+          month: string
+          recipient_email: string
+          report_type?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string | null
+          year: string
+        }
+        Update: {
+          controller_id?: string
+          created_at?: string | null
+          email_id?: string | null
+          error_message?: string | null
+          id?: string
+          month?: string
+          recipient_email?: string
+          report_type?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string | null
+          year?: string
+        }
+        Relationships: []
+      }
       evolution_notes: {
         Row: {
           created_at: string | null

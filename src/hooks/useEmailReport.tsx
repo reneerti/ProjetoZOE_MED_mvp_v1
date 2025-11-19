@@ -3,18 +3,50 @@ import { toast } from "sonner";
 import { usePDFExport } from "./usePDFExport";
 
 export const useEmailReport = () => {
-  const { generateMonthlyReport } = usePDFExport();
+  const { generateMonthlyReportHTML } = usePDFExport();
 
   const sendMonthlyReport = async (controllerId: string, month: string, year: string) => {
+    let historyId: string | null = null;
+
     try {
       toast.info("Preparando relatório para envio...");
 
-      // Gerar HTML do relatório (mesmo código do PDF mas retornando o HTML)
+      // Get controller email
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        throw new Error("Email do controlador não encontrado");
+      }
+
+      // Create history record
+      const { data: historyRecord, error: historyError } = await supabase
+        .from('email_reports_history')
+        .insert({
+          controller_id: controllerId,
+          recipient_email: user.email,
+          report_type: 'monthly',
+          month,
+          year,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (historyError) throw historyError;
+      historyId = historyRecord.id;
+
       const { data: patients } = await supabase.rpc('get_controller_patients', {
         _controller_id: controllerId
       });
 
       if (!patients || patients.length === 0) {
+        await supabase
+          .from('email_reports_history')
+          .update({ 
+            status: 'failed', 
+            error_message: 'Nenhum paciente encontrado' 
+          })
+          .eq('id', historyId);
+        
         toast.error("Nenhum paciente encontrado");
         return;
       }
@@ -28,7 +60,7 @@ export const useEmailReport = () => {
           controllerId,
           month,
           year,
-          htmlReport: null // O email usa template padrão
+          htmlReport: null
         },
         headers: {
           Authorization: `Bearer ${session?.access_token}`
@@ -37,12 +69,43 @@ export const useEmailReport = () => {
 
       if (error) throw error;
 
+      // Update history with success
+      await supabase
+        .from('email_reports_history')
+        .update({ 
+          status: 'sent',
+          email_id: data?.emailId 
+        })
+        .eq('id', historyId);
+
       toast.success("Relatório enviado por email com sucesso!");
       return data;
     } catch (error) {
       console.error('Error sending email report:', error);
+      
+      // Update history with error
+      if (historyId) {
+        await supabase
+          .from('email_reports_history')
+          .update({ 
+            status: 'failed',
+            error_message: error instanceof Error ? error.message : 'Erro desconhecido'
+          })
+          .eq('id', historyId);
+      }
+      
       toast.error("Erro ao enviar relatório por email");
+      throw error;
     }
+  };
+
+  const sendTestReport = async (controllerId: string) => {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = String(now.getFullYear());
+    
+    toast.info("Enviando relatório de teste...");
+    return sendMonthlyReport(controllerId, month, year);
   };
 
   const scheduleMonthlyReports = async (controllerId: string) => {
@@ -63,5 +126,5 @@ export const useEmailReport = () => {
     }
   };
 
-  return { sendMonthlyReport, scheduleMonthlyReports };
+  return { sendMonthlyReport, scheduleMonthlyReports, sendTestReport };
 };
