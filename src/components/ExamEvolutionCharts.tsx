@@ -3,14 +3,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, ZoomIn, ZoomOut, Filter, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ArrowLeft, ZoomIn, ZoomOut, Filter, TrendingUp, TrendingDown, Minus, Calendar } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison";
 
 interface ExamEvolutionChartsProps {
   onNavigate: (view: View) => void;
@@ -284,14 +284,14 @@ export const ExamEvolutionCharts = ({ onNavigate }: ExamEvolutionChartsProps) =>
               <span className="text-sm font-medium min-w-[60px] text-center">
                 {Math.round(zoomLevel * 100)}%
               </span>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleZoomIn}
-                disabled={zoomLevel >= 2}
-              >
-                <ZoomIn className="w-4 h-4" />
-              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onNavigate("period-comparison")}
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Comparar
+                </Button>
             </div>
           </div>
         </Card>

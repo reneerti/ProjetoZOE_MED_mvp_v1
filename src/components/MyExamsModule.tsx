@@ -11,7 +11,7 @@ import { compressImage } from "@/lib/imageCompression";
 import { ImagePreviewDialog } from "./bioimpedance/ImagePreviewDialog";
 import { UploadStatsDialog } from "./bioimpedance/UploadStatsDialog";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "exam-charts";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison";
 
 interface MyExamsModuleProps {
   onNavigate: (view: View) => void;
@@ -633,11 +633,11 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => onNavigate("exam-charts")}
+                  onClick={() => onNavigate("period-comparison")}
                   disabled={groupedExams.length === 0}
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
-                  Gráficos
+                  Comparar Períodos
                 </Button>
                 <Button
                   variant="outline"

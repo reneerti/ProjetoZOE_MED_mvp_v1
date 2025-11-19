@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { PatientAnalysisView } from "./PatientAnalysisView";
 import { ExamChatDialog } from "./ExamChatDialog";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison";
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
@@ -302,6 +302,31 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
       {/* Modules */}
       <div className="px-4 space-y-3 sm:space-y-4 pb-6 pt-4">
         <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>Meus Módulos</h2>
+
+        {/* Alerts Card */}
+        <Card 
+          className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-l-4 border-l-[#EF4444] hover:scale-[1.02]"
+          onClick={() => onNavigate("alerts")}
+        >
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-[#EF4444]/10 group-hover:bg-[#EF4444]/20 transition-colors">
+                  <Bell className="w-5 h-5 text-[#EF4444]" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm">Alertas Críticos</h3>
+                  <p className="text-xs text-muted-foreground">Notificações de saúde</p>
+                </div>
+              </div>
+              {stats.unreadAlerts > 0 && (
+                <Badge variant="destructive" className="animate-pulse">
+                  {stats.unreadAlerts}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </Card>
 
         <Card
           className="p-4 sm:p-5 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#3B82F6] bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
