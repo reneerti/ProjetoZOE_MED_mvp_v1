@@ -29,6 +29,33 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
+    // Rate limiting: 20 requests per minute for chat (more lenient for chat interactions)
+    const { data: rateLimitResult } = await supabase.rpc('check_rate_limit', {
+      p_user_id: user.id,
+      p_endpoint: 'chat-exams',
+      p_max_requests: 20,
+      p_window_seconds: 60
+    });
+
+    if (rateLimitResult && !rateLimitResult.allowed) {
+      console.log('Rate limit exceeded for user:', user.id);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Você está enviando mensagens muito rapidamente. Por favor, aguarde um momento.',
+          retry_after: rateLimitResult.retry_after,
+          reset_at: rateLimitResult.reset_at
+        }), 
+        {
+          status: 429,
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': String(rateLimitResult.retry_after || 60)
+          },
+        }
+      );
+    }
+
     const { messages } = await req.json();
 
     // Buscar contexto dos exames do usuário
