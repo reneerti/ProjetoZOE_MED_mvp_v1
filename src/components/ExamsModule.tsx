@@ -11,6 +11,7 @@ import { ImagePreviewDialog } from "./bioimpedance/ImagePreviewDialog";
 import { UploadStatsDialog } from "./bioimpedance/UploadStatsDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ExamUploadDialog } from "./bioimpedance/ExamUploadDialog";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller";
 
@@ -33,6 +34,7 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
   const [userId, setUserId] = useState<string>("");
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [limitMessage, setLimitMessage] = useState("");
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -55,11 +57,11 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
       return;
     }
 
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
     if (!validTypes.includes(file.type)) {
       toast({
         title: "Erro",
-        description: "Apenas imagens nos formatos JPG, PNG ou WEBP são aceitas.",
+        description: "Apenas imagens (JPG, PNG, WEBP) ou PDF são aceitos.",
         variant: "destructive",
       });
       return;
@@ -79,7 +81,7 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
     setOriginalSize(file.size);
     setPreviewUrl(URL.createObjectURL(file));
     setPreviewFile(file);
-    setShowPreview(true);
+    setShowUploadDialog(true);
     setIsCompressing(true);
 
     // Compress in background
@@ -101,7 +103,7 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
   };
 
 
-  const handleFileUpload = async () => {
+  const handleFileUpload = async (requestingDoctor?: string, reportingDoctor?: string, examDate?: string) => {
     if (!previewFile) return;
     
     try {
@@ -136,7 +138,12 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
         .insert({
           user_id: user.id,
           image_url: fileName,
-          processing_status: 'pending'
+          processing_status: 'pending',
+          requesting_doctor: requestingDoctor,
+          reporting_doctor: reportingDoctor,
+          exam_date: examDate || new Date().toISOString().split('T')[0],
+          upload_date: new Date().toISOString(),
+          file_type: previewFile.type.includes('pdf') ? 'pdf' : 'image'
         })
         .select()
         .single();
@@ -284,6 +291,12 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
     <div className="animate-fade-in pb-24">
       <ExamHistoryModal open={showHistory} onOpenChange={setShowHistory} />
       <UploadStatsDialog open={showStats} onOpenChange={setShowStats} userId={userId} />
+      <ExamUploadDialog
+        open={showUploadDialog}
+        onOpenChange={setShowUploadDialog}
+        fileName={previewFile?.name}
+        onConfirm={handleFileUpload}
+      />
       <ImagePreviewDialog
         open={showPreview}
         onOpenChange={setShowPreview}
@@ -292,7 +305,7 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
         originalSize={originalSize}
         compressedSize={compressedSize}
         isCompressing={isCompressing}
-        onConfirm={handleFileUpload}
+        onConfirm={() => setShowUploadDialog(true)}
         onCancel={() => {
           setShowPreview(false);
           setPreviewFile(null);

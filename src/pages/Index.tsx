@@ -19,14 +19,13 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { ExamNotifications } from "@/components/ExamNotifications";
-
+import { Logo } from "@/components/Logo";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { PatientDashboard } from "@/components/controller/PatientDashboard";
 import { WearablesModule } from "@/components/WearablesModule";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables";
-
-import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>(() => {
