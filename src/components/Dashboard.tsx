@@ -181,35 +181,35 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <div className="bg-gradient-header text-white p-6 pb-8 rounded-b-3xl animate-slide-in-left">
+      <div className="bg-gradient-header text-white p-4 pb-6 rounded-b-3xl animate-slide-in-left">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Olá, {getDisplayName()}! 👋</h1>
-            <p className="text-white/90 text-sm mt-1">
-              Bem-vindo ao Zoe Med
+            <h1 className="text-xl font-bold">ZoeMed</h1>
+            <p className="text-white/80 text-xs mt-0.5">
+              Saúde Inteligente
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setShowChat(true)}
-              className="text-white hover:bg-white/20"
+              className="text-white hover:bg-white/20 h-9 w-9"
               title="Chat com IA sobre seus exames"
             >
-              <Sparkles className="w-5 h-5" />
+              <Sparkles className="w-4 h-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setShowAlerts(!showAlerts)}
-              className="text-white hover:bg-white/20 relative"
+              className="text-white hover:bg-white/20 relative h-9 w-9"
             >
-              <Bell className="w-5 h-5" />
+              <Bell className="w-4 h-4" />
               {stats.unreadAlerts > 0 && (
                 <Badge 
                   variant="destructive" 
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px]"
                 >
                   {stats.unreadAlerts}
                 </Badge>
@@ -219,54 +219,59 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
               variant="ghost"
               size="icon"
               onClick={signOut}
-              className="text-white hover:bg-white/20"
+              className="text-white hover:bg-white/20 h-9 w-9"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-4 h-4" />
             </Button>
           </div>
         </div>
       </div>
 
       {/* Health Score */}
-      <div className="px-6 -mt-4 mb-6 animate-scale-in" style={{ animationDelay: '0.1s' }}>
+      <div className="px-6 -mt-3 mb-5 animate-scale-in" style={{ animationDelay: '0.1s' }}>
         <Card 
-          className={`bg-gradient-to-br ${getScoreColor()} text-white p-6 shadow-card-hover cursor-pointer card-hover group`}
+          className={`bg-gradient-to-br ${getScoreColor()} text-white p-4 shadow-card-hover cursor-pointer card-hover group relative overflow-hidden`}
           onClick={() => onNavigate("evolution")}
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium mb-1">Score de Saúde</div>
-              <div className="text-4xl font-bold">{healthScore.toFixed(1)}</div>
-              <div className="text-xs mt-2 text-white/90">
-                {healthScore >= 8 ? "Excelente progresso! 🎉" : 
-                 healthScore >= 6 ? "Bom progresso! 💪" : "Continue se cuidando! 🌟"}
+          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 animate-shimmer" />
+          <div className="flex items-center justify-between relative z-10">
+            <div className="flex-1">
+              <p className="text-white/90 text-xs font-medium mb-0.5">Score de Saúde</p>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-3xl font-bold">{healthScore.toFixed(1)}</span>
+                <span className="text-white/70 text-base">/10</span>
               </div>
+              <p className="text-white/60 text-[10px] mt-1">
+                {healthScore >= 8 ? "Excelente! Continue assim" : 
+                 healthScore >= 6 ? "Bom trabalho" : "Vamos melhorar"}
+              </p>
             </div>
-            <div className="relative w-24 h-24">
-              <svg className="transform -rotate-90 w-24 h-24">
+            <div className="relative w-20 h-20 flex-shrink-0">
+              <svg className="w-20 h-20 transform -rotate-90">
                 <circle
-                  cx="48"
-                  cy="48"
-                  r="40"
+                  cx="40"
+                  cy="40"
+                  r="34"
                   stroke="white"
-                  strokeOpacity="0.2"
-                  strokeWidth="8"
+                  strokeOpacity="0.15"
+                  strokeWidth="6"
                   fill="none"
                 />
                 <circle
-                  cx="48"
-                  cy="48"
-                  r="40"
+                  cx="40"
+                  cy="40"
+                  r="34"
                   stroke="white"
-                  strokeWidth="8"
+                  strokeWidth="6"
                   fill="none"
-                  strokeDasharray={`${2 * Math.PI * 40}`}
-                  strokeDashoffset={`${2 * Math.PI * 40 * (1 - healthScorePercent)}`}
+                  strokeDasharray={`${2 * Math.PI * 34}`}
+                  strokeDashoffset={`${2 * Math.PI * 34 * (1 - healthScorePercent)}`}
                   strokeLinecap="round"
+                  className="transition-all duration-1000"
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <Activity className={`w-8 h-8 ${getScoreIconColor()} group-hover:animate-pulse-glow`} />
+                <Activity className={`w-7 h-7 ${getScoreIconColor()} animate-heartbeat`} />
               </div>
             </div>
           </div>
@@ -298,26 +303,26 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
       )}
 
       {/* Modules */}
-      <div className="px-6 space-y-3 pb-6">
-        <h2 className="text-lg font-semibold text-foreground mb-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>Meus Módulos</h2>
+      <div className="px-6 space-y-2.5 pb-6">
+        <h2 className="text-base font-semibold text-foreground mb-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>Meus Módulos</h2>
 
         <Card
-          className="p-5 cursor-pointer card-hover group animate-slide-in-right"
+          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-primary"
           style={{ animationDelay: '0.25s' }}
           onClick={() => onNavigate("myexams")}
         >
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
-              <FileText className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
+              <FileText className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="font-semibold text-foreground">Meus Exames</h3>
-                <Badge variant="secondary" className="text-xs">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="font-semibold text-foreground text-sm">Meus Exames</h3>
+                <Badge variant="secondary" className="text-[10px] h-5">
                   {stats.examsCount}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground truncate">
                 {stats.examsStats.normal} normais • {stats.examsStats.attention} atenção
               </p>
             </div>
@@ -325,25 +330,25 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-5 cursor-pointer card-hover group animate-slide-in-right"
+          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-accent"
           style={{ animationDelay: '0.3s' }}
           onClick={() => onNavigate("bioimpedance")}
         >
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
-              <Scale className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent to-primary flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
+              <Scale className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="font-semibold text-foreground">Bioimpedância</h3>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="font-semibold text-foreground text-sm">Bioimpedância</h3>
                 {stats.latestBioimpedance && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-[10px] h-5">
                     {stats.latestBioimpedance.weight}kg
                   </Badge>
                 )}
               </div>
               {stats.latestBioimpedance ? (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground truncate">
                   {stats.weightChange !== null && (
                     <span className={stats.weightChange <= 0 ? "text-success" : "text-warning"}>
                       {stats.weightChange <= 0 ? '↓' : '↑'} {Math.abs(stats.weightChange).toFixed(1)}kg
@@ -353,29 +358,29 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
                   {stats.latestBioimpedance.bodyFat.toFixed(1)}% gordura
                 </p>
               ) : (
-                <p className="text-sm text-muted-foreground">Nenhuma medição registrada</p>
+                <p className="text-xs text-muted-foreground">Nenhuma medição</p>
               )}
             </div>
           </div>
         </Card>
 
         <Card
-          className="p-5 cursor-pointer card-hover group animate-slide-in-right"
+          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-primary"
           style={{ animationDelay: '0.35s' }}
           onClick={() => onNavigate("medication")}
         >
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
-              <Pill className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
+              <Pill className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="font-semibold text-foreground">Medicações</h3>
-                <Badge variant="secondary" className="text-xs">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="font-semibold text-foreground text-sm">Medicações</h3>
+                <Badge variant="secondary" className="text-[10px] h-5">
                   {stats.medicationsCount}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground truncate">
                 {stats.medicationsCount === 1 ? 'medicação ativa' : 'medicações ativas'}
               </p>
             </div>
@@ -383,25 +388,25 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-5 cursor-pointer card-hover group animate-slide-in-right"
+          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-success"
           style={{ animationDelay: '0.4s' }}
           onClick={() => onNavigate("evolution")}
         >
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-success to-accent flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
-              <TrendingUp className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-success to-accent flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
+              <TrendingUp className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="font-semibold text-foreground">Evolução Geral</h3>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="font-semibold text-foreground text-sm">Evolução Geral</h3>
                 <Badge 
                   variant={healthScore >= 8 ? "default" : healthScore >= 6 ? "secondary" : "outline"}
-                  className={healthScore >= 8 ? "bg-success text-success-foreground" : ""}
+                  className={`text-[10px] h-5 ${healthScore >= 8 ? "bg-success text-success-foreground" : ""}`}
                 >
                   {healthScore.toFixed(1)}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground truncate">
                 {healthScore >= 8 ? "Progresso excelente" : 
                  healthScore >= 6 ? "Bom progresso" : "Continue se cuidando"}
               </p>
@@ -410,19 +415,17 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-5 cursor-pointer card-hover group animate-slide-in-right"
+          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-warning"
           style={{ animationDelay: '0.45s' }}
           onClick={() => onNavigate("goals")}
         >
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-warning to-success flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
-              <Target className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-warning to-success flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
+              <Target className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="font-semibold text-foreground">Metas</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-foreground text-sm mb-0.5">Metas</h3>
+              <p className="text-xs text-muted-foreground truncate">
                 Defina e acompanhe seus objetivos
               </p>
             </div>
