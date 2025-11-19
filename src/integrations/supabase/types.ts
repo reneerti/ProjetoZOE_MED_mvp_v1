@@ -1020,6 +1020,7 @@ export type Database = {
           scopes: string[] | null
           sync_enabled: boolean
           token_expires_at: string | null
+          tokens_encrypted: boolean | null
           updated_at: string
           user_id: string
         }
@@ -1034,6 +1035,7 @@ export type Database = {
           scopes?: string[] | null
           sync_enabled?: boolean
           token_expires_at?: string | null
+          tokens_encrypted?: boolean | null
           updated_at?: string
           user_id: string
         }
@@ -1048,6 +1050,7 @@ export type Database = {
           scopes?: string[] | null
           sync_enabled?: boolean
           token_expires_at?: string | null
+          tokens_encrypted?: boolean | null
           updated_at?: string
           user_id?: string
         }
@@ -1091,6 +1094,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      wearable_token_audit: {
+        Row: {
+          action: string
+          connection_id: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          connection_id: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          connection_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wearable_token_audit_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "wearable_connections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

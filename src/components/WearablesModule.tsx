@@ -7,8 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { WearablesEvolutionCharts } from "./WearablesEvolutionCharts";
 import { GoogleFitSetupTutorial } from "./wearables/GoogleFitSetupTutorial";
 import { ManualDataDialog } from "./wearables/ManualDataDialog";
+import { SyncStatusDashboard } from "./wearables/SyncStatusDashboard";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables";
 
@@ -27,6 +29,7 @@ export const WearablesModule = ({ onNavigate }: WearablesModuleProps) => {
   
   const [showManualDialog, setShowManualDialog] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [analyzingData, setAnalyzingData] = useState(false);
 
   const latestData = wearableData[0];
   const hasConnectedSource = wearableData.some(d => d.source !== 'manual');
@@ -57,6 +60,22 @@ export const WearablesModule = ({ onNavigate }: WearablesModuleProps) => {
     } catch (error) {
       console.error("Error connecting to Apple Health:", error);
       toast.error("Erro ao conectar com Apple Health");
+    }
+  };
+
+  const handleAnalyzeData = async () => {
+    setAnalyzingData(true);
+    try {
+      const { error } = await supabase.functions.invoke('analyze-wearable-data');
+      
+      if (error) throw error;
+      
+      toast.success('Dados de wearables analisados e integrados ao índice de saúde!');
+    } catch (error) {
+      console.error('Error analyzing wearable data:', error);
+      toast.error('Erro ao analisar dados de wearables');
+    } finally {
+      setAnalyzingData(false);
     }
   };
 
@@ -100,6 +119,18 @@ export const WearablesModule = ({ onNavigate }: WearablesModuleProps) => {
               Você está usando entrada manual. Para sincronização automática, conecte o Google Fit abaixo.
             </AlertDescription>
           </Alert>
+        )}
+
+        {/* Botão para analisar dados com IA */}
+        {wearableData.length > 0 && (
+          <Button
+            onClick={handleAnalyzeData}
+            disabled={analyzingData}
+            className="w-full bg-primary"
+          >
+            <Activity className={`w-4 h-4 mr-2 ${analyzingData ? 'animate-spin' : ''}`} />
+            {analyzingData ? 'Analisando...' : 'Analisar Dados com IA'}
+          </Button>
         )}
 
         {/* Resumo Rápido */}
@@ -223,6 +254,9 @@ export const WearablesModule = ({ onNavigate }: WearablesModuleProps) => {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Dashboard de Status de Sincronização */}
+        <SyncStatusDashboard />
 
         {/* Gráficos de Evolução */}
         {wearableData.length > 0 && (
