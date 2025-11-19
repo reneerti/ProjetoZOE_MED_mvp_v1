@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { PatientAnalysisView } from "./PatientAnalysisView";
 import { ExamChatDialog } from "./ExamChatDialog";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements";
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
@@ -382,6 +382,29 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
               </div>
               <p className="text-xs text-muted-foreground truncate">
                 {stats.medicationsCount === 1 ? 'medicação ativa' : 'medicações ativas'}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card
+          className="p-4 cursor-pointer card-hover group animate-slide-in-right border-l-4 border-l-accent"
+          style={{ animationDelay: '0.37s' }}
+          onClick={() => onNavigate("supplements")}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent to-primary-glow flex items-center justify-center flex-shrink-0 group-hover:shadow-lg transition-shadow">
+              <Sparkles className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="font-semibold text-foreground text-sm">Suplementação</h3>
+                <Badge variant="secondary" className="text-[10px] h-5 bg-accent/10 text-accent">
+                  IA
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground truncate">
+                Recomendações personalizadas
               </p>
             </div>
           </div>

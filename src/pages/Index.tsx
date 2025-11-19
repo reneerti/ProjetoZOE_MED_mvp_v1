@@ -9,12 +9,13 @@ import { EvolutionModule } from "@/components/EvolutionModule";
 import { GoalsModule } from "@/components/GoalsModule";
 import { ResourceDashboard } from "@/components/ResourceDashboard";
 import { ProfileModule } from "@/components/ProfileModule";
+import { SupplementsModule } from "@/components/SupplementsModule";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>("dashboard");
@@ -82,6 +83,8 @@ const Index = () => {
         );
       case "profile":
         return <div key={viewKey} className="animate-slide-in-right"><ProfileModule onNavigate={setCurrentView} /></div>;
+      case "supplements":
+        return <div key={viewKey} className="animate-slide-in-right"><SupplementsModule onNavigate={setCurrentView} /></div>;
       default:
         return <div key={viewKey} className="animate-fade-in"><Dashboard onNavigate={setCurrentView} /></div>;
     }

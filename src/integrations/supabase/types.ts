@@ -662,6 +662,149 @@ export type Database = {
         }
         Relationships: []
       }
+      supplement_logs: {
+        Row: {
+          created_at: string
+          dose_taken: string
+          id: string
+          notes: string | null
+          supplement_id: string
+          taken_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dose_taken: string
+          id?: string
+          notes?: string | null
+          supplement_id: string
+          taken_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dose_taken?: string
+          id?: string
+          notes?: string | null
+          supplement_id?: string
+          taken_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplement_logs_supplement_id_fkey"
+            columns: ["supplement_id"]
+            isOneToOne: false
+            referencedRelation: "supplements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplement_recommendations: {
+        Row: {
+          based_on_bioimpedance_id: string | null
+          based_on_exam_id: string | null
+          created_at: string
+          id: string
+          reasoning: string
+          recommended_dose: string
+          status: string
+          supplement_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          based_on_bioimpedance_id?: string | null
+          based_on_exam_id?: string | null
+          created_at?: string
+          id?: string
+          reasoning: string
+          recommended_dose: string
+          status?: string
+          supplement_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          based_on_bioimpedance_id?: string | null
+          based_on_exam_id?: string | null
+          created_at?: string
+          id?: string
+          reasoning?: string
+          recommended_dose?: string
+          status?: string
+          supplement_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplement_recommendations_based_on_bioimpedance_id_fkey"
+            columns: ["based_on_bioimpedance_id"]
+            isOneToOne: false
+            referencedRelation: "bioimpedance_measurements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplement_recommendations_based_on_exam_id_fkey"
+            columns: ["based_on_exam_id"]
+            isOneToOne: false
+            referencedRelation: "exam_images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplements: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          current_dose: string
+          end_date: string | null
+          frequency: string
+          id: string
+          notes: string | null
+          start_date: string
+          supplement_name: string
+          supplement_type: string
+          time_of_day: string | null
+          unit: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          current_dose: string
+          end_date?: string | null
+          frequency: string
+          id?: string
+          notes?: string | null
+          start_date: string
+          supplement_name: string
+          supplement_type: string
+          time_of_day?: string | null
+          unit: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          current_dose?: string
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          notes?: string | null
+          start_date?: string
+          supplement_name?: string
+          supplement_type?: string
+          time_of_day?: string | null
+          unit?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
