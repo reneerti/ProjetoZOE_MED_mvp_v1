@@ -10,9 +10,9 @@ function getEncryptionKey(): Uint8Array {
     throw new Error('OAUTH_ENCRYPTION_KEY not configured');
   }
   
-  // Convert base64 key to bytes
+  // Convert base64 key to bytes with proper ArrayBuffer
   const binaryString = atob(keyString);
-  const bytes = new Uint8Array(binaryString.length);
+  const bytes = new Uint8Array(new ArrayBuffer(binaryString.length));
   for (let i = 0; i < binaryString.length; i++) {
     bytes[i] = binaryString.charCodeAt(i);
   }
@@ -32,7 +32,7 @@ export async function encryptToken(token: string): Promise<string> {
     // Import key for AES-GCM
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
-      key.buffer,
+      key.buffer as ArrayBuffer,
       { name: 'AES-GCM' },
       false,
       ['encrypt']
@@ -81,7 +81,7 @@ export async function decryptToken(encryptedToken: string): Promise<string> {
     // Import key for AES-GCM
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
-      key.buffer,
+      key.buffer as ArrayBuffer,
       { name: 'AES-GCM' },
       false,
       ['decrypt']
