@@ -181,7 +181,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
   return (
     <div className="animate-fade-in">
       {/* Header + Score - Fixed Together */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] text-white shadow-2xl">
+      <div className="sticky top-0 z-50 bg-gradient-to-br from-[#6366F1] via-[#8B5CF6] to-[#A855F7] text-white shadow-2xl">
         {/* Header */}
         <div className="p-4 pb-3">
           <div className="flex items-center justify-between">
