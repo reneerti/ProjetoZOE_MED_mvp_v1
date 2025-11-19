@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { PatientAnalysisView } from "./PatientAnalysisView";
 import { ExamChatDialog } from "./ExamChatDialog";
 import { HealthScoreCard } from "./HealthScoreCard";
+import { WearableTokenNotifications } from "./wearables/WearableTokenNotifications";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables";
 
@@ -215,7 +216,8 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
       </div>
 
       {/* Health Score Section */}
-      <div className="p-6">
+      <div className="p-6 space-y-4">
+        <WearableTokenNotifications />
         <HealthScoreCard score={stats.healthScore ? stats.healthScore * 100 : null} />
       </div>
 
