@@ -30,7 +30,8 @@ SET row_security = off;
 
 CREATE TYPE public.app_role AS ENUM (
     'admin',
-    'user'
+    'user',
+    'controller'
 );
 
 
@@ -175,6 +176,20 @@ $$;
 
 
 --
+-- Name: get_controller_patients(uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.get_controller_patients(_controller_id uuid) RETURNS TABLE(patient_id uuid)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+  SELECT patient_id
+  FROM public.controller_patients
+  WHERE controller_id = _controller_id
+$$;
+
+
+--
 -- Name: get_user_role(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -285,6 +300,23 @@ $$;
 
 
 --
+-- Name: is_patient_of_controller(uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.is_patient_of_controller(_controller_id uuid, _patient_id uuid) RETURNS boolean
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.controller_patients
+    WHERE controller_id = _controller_id
+      AND patient_id = _patient_id
+  )
+$$;
+
+
+--
 -- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -355,6 +387,19 @@ CREATE TABLE public.body_composition_goals (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     completed_at timestamp with time zone
+);
+
+
+--
+-- Name: controller_patients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.controller_patients (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    controller_id uuid NOT NULL,
+    patient_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -577,6 +622,21 @@ CREATE TABLE public.rate_limits (
 
 
 --
+-- Name: subscription_plans; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.subscription_plans (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    max_exams_per_month integer,
+    modules_enabled jsonb DEFAULT '{"exams": true, "goals": false, "evolution": false, "medications": false, "supplements": false, "bioimpedance": false}'::jsonb NOT NULL,
+    price_monthly numeric(10,2),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: supplement_logs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -644,6 +704,42 @@ CREATE TABLE public.user_roles (
 
 
 --
+-- Name: user_subscriptions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_subscriptions (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    plan_id uuid NOT NULL,
+    exams_used_this_month integer DEFAULT 0 NOT NULL,
+    current_period_start date DEFAULT CURRENT_DATE NOT NULL,
+    current_period_end date NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: wearable_data; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wearable_data (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    date date NOT NULL,
+    steps integer,
+    heart_rate integer,
+    sleep_hours numeric(4,2),
+    calories integer,
+    source text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT wearable_data_source_check CHECK ((source = ANY (ARRAY['apple_health'::text, 'google_fit'::text, 'manual'::text])))
+);
+
+
+--
 -- Name: bioimpedance_measurements bioimpedance_measurements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -665,6 +761,22 @@ ALTER TABLE ONLY public.bioimpedance_uploads
 
 ALTER TABLE ONLY public.body_composition_goals
     ADD CONSTRAINT body_composition_goals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: controller_patients controller_patients_controller_id_patient_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.controller_patients
+    ADD CONSTRAINT controller_patients_controller_id_patient_id_key UNIQUE (controller_id, patient_id);
+
+
+--
+-- Name: controller_patients controller_patients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.controller_patients
+    ADD CONSTRAINT controller_patients_pkey PRIMARY KEY (id);
 
 
 --
@@ -788,6 +900,14 @@ ALTER TABLE ONLY public.rate_limits
 
 
 --
+-- Name: subscription_plans subscription_plans_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.subscription_plans
+    ADD CONSTRAINT subscription_plans_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: supplement_logs supplement_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -825,6 +945,22 @@ ALTER TABLE ONLY public.user_roles
 
 ALTER TABLE ONLY public.user_roles
     ADD CONSTRAINT user_roles_user_id_role_key UNIQUE (user_id, role);
+
+
+--
+-- Name: user_subscriptions user_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_subscriptions
+    ADD CONSTRAINT user_subscriptions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: wearable_data wearable_data_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wearable_data
+    ADD CONSTRAINT wearable_data_pkey PRIMARY KEY (id);
 
 
 --
@@ -912,6 +1048,13 @@ CREATE TRIGGER update_body_composition_goals_updated_at BEFORE UPDATE ON public.
 
 
 --
+-- Name: controller_patients update_controller_patients_updated_at; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_controller_patients_updated_at BEFORE UPDATE ON public.controller_patients FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
 -- Name: evolution_notes update_evolution_notes_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -954,6 +1097,13 @@ CREATE TRIGGER update_rate_limits_updated_at BEFORE UPDATE ON public.rate_limits
 
 
 --
+-- Name: subscription_plans update_subscription_plans_updated_at; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_subscription_plans_updated_at BEFORE UPDATE ON public.subscription_plans FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
 -- Name: supplement_recommendations update_supplement_recommendations_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -965,6 +1115,20 @@ CREATE TRIGGER update_supplement_recommendations_updated_at BEFORE UPDATE ON pub
 --
 
 CREATE TRIGGER update_supplements_updated_at BEFORE UPDATE ON public.supplements FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
+-- Name: user_subscriptions update_user_subscriptions_updated_at; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_user_subscriptions_updated_at BEFORE UPDATE ON public.user_subscriptions FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
+-- Name: wearable_data update_wearable_data_updated_at; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_wearable_data_updated_at BEFORE UPDATE ON public.wearable_data FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
@@ -1136,10 +1300,46 @@ ALTER TABLE ONLY public.user_roles
 
 
 --
+-- Name: user_subscriptions user_subscriptions_plan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_subscriptions
+    ADD CONSTRAINT user_subscriptions_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.subscription_plans(id);
+
+
+--
+-- Name: controller_patients Admins can manage all controller-patient relationships; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Admins can manage all controller-patient relationships" ON public.controller_patients USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+
+
+--
+-- Name: user_subscriptions Admins can manage subscriptions; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Admins can manage subscriptions" ON public.user_subscriptions USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+
+
+--
 -- Name: user_roles Admins can view all roles; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY "Admins can view all roles" ON public.user_roles FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+
+
+--
+-- Name: user_subscriptions Admins can view all subscriptions; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Admins can view all subscriptions" ON public.user_subscriptions FOR SELECT USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+
+
+--
+-- Name: controller_patients Controllers can view their patients; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Controllers can view their patients" ON public.controller_patients FOR SELECT USING ((auth.uid() = controller_id));
 
 
 --
@@ -1161,6 +1361,20 @@ CREATE POLICY "Everyone can view exam parameters" ON public.exam_parameters FOR 
 --
 
 CREATE POLICY "Everyone can view exam types" ON public.exam_types FOR SELECT USING (true);
+
+
+--
+-- Name: subscription_plans Everyone can view plans; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Everyone can view plans" ON public.subscription_plans FOR SELECT USING (true);
+
+
+--
+-- Name: subscription_plans Only admins can manage plans; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Only admins can manage plans" ON public.subscription_plans USING (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 
 --
@@ -1350,6 +1564,13 @@ CREATE POLICY "Users can delete their own notifications" ON public.goal_notifica
 
 
 --
+-- Name: profiles Users can delete their own profile; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can delete their own profile" ON public.profiles FOR DELETE USING ((auth.uid() = id));
+
+
+--
 -- Name: supplement_recommendations Users can delete their own recommendations; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -1368,6 +1589,13 @@ CREATE POLICY "Users can delete their own supplement logs" ON public.supplement_
 --
 
 CREATE POLICY "Users can delete their own supplements" ON public.supplements FOR DELETE USING ((auth.uid() = user_id));
+
+
+--
+-- Name: wearable_data Users can delete their own wearable data; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can delete their own wearable data" ON public.wearable_data FOR DELETE USING ((auth.uid() = user_id));
 
 
 --
@@ -1424,6 +1652,13 @@ CREATE POLICY "Users can insert their own health alerts" ON public.health_alerts
 --
 
 CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK ((auth.uid() = id));
+
+
+--
+-- Name: wearable_data Users can insert their own wearable data; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can insert their own wearable data" ON public.wearable_data FOR INSERT WITH CHECK ((auth.uid() = user_id));
 
 
 --
@@ -1566,6 +1801,13 @@ CREATE POLICY "Users can update their own supplement logs" ON public.supplement_
 --
 
 CREATE POLICY "Users can update their own supplements" ON public.supplements FOR UPDATE USING ((auth.uid() = user_id));
+
+
+--
+-- Name: wearable_data Users can update their own wearable data; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can update their own wearable data" ON public.wearable_data FOR UPDATE USING ((auth.uid() = user_id));
 
 
 --
@@ -1718,6 +1960,13 @@ CREATE POLICY "Users can view their own role" ON public.user_roles FOR SELECT TO
 
 
 --
+-- Name: user_subscriptions Users can view their own subscription; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view their own subscription" ON public.user_subscriptions FOR SELECT USING ((auth.uid() = user_id));
+
+
+--
 -- Name: supplement_logs Users can view their own supplement logs; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -1729,6 +1978,13 @@ CREATE POLICY "Users can view their own supplement logs" ON public.supplement_lo
 --
 
 CREATE POLICY "Users can view their own supplements" ON public.supplements FOR SELECT USING ((auth.uid() = user_id));
+
+
+--
+-- Name: wearable_data Users can view their own wearable data; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view their own wearable data" ON public.wearable_data FOR SELECT USING ((auth.uid() = user_id));
 
 
 --
@@ -1748,6 +2004,12 @@ ALTER TABLE public.bioimpedance_uploads ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.body_composition_goals ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: controller_patients; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.controller_patients ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: evolution_notes; Type: ROW SECURITY; Schema: public; Owner: -
@@ -1828,6 +2090,12 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rate_limits ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: subscription_plans; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.subscription_plans ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: supplement_logs; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -1850,6 +2118,18 @@ ALTER TABLE public.supplements ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_subscriptions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_subscriptions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: wearable_data; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wearable_data ENABLE ROW LEVEL SECURITY;
 
 --
 -- PostgreSQL database dump complete
