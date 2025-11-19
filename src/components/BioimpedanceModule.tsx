@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from "recharts";
 import { ChartContainer, ChartTooltipContent, ChartTooltip } from "@/components/ui/chart";
 import { Checkbox } from "@/components/ui/checkbox";
+import { renderSafeMarkdown } from "@/lib/utils";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals";
 
@@ -142,11 +143,6 @@ export const BioimpedanceModule = ({ onNavigate }: BioimpedanceModuleProps) => {
   const latestMeasurement = measurements[0];
   const firstMeasurement = measurements[measurements.length - 1];
 
-  const renderMarkdown = (text: string) => {
-    return text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br />');
-  };
 
   const calculateTotalChange = (metric: 'weight' | 'body_fat_percentage' | 'muscle_mass' | 'water_percentage') => {
     if (!latestMeasurement || !firstMeasurement) return null;
@@ -807,7 +803,7 @@ export const BioimpedanceModule = ({ onNavigate }: BioimpedanceModuleProps) => {
             
             {latestAnalysis.summary && (
               <div className="mb-6 p-4 bg-card rounded-lg border text-sm text-card-foreground leading-relaxed" 
-                   dangerouslySetInnerHTML={{ __html: renderMarkdown(latestAnalysis.summary) }} />
+                   dangerouslySetInnerHTML={{ __html: renderSafeMarkdown(latestAnalysis.summary) }} />
             )}
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -819,7 +815,7 @@ export const BioimpedanceModule = ({ onNavigate }: BioimpedanceModuleProps) => {
                   <ul className="space-y-2">
                     {latestAnalysis.critical_points.map((point: string, idx: number) => (
                       <li key={idx} className="text-sm text-card-foreground pl-2 border-l-2 border-destructive/40" 
-                          dangerouslySetInnerHTML={{ __html: renderMarkdown(point) }} />
+                          dangerouslySetInnerHTML={{ __html: renderSafeMarkdown(point) }} />
                     ))}
                   </ul>
                 </Card>
@@ -833,7 +829,7 @@ export const BioimpedanceModule = ({ onNavigate }: BioimpedanceModuleProps) => {
                   <ul className="space-y-2">
                     {latestAnalysis.positive_points.map((point: string, idx: number) => (
                       <li key={idx} className="text-sm text-card-foreground pl-2 border-l-2 border-success/40" 
-                          dangerouslySetInnerHTML={{ __html: renderMarkdown(point) }} />
+                          dangerouslySetInnerHTML={{ __html: renderSafeMarkdown(point) }} />
                     ))}
                   </ul>
                 </Card>
@@ -882,7 +878,7 @@ export const BioimpedanceModule = ({ onNavigate }: BioimpedanceModuleProps) => {
                 <ul className="space-y-2">
                   {latestAnalysis.recommendations.map((rec: string, idx: number) => (
                     <li key={idx} className="text-sm text-card-foreground p-2 bg-card rounded" 
-                        dangerouslySetInnerHTML={{ __html: renderMarkdown(rec) }} />
+                        dangerouslySetInnerHTML={{ __html: renderSafeMarkdown(rec) }} />
                   ))}
                 </ul>
               </Card>

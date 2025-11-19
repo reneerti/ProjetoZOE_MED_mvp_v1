@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader2, Sparkles, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { renderSafeMarkdown } from "@/lib/utils";
 
 interface Message {
   role: "user" | "assistant";
@@ -17,14 +18,6 @@ interface ExamChatDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Função para renderizar markdown simples (negritos e emojis)
-const renderMarkdown = (text: string) => {
-  // Converter **texto** para <strong>texto</strong>
-  const withBold = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  // Quebras de linha
-  const withBreaks = withBold.replace(/\n/g, '<br />');
-  return withBreaks;
-};
 
 export const ExamChatDialog = ({ open, onOpenChange }: ExamChatDialogProps) => {
   const [messages, setMessages] = useState<Message[]>([
@@ -269,7 +262,7 @@ export const ExamChatDialog = ({ open, onOpenChange }: ExamChatDialogProps) => {
                 >
                   <div 
                     className="text-sm"
-                    dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
+                    dangerouslySetInnerHTML={{ __html: renderSafeMarkdown(message.content) }}
                     style={{ 
                       wordWrap: 'break-word',
                       overflowWrap: 'break-word'
