@@ -9,56 +9,56 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 231 15% 18%;
+    --foreground: 220 15% 25%;
 
-    --card: 210 20% 98%;
-    --card-foreground: 215 20% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 25%;
 
-    --popover: 210 20% 98%;
-    --popover-foreground: 215 20% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 25%;
 
-    --primary: 255 35% 45%;
+    --primary: 220 15% 30%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 255 30% 55%;
+    --primary-glow: 220 15% 40%;
 
-    --secondary: 210 11% 96%;
-    --secondary-foreground: 215 20% 25%;
+    --secondary: 220 10% 96%;
+    --secondary-foreground: 220 15% 30%;
 
-    --muted: 210 11% 96%;
-    --muted-foreground: 215 10% 40%;
+    --muted: 220 10% 96%;
+    --muted-foreground: 220 9% 50%;
 
-    --accent: 255 35% 50%;
+    --accent: 190 75% 45%;
     --accent-foreground: 0 0% 100%;
-    --accent-light: 255 35% 96%;
+    --accent-light: 190 75% 96%;
 
-    --success: 142 76% 36%;
+    --success: 142 50% 45%;
     --success-foreground: 0 0% 100%;
-    --success-light: 142 76% 96%;
+    --success-light: 142 50% 96%;
 
-    --warning: 38 92% 50%;
+    --warning: 38 70% 55%;
     --warning-foreground: 0 0% 100%;
-    --warning-light: 38 100% 96%;
+    --warning-light: 38 70% 96%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
-    --destructive-light: 0 86% 97%;
+    --destructive-light: 0 65% 97%;
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 255 35% 45%;
+    --ring: 220 15% 30%;
 
     --radius: 0.75rem;
     
-    --gradient-primary: linear-gradient(135deg, hsl(210, 11%, 96%), hsl(215, 15%, 92%));
-    --gradient-header: linear-gradient(135deg, hsl(255, 35%, 45%) 0%, hsl(255, 30%, 55%) 100%);
-    --gradient-exams: linear-gradient(135deg, hsl(200, 70%, 45%) 0%, hsl(200, 65%, 55%) 100%);
-    --gradient-bioimpedance: linear-gradient(135deg, hsl(142, 70%, 40%) 0%, hsl(142, 65%, 50%) 100%);
-    --gradient-medication: linear-gradient(135deg, hsl(340, 75%, 50%) 0%, hsl(340, 70%, 60%) 100%);
-    --gradient-evolution: linear-gradient(135deg, hsl(38, 92%, 45%) 0%, hsl(38, 87%, 55%) 100%);
-    --gradient-goals: linear-gradient(135deg, hsl(270, 65%, 50%) 0%, hsl(270, 60%, 60%) 100%);
-    --gradient-supplements: linear-gradient(135deg, hsl(180, 65%, 45%) 0%, hsl(180, 60%, 55%) 100%);
-    --shadow-card: 0 2px 8px rgba(102, 126, 234, 0.08);
-    --shadow-card-hover: 0 8px 24px rgba(102, 126, 234, 0.15);
+    --gradient-primary: linear-gradient(135deg, hsl(220, 10%, 98%), hsl(220, 10%, 96%));
+    --gradient-header: linear-gradient(135deg, hsl(220, 15%, 30%) 0%, hsl(220, 15%, 35%) 100%);
+    --gradient-exams: linear-gradient(135deg, hsl(210, 50%, 50%) 0%, hsl(210, 50%, 55%) 100%);
+    --gradient-bioimpedance: linear-gradient(135deg, hsl(142, 45%, 45%) 0%, hsl(142, 45%, 50%) 100%);
+    --gradient-medication: linear-gradient(135deg, hsl(340, 50%, 55%) 0%, hsl(340, 50%, 60%) 100%);
+    --gradient-evolution: linear-gradient(135deg, hsl(38, 70%, 55%) 0%, hsl(38, 70%, 60%) 100%);
+    --gradient-goals: linear-gradient(135deg, hsl(270, 50%, 55%) 0%, hsl(270, 50%, 60%) 100%);
+    --gradient-supplements: linear-gradient(135deg, hsl(180, 50%, 50%) 0%, hsl(180, 50%, 55%) 100%);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-card-hover: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 0 0% 98%;
@@ -79,52 +79,52 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 231 15% 12%;
+    --background: 220 15% 10%;
     --foreground: 0 0% 98%;
 
-    --card: 231 15% 16%;
+    --card: 220 15% 14%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 231 15% 16%;
+    --popover: 220 15% 14%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 255 35% 60%;
-    --primary-foreground: 255 45% 10%;
-    --primary-glow: 255 30% 70%;
+    --primary: 220 15% 85%;
+    --primary-foreground: 220 15% 15%;
+    --primary-glow: 220 15% 75%;
 
-    --secondary: 231 15% 22%;
+    --secondary: 220 15% 20%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 231 15% 22%;
-    --muted-foreground: 220 9% 65%;
+    --muted: 220 15% 20%;
+    --muted-foreground: 220 9% 60%;
 
-    --accent: 255 35% 65%;
-    --accent-foreground: 255 45% 10%;
-    --accent-light: 255 35% 20%;
+    --accent: 190 75% 55%;
+    --accent-foreground: 220 15% 10%;
+    --accent-light: 190 75% 20%;
 
-    --success: 142 76% 36%;
-    --success-light: 142 76% 20%;
+    --success: 142 50% 50%;
+    --success-light: 142 50% 20%;
 
-    --warning: 38 92% 50%;
-    --warning-light: 38 92% 20%;
+    --warning: 38 70% 60%;
+    --warning-light: 38 70% 20%;
 
-    --destructive: 0 84% 60%;
-    --destructive-light: 0 84% 25%;
+    --destructive: 0 65% 60%;
+    --destructive-light: 0 65% 25%;
 
-    --border: 231 15% 22%;
-    --input: 231 15% 22%;
-    --ring: 255 35% 60%;
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 220 15% 85%;
     
-    --gradient-primary: linear-gradient(135deg, hsl(231, 15%, 16%), hsl(220, 15%, 20%));
-    --gradient-header: linear-gradient(135deg, hsl(255, 35%, 60%) 0%, hsl(255, 30%, 70%) 100%);
-    --gradient-exams: linear-gradient(135deg, hsl(200, 70%, 50%) 0%, hsl(200, 65%, 60%) 100%);
-    --gradient-bioimpedance: linear-gradient(135deg, hsl(142, 70%, 45%) 0%, hsl(142, 65%, 55%) 100%);
-    --gradient-medication: linear-gradient(135deg, hsl(340, 75%, 55%) 0%, hsl(340, 70%, 65%) 100%);
-    --gradient-evolution: linear-gradient(135deg, hsl(38, 92%, 50%) 0%, hsl(38, 87%, 60%) 100%);
-    --gradient-goals: linear-gradient(135deg, hsl(270, 65%, 55%) 0%, hsl(270, 60%, 65%) 100%);
-    --gradient-supplements: linear-gradient(135deg, hsl(180, 65%, 50%) 0%, hsl(180, 60%, 60%) 100%);
-    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --gradient-primary: linear-gradient(135deg, hsl(220, 15%, 14%), hsl(220, 15%, 18%));
+    --gradient-header: linear-gradient(135deg, hsl(220, 15%, 30%) 0%, hsl(220, 15%, 35%) 100%);
+    --gradient-exams: linear-gradient(135deg, hsl(210, 50%, 45%) 0%, hsl(210, 50%, 50%) 100%);
+    --gradient-bioimpedance: linear-gradient(135deg, hsl(142, 45%, 40%) 0%, hsl(142, 45%, 45%) 100%);
+    --gradient-medication: linear-gradient(135deg, hsl(340, 50%, 50%) 0%, hsl(340, 50%, 55%) 100%);
+    --gradient-evolution: linear-gradient(135deg, hsl(38, 70%, 50%) 0%, hsl(38, 70%, 55%) 100%);
+    --gradient-goals: linear-gradient(135deg, hsl(270, 50%, 50%) 0%, hsl(270, 50%, 55%) 100%);
+    --gradient-supplements: linear-gradient(135deg, hsl(180, 50%, 45%) 0%, hsl(180, 50%, 50%) 100%);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-card-hover: 0 4px 6px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
