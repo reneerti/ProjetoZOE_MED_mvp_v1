@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { medicationSchema } from "@/lib/validation";
 
 interface MedicationCreateDialogProps {
   open: boolean;
@@ -18,6 +20,7 @@ interface MedicationCreateDialogProps {
 export const MedicationCreateDialog = ({ open, onOpenChange, onSuccess }: MedicationCreateDialogProps) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     medication_name: "",
     current_dose: "",
@@ -29,16 +32,20 @@ export const MedicationCreateDialog = ({ open, onOpenChange, onSuccess }: Medica
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrors({});
 
     try {
+      // Validate input data
+      const validatedData = medicationSchema.parse(formData);
+
       const { error } = await supabase.from('medications').insert({
-        user_id: user?.id,
-        medication_name: formData.medication_name,
-        current_dose: formData.current_dose,
-        start_date: formData.start_date,
-        notes: formData.notes,
+        user_id: user?.id!,
+        medication_name: validatedData.medication_name,
+        current_dose: validatedData.current_dose,
+        start_date: validatedData.start_date,
+        notes: validatedData.notes || null,
         active: true,
-        schedule: { type: formData.medication_type }
+        schedule: { type: validatedData.medication_type }
       });
 
       if (error) throw error;
@@ -53,9 +60,20 @@ export const MedicationCreateDialog = ({ open, onOpenChange, onSuccess }: Medica
         notes: "",
         medication_type: "oral",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating medication:", error);
-      toast.error("Erro ao adicionar medicação");
+      
+      // Handle validation errors
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err: any) => {
+          fieldErrors[err.path[0]] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error("Por favor, corrija os erros no formulário");
+      } else {
+        toast.error("Erro ao adicionar medicação");
+      }
     } finally {
       setLoading(false);
     }
@@ -73,10 +91,20 @@ export const MedicationCreateDialog = ({ open, onOpenChange, onSuccess }: Medica
             <Input
               id="medication_name"
               value={formData.medication_name}
-              onChange={(e) => setFormData({ ...formData, medication_name: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, medication_name: e.target.value });
+                setErrors({ ...errors, medication_name: "" });
+              }}
               placeholder="Ex: Monjaro, Ozempic, Vitamina D3"
+              className={errors.medication_name ? "border-destructive" : ""}
               required
             />
+            {errors.medication_name && (
+              <p className="text-sm text-destructive flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                {errors.medication_name}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -103,10 +131,20 @@ export const MedicationCreateDialog = ({ open, onOpenChange, onSuccess }: Medica
             <Input
               id="current_dose"
               value={formData.current_dose}
-              onChange={(e) => setFormData({ ...formData, current_dose: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, current_dose: e.target.value });
+                setErrors({ ...errors, current_dose: "" });
+              }}
               placeholder="Ex: 2.5mg, 5000 UI, 0.25mg"
+              className={errors.current_dose ? "border-destructive" : ""}
               required
             />
+            {errors.current_dose && (
+              <p className="text-sm text-destructive flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                {errors.current_dose}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

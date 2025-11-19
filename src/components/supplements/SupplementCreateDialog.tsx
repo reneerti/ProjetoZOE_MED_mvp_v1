@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { supplementSchema } from "@/lib/validation";
 
 interface SupplementCreateDialogProps {
   open: boolean;
@@ -30,6 +31,7 @@ interface SupplementCreateDialogProps {
 export const SupplementCreateDialog = ({ open, onOpenChange, onSuccess }: SupplementCreateDialogProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     supplement_name: "",
     supplement_type: "vitamina",
@@ -43,14 +45,24 @@ export const SupplementCreateDialog = ({ open, onOpenChange, onSuccess }: Supple
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrors({});
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Validate input data
+      const validatedData = supplementSchema.parse(formData);
+
       const { error } = await supabase.from("supplements").insert([{
         user_id: user.id,
-        ...formData,
+        supplement_name: validatedData.supplement_name,
+        supplement_type: validatedData.supplement_type,
+        current_dose: validatedData.current_dose,
+        unit: validatedData.unit,
+        frequency: validatedData.frequency,
+        time_of_day: validatedData.time_of_day || null,
+        notes: validatedData.notes || null,
         start_date: new Date().toISOString().split("T")[0],
       }]);
 
@@ -72,11 +84,25 @@ export const SupplementCreateDialog = ({ open, onOpenChange, onSuccess }: Supple
         notes: "",
       });
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
+      // Handle validation errors
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err: any) => {
+          fieldErrors[err.path[0]] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast({
+          title: "Erro de Validação",
+          description: "Por favor, corrija os erros no formulário",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -98,10 +124,20 @@ export const SupplementCreateDialog = ({ open, onOpenChange, onSuccess }: Supple
             <Input
               id="name"
               value={formData.supplement_name}
-              onChange={(e) => setFormData({ ...formData, supplement_name: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, supplement_name: e.target.value });
+                setErrors({ ...errors, supplement_name: "" });
+              }}
               placeholder="Ex: Vitamina D3"
+              className={errors.supplement_name ? "border-destructive" : ""}
               required
             />
+            {errors.supplement_name && (
+              <p className="text-sm text-destructive flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                {errors.supplement_name}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

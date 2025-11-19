@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef } from "react";
+import { format } from "date-fns";
 import { ExamHistoryModal } from "./ExamHistoryModal";
 import { compressImage } from "@/lib/imageCompression";
 import { ImagePreviewDialog } from "./bioimpedance/ImagePreviewDialog";
@@ -12,6 +13,7 @@ import { UploadStatsDialog } from "./bioimpedance/UploadStatsDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ExamUploadDialog } from "./bioimpedance/ExamUploadDialog";
+import type { ExamMetadata } from "@/lib/validation";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller";
 
@@ -103,12 +105,12 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
   };
 
 
-  const handleFileUpload = async (requestingDoctor?: string, reportingDoctor?: string, examDate?: string) => {
+  const handleFileUpload = async (metadata: ExamMetadata) => {
     if (!previewFile) return;
     
     try {
       setUploading(true);
-      setShowPreview(false);
+      setShowUploadDialog(false);
       
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -133,15 +135,19 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
 
       if (signedUrlError) throw signedUrlError;
 
+      const examDate = metadata.examDate 
+        ? format(metadata.examDate, 'yyyy-MM-dd') 
+        : new Date().toISOString().split('T')[0];
+
       const { data: newExam, error: insertError } = await supabase
         .from('exam_images')
         .insert({
           user_id: user.id,
           image_url: fileName,
           processing_status: 'pending',
-          requesting_doctor: requestingDoctor,
-          reporting_doctor: reportingDoctor,
-          exam_date: examDate || new Date().toISOString().split('T')[0],
+          requesting_doctor: metadata.requestingDoctor,
+          reporting_doctor: metadata.reportingDoctor,
+          exam_date: examDate,
           upload_date: new Date().toISOString(),
           file_type: previewFile.type.includes('pdf') ? 'pdf' : 'image'
         })
@@ -150,13 +156,17 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
 
       if (insertError) throw insertError;
 
+      // Increment exam count
+      await incrementExamCount();
+
       toast({
         title: "Sucesso!",
-        description: "Exame enviado. Processando OCR...",
+        description: "Exame enviado. Processando OCR e analisando...",
       });
 
       const { data: { session } } = await supabase.auth.getSession();
 
+      // Process OCR and trigger integrated analysis
       if (newExam && session) {
         supabase.functions
           .invoke('process-ocr', {
@@ -168,13 +178,35 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
               Authorization: `Bearer ${session.access_token}`
             }
           })
-          .then(({ error: ocrError }) => {
+          .then(async ({ error: ocrError }) => {
             if (ocrError) {
               console.error('OCR processing error');
               toast({
                 title: "Aviso",
                 description: "Erro ao processar OCR. Tente novamente.",
                 variant: "destructive",
+              });
+              return;
+            }
+
+            // After OCR, trigger integrated analysis to update health score
+            toast({
+              title: "Análise em andamento",
+              description: "Analisando exame e atualizando índice de saúde...",
+            });
+
+            const { error: analysisError } = await supabase.functions.invoke('analyze-exams-integrated', {
+              headers: {
+                Authorization: `Bearer ${session.access_token}`
+              }
+            });
+
+            if (analysisError) {
+              console.error('Analysis error:', analysisError);
+            } else {
+              toast({
+                title: "Análise concluída!",
+                description: "Exame processado e índice de saúde atualizado",
               });
             }
           });
