@@ -14,6 +14,8 @@ import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { OnboardingTutorial } from "@/components/OnboardingTutorial";
+import { ExamNotifications } from "@/components/ExamNotifications";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements";
 
@@ -99,6 +101,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-primary">
+      <OnboardingTutorial />
+      <ExamNotifications />
       <div className="w-full max-w-2xl mx-auto bg-background min-h-screen shadow-2xl">
         <div className="pb-20">
           {renderView()}
