@@ -238,7 +238,7 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
         </div>
       </div>
 
-      <div className="px-6 space-y-4">
+      <div className="px-6 space-y-4 mt-6">
         <input
           ref={cameraInputRef}
           type="file"

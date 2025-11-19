@@ -238,43 +238,46 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
             <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 animate-shimmer" />
             <div className="flex items-center justify-between relative z-10">
               <div className="flex-1">
-                <p className="text-white/90 text-[10px] font-medium mb-0.5">Score de Saúde</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold">{healthScore.toFixed(1)}</span>
-                  <span className="text-white/70 text-sm">/10</span>
+                <p className="text-white font-medium mb-0.5 text-xs sm:text-sm">Score de Saúde</p>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl sm:text-3xl font-bold">{healthScore.toFixed(1)}</span>
+                  <span className="text-white/80 text-sm sm:text-base">/10</span>
                 </div>
-                <p className="text-white/60 text-[9px] mt-0.5">
+                <p className="text-white/70 text-[10px] sm:text-xs mt-0.5">
                   {healthScore >= 8 ? "Excelente! Continue assim" : 
                    healthScore >= 6 ? "Bom trabalho" : "Vamos melhorar"}
                 </p>
               </div>
-              <div className="relative w-14 h-14 flex-shrink-0">
-                <svg className="w-14 h-14 transform -rotate-90">
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0">
+                <svg className="w-full h-full transform -rotate-90">
                   <circle
-                    cx="28"
-                    cy="28"
-                    r="24"
-                    stroke="currentColor"
-                    strokeWidth="4"
+                    cx="50%"
+                    cy="50%"
+                    r="28"
+                    stroke="white"
+                    strokeOpacity="0.25"
+                    strokeWidth="5"
                     fill="none"
-                    className="text-white/20"
                   />
                   <circle
-                    cx="28"
-                    cy="28"
-                    r="24"
-                    stroke="currentColor"
-                    strokeWidth="4"
+                    cx="50%"
+                    cy="50%"
+                    r="28"
+                    stroke="white"
+                    strokeWidth="5"
                     fill="none"
-                    strokeDasharray={`${2 * Math.PI * 24}`}
-                    strokeDashoffset={`${2 * Math.PI * 24 * (1 - healthScorePercent)}`}
-                    className="text-white transition-all duration-1000 ease-out"
+                    strokeDasharray={`${2 * Math.PI * 28}`}
+                    strokeDashoffset={`${2 * Math.PI * 28 * (1 - healthScorePercent)}`}
+                    strokeLinecap="round"
+                    className="transition-all duration-1000 ease-out"
                     style={{ 
-                      filter: 'drop-shadow(0 0 4px rgba(255,255,255,0.5))',
+                      filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.6))',
                     }}
                   />
                 </svg>
-                <Activity className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 ${getScoreIconColor()} animate-heartbeat`} />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Activity className="w-7 h-7 sm:w-8 sm:h-8 text-white animate-heartbeat drop-shadow-lg" />
+                </div>
               </div>
             </div>
           </Card>
@@ -306,26 +309,26 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
       )}
 
       {/* Modules */}
-      <div className="px-4 space-y-4 pb-6 pt-4">
-        <h2 className="text-base font-semibold text-foreground mb-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>Meus Módulos</h2>
+      <div className="px-4 space-y-3 sm:space-y-4 pb-6 pt-4">
+        <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>Meus Módulos</h2>
 
         <Card
-          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#3B82F6] bg-white/95 dark:bg-card/95 backdrop-blur-sm animate-scale-in group"
+          className="p-4 sm:p-5 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#3B82F6] bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.25s' }}
           onClick={() => onNavigate("myexams")}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-exams flex items-center justify-center flex-shrink-0 shadow-md">
-              <FileText className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-gradient-exams flex items-center justify-center flex-shrink-0 shadow-lg">
+              <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
-                <h3 className="font-semibold text-foreground text-sm">Meus Exames</h3>
-                <Badge variant="secondary" className="text-[10px] h-5">
+                <h3 className="font-semibold text-foreground text-sm sm:text-base">Meus Exames</h3>
+                <Badge variant="secondary" className="text-[10px] sm:text-xs h-5">
                   {stats.examsCount}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
                 {stats.examsStats.normal} normais • {stats.examsStats.attention} atenção
               </p>
             </div>
@@ -333,13 +336,13 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#10B981] bg-white/95 dark:bg-card/95 backdrop-blur-sm animate-scale-in group"
+          className="p-4 sm:p-5 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#10B981] bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.3s' }}
           onClick={() => onNavigate("bioimpedance")}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-bioimpedance flex items-center justify-center flex-shrink-0 shadow-md">
-              <Scale className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-gradient-bioimpedance flex items-center justify-center flex-shrink-0 shadow-lg">
+              <Scale className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
