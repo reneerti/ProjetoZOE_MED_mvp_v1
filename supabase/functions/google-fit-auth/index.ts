@@ -302,6 +302,26 @@ serve(async (req) => {
           } else {
             console.log('Encrypted tokens stored successfully for automatic sync');
             
+            // Get connection ID for audit
+            const { data: connection } = await supabaseClient
+              .from('wearable_connections')
+              .select('id')
+              .eq('user_id', userId)
+              .eq('provider', 'google_fit')
+              .single();
+            
+            // Audit token storage
+            if (connection) {
+              await supabaseClient
+                .from('wearable_token_audit')
+                .insert({
+                  connection_id: connection.id,
+                  action: 'token_stored',
+                  ip_address: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip'),
+                  user_agent: req.headers.get('user-agent'),
+                });
+            }
+            
             // Clean up temporary state
             await supabaseClient
               .from('wearable_connections')

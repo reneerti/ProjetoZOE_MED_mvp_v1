@@ -148,11 +148,14 @@ export async function auditTokenAccess(
   supabase: SupabaseClient,
   userId: string,
   provider: string,
-  action: 'token_accessed' | 'token_stored'
+  action: 'token_accessed' | 'token_stored' | 'token_refreshed',
+  metadata?: { ip_address?: string; user_agent?: string }
 ): Promise<void> {
   await supabase.from('oauth_token_audit').insert({
     user_id: userId,
     provider: provider,
-    action: action
+    action: action,
+    ip_address: metadata?.ip_address || null,
+    user_agent: metadata?.user_agent || null,
   });
 }
