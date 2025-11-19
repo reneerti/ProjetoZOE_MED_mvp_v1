@@ -105,3 +105,73 @@ export const updateAIAlertSettings = async (settings: {
 
   if (error) throw error;
 };
+
+export interface BudgetStatus {
+  monthly_limit: number;
+  current_spending: number;
+  percentage_used: number;
+  remaining_budget: number;
+  projected_monthly_spending: number;
+  days_in_month: number;
+  days_elapsed: number;
+  is_over_budget: boolean;
+  alert_threshold_reached: boolean;
+}
+
+export const useBudgetStatus = () => {
+  return useQuery({
+    queryKey: ['budget-status'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_budget_status').single();
+      if (error) throw error;
+      return data as BudgetStatus;
+    },
+    refetchInterval: 60000, // Refetch every minute
+  });
+};
+
+export const useBudgetConfig = () => {
+  return useQuery({
+    queryKey: ['budget-config'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ai_budget_config')
+        .select('*')
+        .limit(1)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+  });
+};
+
+export const updateBudgetConfig = async (config: {
+  monthly_limit_usd?: number;
+  alert_threshold_percentage?: number;
+  enable_budget_alerts?: boolean;
+}) => {
+  const { data: existing } = await supabase
+    .from('ai_budget_config')
+    .select('id')
+    .limit(1)
+    .single();
+
+  if (existing) {
+    const { error } = await supabase
+      .from('ai_budget_config')
+      .update({
+        ...config,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', existing.id);
+    
+    if (error) throw error;
+  } else {
+    const { error } = await supabase
+      .from('ai_budget_config')
+      .insert(config);
+    
+    if (error) throw error;
+  }
+};

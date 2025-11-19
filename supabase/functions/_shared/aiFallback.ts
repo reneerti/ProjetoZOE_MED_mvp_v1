@@ -1,10 +1,11 @@
 /**
- * AI Fallback System: Lovable AI → Google Gemini API
+ * AI Fallback System with Intelligent Caching: Lovable AI → Google Gemini API
  * 
- * Provides automatic fallback from Lovable AI to Gemini when:
- * - Rate limits are hit (429)
- * - Credits are exhausted (402)
- * - Other Lovable AI errors occur
+ * Features:
+ * - Automatic fallback from Lovable AI to Gemini
+ * - Intelligent response caching (24h TTL)
+ * - Budget tracking and enforcement
+ * - Usage logging and cost estimation
  */
 
 interface AIMessage {
@@ -20,6 +21,8 @@ interface AIRequestOptions {
   stream?: boolean;
   temperature?: number;
   max_tokens?: number;
+  enableCache?: boolean; // Enable cache for this request (default: true)
+  cacheKey?: string; // Custom cache key
 }
 
 interface AIResponse {
@@ -34,32 +37,223 @@ interface AIResponse {
   }>;
 }
 
+// Cache configuration
+const CACHE_ENABLED = true;
+const CACHE_TTL_HOURS = 24;
+
 /**
- * Logs AI usage to database for monitoring
+ * Generate hash from messages for cache key
+ */
+function generatePromptHash(messages: AIMessage[]): string {
+  const messageText = messages.map(m => `${m.role}:${m.content}`).join('|');
+  return btoa(messageText).substring(0, 64);
+}
+
+/**
+ * Check cache for existing response
+ */
+async function checkCache(
+  supabaseUrl: string,
+  supabaseKey: string,
+  functionName: string,
+  promptHash: string
+): Promise<any | null> {
+  if (!CACHE_ENABLED) return null;
+
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/ai_response_cache?function_name=eq.${functionName}&prompt_hash=eq.${promptHash}&expires_at=gt.${new Date().toISOString()}&order=created_at.desc&limit=1`,
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+        }
+      }
+    );
+
+    if (!response.ok) return null;
+    
+    const data = await response.json();
+    if (!data || data.length === 0) return null;
+
+    const cached = data[0];
+
+    // Update hit count
+    await fetch(`${supabaseUrl}/rest/v1/ai_response_cache?id=eq.${cached.id}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        hit_count: cached.hit_count + 1,
+        last_accessed_at: new Date().toISOString()
+      })
+    });
+
+    console.log(`✓ Cache HIT for ${functionName} - saved API call`);
+    return cached.response_data;
+  } catch (error) {
+    console.error('Cache check failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Save response to cache
+ */
+async function saveToCache(
+  supabaseUrl: string,
+  supabaseKey: string,
+  functionName: string,
+  promptHash: string,
+  cacheKey: string,
+  responseData: any,
+  provider: string,
+  model: string,
+  tokensUsed?: number
+): Promise<void> {
+  if (!CACHE_ENABLED) return;
+
+  try {
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + CACHE_TTL_HOURS);
+
+    await fetch(`${supabaseUrl}/rest/v1/ai_response_cache`, {
+      method: 'POST',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        cache_key: cacheKey,
+        function_name: functionName,
+        prompt_hash: promptHash,
+        response_data: responseData,
+        provider,
+        model,
+        tokens_used: tokensUsed,
+        expires_at: expiresAt.toISOString()
+      })
+    });
+
+    console.log(`✓ Response cached for ${functionName} - expires in ${CACHE_TTL_HOURS}h`);
+  } catch (error) {
+    console.error('Failed to save cache:', error);
+  }
+}
+
+/**
+ * Check budget before making AI call
+ */
+async function checkBudget(
+  supabaseUrl: string,
+  supabaseKey: string
+): Promise<{ allowed: boolean; message?: string }> {
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/rpc/get_budget_status`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+
+    if (!response.ok) return { allowed: true };
+
+    const data = await response.json();
+    if (!data || data.length === 0) return { allowed: true };
+
+    const budgetStatus = data[0];
+
+    if (budgetStatus.is_over_budget) {
+      return {
+        allowed: false,
+        message: `Orçamento mensal excedido ($${budgetStatus.monthly_limit} USD). Gastos: $${budgetStatus.current_spending} USD`
+      };
+    }
+
+    if (budgetStatus.alert_threshold_reached) {
+      console.warn(`⚠️ Budget alert: ${budgetStatus.percentage_used}% usado`);
+    }
+
+    return { allowed: true };
+  } catch (error) {
+    console.error('Budget check failed:', error);
+    return { allowed: true }; // Allow on error to not break functionality
+  }
+}
+
+/**
+ * Update monthly spending
+ */
+async function updateMonthlySpending(
+  supabaseUrl: string,
+  supabaseKey: string,
+  cost: number
+): Promise<void> {
+  try {
+    const configResponse = await fetch(
+      `${supabaseUrl}/rest/v1/ai_budget_config?limit=1`,
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+        }
+      }
+    );
+
+    if (!configResponse.ok) return;
+
+    const configs = await configResponse.json();
+    if (!configs || configs.length === 0) return;
+
+    const config = configs[0];
+    const newSpending = Number(config.current_month_spending) + cost;
+
+    await fetch(`${supabaseUrl}/rest/v1/ai_budget_config?id=eq.${config.id}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        current_month_spending: newSpending,
+        updated_at: new Date().toISOString()
+      })
+    });
+  } catch (error) {
+    console.error('Failed to update spending:', error);
+  }
+}
+
+/**
+ * Logs AI usage to database
  */
 async function logAIUsage(
+  supabaseUrl: string,
+  supabaseKey: string,
   userId: string,
   functionName: string,
-  provider: 'lovable_ai' | 'gemini_api' | 'fallback',
+  provider: 'lovable_ai' | 'gemini_api' | 'fallback' | 'cache_hit',
   model: string,
   success: boolean,
   responseTimeMs: number,
+  tokensUsed?: number,
+  estimatedCost?: number,
   errorMessage?: string
 ) {
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
-    if (!supabaseUrl || !supabaseKey) return;
-
-    // Estimate cost based on provider and model
-    let estimatedCost = 0;
-    if (provider === 'lovable_ai') {
-      estimatedCost = 0.001; // ~$0.001 per request (Lovable AI)
-    } else if (provider === 'gemini_api') {
-      estimatedCost = 0.0002; // ~$0.0002 per request (Gemini is cheaper)
-    }
-
     await fetch(`${supabaseUrl}/rest/v1/ai_usage_logs`, {
       method: 'POST',
       headers: {
@@ -75,19 +269,18 @@ async function logAIUsage(
         model,
         success,
         response_time_ms: responseTimeMs,
-        estimated_cost_usd: estimatedCost,
+        tokens_used: tokensUsed,
+        estimated_cost_usd: estimatedCost || (provider === 'cache_hit' ? 0 : 0.001),
         error_message: errorMessage
       })
     });
   } catch (error) {
     console.error('Failed to log AI usage:', error);
-    // Don't throw - logging shouldn't break the main flow
   }
 }
 
 /**
- * Attempts to call AI with automatic fallback
- * Returns response body (not JSON) for streaming support
+ * Attempts to call AI with automatic fallback and caching
  */
 export async function callAIWithFallback(
   options: AIRequestOptions,
@@ -96,7 +289,59 @@ export async function callAIWithFallback(
 ): Promise<Response> {
   const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
   const GOOGLE_AI_API_KEY = Deno.env.get('GOOGLE_AI_API_KEY');
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const startTime = Date.now();
+
+  // Generate cache key
+  const promptHash = generatePromptHash(options.messages);
+  const cacheKey = options.cacheKey || `${functionName || 'unknown'}:${promptHash}`;
+
+  // Check cache first (if enabled)
+  if (options.enableCache !== false && !options.stream) {
+    const cachedResponse = await checkCache(
+      supabaseUrl,
+      supabaseKey,
+      functionName || 'unknown',
+      promptHash
+    );
+
+    if (cachedResponse) {
+      // Log cache hit
+      if (userId && functionName) {
+        await logAIUsage(
+          supabaseUrl,
+          supabaseKey,
+          userId,
+          functionName,
+          'cache_hit',
+          'cached',
+          true,
+          Date.now() - startTime,
+          0,
+          0,
+          undefined
+        );
+      }
+
+      // Return cached response
+      return new Response(JSON.stringify({
+        choices: [{
+          message: {
+            content: cachedResponse.content || JSON.stringify(cachedResponse)
+          }
+        }]
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
+  // Check budget before making API call
+  const budgetCheck = await checkBudget(supabaseUrl, supabaseKey);
+  if (!budgetCheck.allowed) {
+    throw new Error(budgetCheck.message || 'Budget exceeded');
+  }
 
   // Try Lovable AI first
   if (LOVABLE_API_KEY) {
@@ -118,275 +363,172 @@ export async function callAIWithFallback(
         }),
       });
 
-      // If successful, log and return the response
       if (response.ok) {
         console.log('✓ Lovable AI successful');
         const responseTime = Date.now() - startTime;
+        const estimatedTokens = options.messages.reduce((sum, m) => sum + m.content.length / 4, 0);
+        const estimatedCost = 0.001;
         
+        // Log and update spending
         if (userId && functionName) {
-          logAIUsage(userId, functionName, 'lovable_ai', options.model || 'google/gemini-2.5-flash', true, responseTime);
+          await logAIUsage(
+            supabaseUrl,
+            supabaseKey,
+            userId,
+            functionName,
+            'lovable_ai',
+            options.model || 'google/gemini-2.5-flash',
+            true,
+            responseTime,
+            estimatedTokens,
+            estimatedCost,
+            undefined
+          );
+          await updateMonthlySpending(supabaseUrl, supabaseKey, estimatedCost);
+        }
+
+        // Cache response if not streaming
+        if (!options.stream && options.enableCache !== false) {
+          const responseClone = response.clone();
+          const responseData = await responseClone.json();
+          await saveToCache(
+            supabaseUrl,
+            supabaseKey,
+            functionName || 'unknown',
+            promptHash,
+            cacheKey,
+            responseData.choices[0].message,
+            'lovable_ai',
+            options.model || 'google/gemini-2.5-flash',
+            estimatedTokens
+          );
         }
         
         return response;
       }
 
-      // Log the error
       const status = response.status;
       const errorText = await response.text();
       console.log(`✗ Lovable AI failed (${status}):`, errorText);
-
-      // If 429 (rate limit) or 402 (no credits), try fallback
-      if ((status === 429 || status === 402) && GOOGLE_AI_API_KEY) {
-        console.log('→ Attempting Gemini API fallback...');
-        
-        if (userId && functionName) {
-          const responseTime = Date.now() - startTime;
-          logAIUsage(userId, functionName, 'fallback', options.model || 'google/gemini-2.5-flash', false, responseTime, `Lovable AI ${status === 429 ? 'rate limited' : 'no credits'}, using fallback`);
-        }
-        
-        return await callGeminiAPI(options, GOOGLE_AI_API_KEY, userId, functionName, startTime);
-      }
-
-      // For other errors, return the Lovable AI error response
-      return new Response(errorText, {
-        status: status,
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-    } catch (error) {
-      console.error('✗ Lovable AI error:', error);
       
-      // Try fallback on network or other errors
-      if (GOOGLE_AI_API_KEY) {
-        console.log('→ Attempting Gemini API fallback due to error...');
-        
-        if (userId && functionName) {
-          const responseTime = Date.now() - startTime;
-          logAIUsage(userId, functionName, 'fallback', options.model || 'google/gemini-2.5-flash', false, responseTime, 'Lovable AI error, using fallback');
-        }
-        
-        return await callGeminiAPI(options, GOOGLE_AI_API_KEY, userId, functionName, startTime);
-      }
-      
-      throw error;
-    }
-  }
-
-  // If no Lovable AI key, try Gemini directly
-  if (GOOGLE_AI_API_KEY) {
-    console.log('No Lovable AI key, using Gemini API directly...');
-    return await callGeminiAPI(options, GOOGLE_AI_API_KEY, userId, functionName, startTime);
-  }
-
-  throw new Error('No AI API keys configured (LOVABLE_API_KEY or GOOGLE_AI_API_KEY)');
-}
-
-/**
- * Calls Google Gemini API
- * Converts from OpenAI format to Gemini format
- */
-async function callGeminiAPI(
-  options: AIRequestOptions,
-  apiKey: string,
-  userId?: string,
-  functionName?: string,
-  startTime?: number
-): Promise<Response> {
-  const callStartTime = startTime || Date.now();
-  // Map model name
-  const modelMap: Record<string, string> = {
-    'google/gemini-2.5-flash': 'gemini-2.0-flash-exp',
-    'google/gemini-2.5-pro': 'gemini-2.0-flash-exp',
-    'google/gemini-2.5-flash-lite': 'gemini-2.0-flash-exp',
-  };
-
-  const geminiModel = modelMap[options.model || 'google/gemini-2.5-flash'] || 'gemini-2.0-flash-exp';
-
-  // Convert messages format
-  const contents = options.messages
-    .filter(msg => msg.role !== 'system') // Gemini handles system differently
-    .map(msg => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }]
-    }));
-
-  // Add system instruction if present
-  const systemMessage = options.messages.find(msg => msg.role === 'system');
-  const systemInstruction = systemMessage ? {
-    parts: [{ text: systemMessage.content }]
-  } : undefined;
-
-  // Determine endpoint based on streaming
-  const endpoint = options.stream
-    ? `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:streamGenerateContent?key=${apiKey}`
-    : `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`;
-
-  const geminiBody: any = {
-    contents,
-    generationConfig: {
-      temperature: options.temperature ?? 0.7,
-      maxOutputTokens: options.max_tokens ?? 2048,
-    }
-  };
-
-  if (systemInstruction) {
-    geminiBody.systemInstruction = systemInstruction;
-  }
-
-  // Handle tools/function calling if present
-  if (options.tools && options.tools.length > 0) {
-    geminiBody.tools = [{
-      functionDeclarations: options.tools.map((tool: any) => ({
-        name: tool.function.name,
-        description: tool.function.description,
-        parameters: tool.function.parameters
-      }))
-    }];
-  }
-
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(geminiBody),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('✗ Gemini API error:', response.status, errorText);
-      throw new Error(`Gemini API error: ${response.status}`);
-    }
-
-    // Convert Gemini response to OpenAI format
-    if (options.stream) {
-      // For streaming, we need to transform the response
-      return convertGeminiStreamToOpenAI(response);
-    } else {
-      const geminiData = await response.json();
-      const openAIFormat = convertGeminiToOpenAI(geminiData, options.tools);
-      
-      console.log('✓ Gemini API successful');
-      
-      const responseTime = Date.now() - callStartTime;
       if (userId && functionName) {
-        logAIUsage(userId, functionName, 'gemini_api', geminiModel, true, responseTime);
-      }
-      
-      return new Response(JSON.stringify(openAIFormat), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-  } catch (error) {
-    console.error('✗ Gemini API call failed:', error);
-    throw error;
-  }
-}
-
-/**
- * Converts Gemini response to OpenAI format
- */
-function convertGeminiToOpenAI(geminiData: any, hasTools?: any[]): AIResponse {
-  const candidate = geminiData.candidates?.[0];
-  const content = candidate?.content;
-  
-  if (!content) {
-    throw new Error('No content in Gemini response');
-  }
-
-  // Check for function calls
-  if (hasTools && content.parts?.[0]?.functionCall) {
-    const functionCall = content.parts[0].functionCall;
-    return {
-      choices: [{
-        message: {
-          content: '',
-          tool_calls: [{
-            id: 'call_' + Date.now(),
-            type: 'function',
-            function: {
-              name: functionCall.name,
-              arguments: JSON.stringify(functionCall.args)
-            }
-          }]
-        }
-      }]
-    };
-  }
-
-  // Regular text response
-  const text = content.parts?.map((part: any) => part.text).join('') || '';
-  
-  return {
-    choices: [{
-      message: {
-        content: text
-      }
-    }]
-  };
-}
-
-/**
- * Converts Gemini streaming response to OpenAI SSE format
- */
-function convertGeminiStreamToOpenAI(geminiResponse: Response): Response {
-  const { readable, writable } = new TransformStream();
-  const writer = writable.getWriter();
-  const encoder = new TextEncoder();
-
-  (async () => {
-    try {
-      const reader = geminiResponse.body?.getReader();
-      if (!reader) throw new Error('No response body');
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (!line.trim() || !line.includes('{')) continue;
-          
-          try {
-            const data = JSON.parse(line);
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            
-            if (text) {
-              const chunk = {
-                choices: [{
-                  delta: { content: text }
-                }]
-              };
-              await writer.write(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
-            }
-          } catch (e) {
-            // Skip invalid JSON
-          }
-        }
+        await logAIUsage(
+          supabaseUrl,
+          supabaseKey,
+          userId,
+          functionName,
+          'lovable_ai',
+          options.model || 'google/gemini-2.5-flash',
+          false,
+          Date.now() - startTime,
+          undefined,
+          undefined,
+          `Status ${status}: ${errorText.substring(0, 200)}`
+        );
       }
 
-      await writer.write(encoder.encode('data: [DONE]\n\n'));
-      await writer.close();
+      if (status !== 429 && status !== 402 && status !== 500) {
+        throw new Error(`Lovable AI error (${status}): ${errorText}`);
+      }
+
+      console.log('→ Falling back to Gemini API...');
     } catch (error) {
-      console.error('Stream conversion error:', error);
-      await writer.abort(error);
+      console.log('✗ Lovable AI error:', error);
+      console.log('→ Falling back to Gemini API...');
     }
-  })();
+  }
 
-  return new Response(readable, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
+  // Fallback to Gemini
+  if (!GOOGLE_AI_API_KEY) {
+    throw new Error('No AI provider available');
+  }
+
+  console.log('Using Gemini API fallback...');
+  const fallbackStartTime = Date.now();
+
+  const geminiMessages = options.messages.map(msg => ({
+    role: msg.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: msg.content }]
+  }));
+
+  const geminiResponse = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_AI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: geminiMessages })
     }
+  );
+
+  if (!geminiResponse.ok) {
+    const errorText = await geminiResponse.text();
+    const errorMsg = `Gemini API error (${geminiResponse.status}): ${errorText}`;
+    
+    if (userId && functionName) {
+      await logAIUsage(
+        supabaseUrl,
+        supabaseKey,
+        userId,
+        functionName,
+        'gemini_api',
+        'gemini-2.0-flash-exp',
+        false,
+        Date.now() - fallbackStartTime,
+        undefined,
+        undefined,
+        errorMsg
+      );
+    }
+    
+    throw new Error(errorMsg);
+  }
+
+  const geminiData = await geminiResponse.json();
+  const content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  
+  const responseTime = Date.now() - fallbackStartTime;
+  const estimatedTokens = options.messages.reduce((sum, m) => sum + m.content.length / 4, 0);
+  const estimatedCost = 0.0002;
+
+  if (userId && functionName) {
+    await logAIUsage(
+      supabaseUrl,
+      supabaseKey,
+      userId,
+      functionName,
+      'gemini_api',
+      'gemini-2.0-flash-exp',
+      true,
+      responseTime,
+      estimatedTokens,
+      estimatedCost,
+      undefined
+    );
+    await updateMonthlySpending(supabaseUrl, supabaseKey, estimatedCost);
+  }
+
+  // Cache Gemini response
+  if (options.enableCache !== false) {
+    await saveToCache(
+      supabaseUrl,
+      supabaseKey,
+      functionName || 'unknown',
+      promptHash,
+      cacheKey,
+      { content },
+      'gemini_api',
+      'gemini-2.0-flash-exp',
+      estimatedTokens
+    );
+  }
+
+  console.log(`✓ Gemini fallback successful (${responseTime}ms)`);
+
+  return new Response(JSON.stringify({
+    choices: [{
+      message: { content }
+    }]
+  }), {
+    headers: { 'Content-Type': 'application/json' }
   });
 }

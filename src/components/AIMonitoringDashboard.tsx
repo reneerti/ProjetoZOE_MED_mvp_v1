@@ -1,11 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, TrendingUp, AlertTriangle, CheckCircle, DollarSign, Zap } from "lucide-react";
+import { Activity, TrendingUp, AlertTriangle, CheckCircle, DollarSign, Zap, Shield } from "lucide-react";
 import { useAIUsageStats, useAIUsageLogs } from "@/hooks/useAIUsageStats";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { AIBudgetManager } from "./AIBudgetManager";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -29,15 +34,52 @@ const COLORS = {
 };
 
 export const AIMonitoringDashboard = () => {
+  const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
   const { data: stats, isLoading: statsLoading } = useAIUsageStats(30);
   const { data: logs, isLoading: logsLoading } = useAIUsageLogs(20);
 
-  if (statsLoading) {
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) {
+        setCheckingAdmin(false);
+        return;
+      }
+
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+      setIsAdmin(data?.role === 'admin');
+      setCheckingAdmin(false);
+    };
+
+    checkAdminRole();
+  }, [user]);
+
+  if (checkingAdmin || statsLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-32 w-full" />
         <Skeleton className="h-64 w-full" />
       </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <p className="text-lg font-semibold mb-2">Acesso Restrito</p>
+          <p className="text-muted-foreground">
+            Este painel é acessível apenas para administradores do sistema.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -71,6 +113,13 @@ export const AIMonitoringDashboard = () => {
 
   return (
     <div className="space-y-6">
+      <Tabs defaultValue="usage" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="usage">Uso de AI</TabsTrigger>
+          <TabsTrigger value="budget">Orçamento</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="usage" className="space-y-6">
       {/* Overview Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -253,6 +302,12 @@ export const AIMonitoringDashboard = () => {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="budget" className="space-y-6">
+          <AIBudgetManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
