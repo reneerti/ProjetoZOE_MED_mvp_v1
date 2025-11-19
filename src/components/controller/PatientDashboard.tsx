@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, AlertTriangle, TrendingUp, TrendingDown, Users, Activity, FileText, Mail, Download, Filter } from "lucide-react";
+import { ArrowLeft, AlertTriangle, TrendingUp, TrendingDown, Users, Activity, FileText, Mail, Download, Filter, History, Send } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { usePDFExport } from "@/hooks/usePDFExport";
 import { useEmailReport } from "@/hooks/useEmailReport";
+import { EmailReportHistoryDialog } from "./EmailReportHistoryDialog";
+import { PDFPreviewDialog } from "./PDFPreviewDialog";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables";
 
@@ -58,8 +60,13 @@ export const PatientDashboard = ({ onNavigate }: PatientDashboardProps) => {
   const [alertFilter, setAlertFilter] = useState<'all' | 'critical' | 'none'>('all');
   const [examPeriodFilter, setExamPeriodFilter] = useState<'all' | 'week' | 'month' | 'old'>('all');
   
-  const { generateMonthlyReport } = usePDFExport();
-  const { sendMonthlyReport } = useEmailReport();
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+  const [previewContent, setPreviewContent] = useState<string | null>(null);
+  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
+  
+  const { generateMonthlyReport, generateMonthlyReportHTML } = usePDFExport();
+  const { sendMonthlyReport, sendTestReport } = useEmailReport();
 
   useEffect(() => {
     loadControllerData();
@@ -267,6 +274,60 @@ export const PatientDashboard = ({ onNavigate }: PatientDashboardProps) => {
       case 'critical': return 'bg-destructive text-destructive-foreground';
       case 'high': return 'bg-orange-500 text-white';
       default: return 'bg-yellow-500 text-white';
+    }
+  };
+
+  const handleGeneratePDF = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const now = new Date();
+      await generateMonthlyReport(user.id, String(now.getMonth() + 1), String(now.getFullYear()));
+    }
+  };
+
+  const handleEmailReport = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const now = new Date();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = String(now.getFullYear());
+      await sendMonthlyReport(user.id, month, year);
+    }
+  };
+
+  const handlePreviewReport = async () => {
+    setIsGeneratingPreview(true);
+    setShowPreviewDialog(true);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const now = new Date();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = String(now.getFullYear());
+        
+        const htmlContent = await generateMonthlyReportHTML(user.id, month, year);
+        if (htmlContent) {
+          setPreviewContent(htmlContent);
+        }
+      }
+    } catch (error) {
+      console.error('Error generating preview:', error);
+      toast.error("Erro ao gerar preview do relatório");
+      setShowPreviewDialog(false);
+    } finally {
+      setIsGeneratingPreview(false);
+    }
+  };
+
+  const handleTestEmail = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      try {
+        await sendTestReport(user.id);
+      } catch (error) {
+        console.error('Error sending test email:', error);
+      }
     }
   };
 
@@ -599,6 +660,21 @@ export const PatientDashboard = ({ onNavigate }: PatientDashboardProps) => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <EmailReportHistoryDialog
+        open={showHistoryDialog}
+        onOpenChange={setShowHistoryDialog}
+        controllerId={patients.length > 0 ? patients[0].id : ''}
+      />
+
+      <PDFPreviewDialog
+        open={showPreviewDialog}
+        onOpenChange={setShowPreviewDialog}
+        pdfContent={previewContent}
+        loading={isGeneratingPreview}
+        onConfirmSend={handleEmailReport}
+        onDownload={handleGeneratePDF}
+      />
     </div>
   );
 };
