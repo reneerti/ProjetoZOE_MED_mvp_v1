@@ -1,7 +1,9 @@
-import { Upload, Camera, X, Layers, History } from "lucide-react";
+import { Upload, Camera, X, Layers, History, Minimize2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
+import { compressImage } from "@/lib/imageCompression";
+import { toast } from "sonner";
 
 interface ImageUploadZoneEnhancedProps {
   onFileSelect: (file: File) => void;
@@ -48,26 +50,52 @@ export const ImageUploadZoneEnhanced = ({
     }
   };
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
     if (!validTypes.includes(file.type)) {
-      alert('Por favor, selecione apenas arquivos JPG, PNG ou PDF');
+      toast.error('Por favor, selecione apenas arquivos JPG, PNG ou PDF');
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      alert('Arquivo muito grande. Máximo 10MB');
+      toast.error('Arquivo muito grande. Máximo 10MB');
       return;
     }
 
-    setSelectedFile(file);
+    // Compress image if it's a photo
+    let processedFile = file;
+    if (file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      try {
+        toast.info('Comprimindo imagem...', { duration: 2000 });
+        processedFile = await compressImage(file, {
+          maxWidth: 1920,
+          maxHeight: 1920,
+          quality: 0.85,
+          maxSizeMB: 2
+        });
+        
+        const originalMB = (file.size / (1024 * 1024)).toFixed(2);
+        const compressedMB = (processedFile.size / (1024 * 1024)).toFixed(2);
+        const savings = (((file.size - processedFile.size) / file.size) * 100).toFixed(0);
+        
+        if (parseInt(savings) > 10) {
+          toast.success(`Imagem comprimida: ${originalMB}MB → ${compressedMB}MB (${savings}% menor)`);
+        }
+      } catch (error) {
+        console.error('Compression error:', error);
+        toast.warning('Não foi possível comprimir, usando imagem original');
+        processedFile = file;
+      }
+    }
+
+    setSelectedFile(processedFile);
     
-    if (file.type.startsWith('image/')) {
+    if (processedFile.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewUrl(reader.result as string);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(processedFile);
     } else {
       setPreviewUrl(null);
     }
