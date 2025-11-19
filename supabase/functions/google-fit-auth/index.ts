@@ -6,6 +6,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// PKCE helper functions
+function generateCodeVerifier(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return base64UrlEncode(array);
+}
+
+function base64UrlEncode(buffer: Uint8Array): string {
+  const base64 = btoa(String.fromCharCode(...buffer));
+  return base64
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
+
+async function generateCodeChallenge(verifier: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return base64UrlEncode(new Uint8Array(hash));
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -62,16 +84,48 @@ serve(async (req) => {
         'https://www.googleapis.com/auth/fitness.sleep.read',
       ].join(' ');
 
+      // Generate PKCE code verifier and challenge
+      const codeVerifier = generateCodeVerifier();
+      const codeChallenge = await generateCodeChallenge(codeVerifier);
+      
+      // Generate state parameter for CSRF protection
+      const state = crypto.randomUUID();
+      const stateData = {
+        userId: user.id,
+        state: state,
+        codeVerifier: codeVerifier,
+        timestamp: Date.now(),
+      };
+
+      // Store state and code verifier temporarily (valid for 10 minutes)
+      const { error: stateError } = await supabaseClient
+        .from('wearable_connections')
+        .upsert({
+          user_id: user.id,
+          provider: 'google_fit_temp_state',
+          access_token: JSON.stringify(stateData),
+          connected_at: new Date().toISOString(),
+          sync_enabled: false,
+        }, {
+          onConflict: 'user_id,provider'
+        });
+
+      if (stateError) {
+        console.error('Error storing OAuth state:', stateError);
+      }
+
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${clientId}` +
         `&redirect_uri=${encodeURIComponent(redirectUri)}` +
         `&response_type=code` +
         `&scope=${encodeURIComponent(scope)}` +
-        `&state=${user.id}` +
+        `&state=${state}` +
+        `&code_challenge=${codeChallenge}` +
+        `&code_challenge_method=S256` +
         `&access_type=offline` +
         `&prompt=consent`;
 
-      console.log('Generated auth URL for user:', user.id);
+      console.log('Generated auth URL with PKCE for user:', user.id);
 
       return new Response(
         JSON.stringify({ authUrl }),
@@ -81,11 +135,68 @@ serve(async (req) => {
 
     // Handle OAuth callback
     if (action === 'callback' && code) {
+      const { state } = await req.json();
+      
+      if (!state) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'missing_state',
+            message: 'State parameter missing. Possível ataque CSRF.',
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Retrieve and verify state
+      const { data: tempState, error: stateError } = await supabaseClient
+        .from('wearable_connections')
+        .select('access_token')
+        .eq('user_id', user.id)
+        .eq('provider', 'google_fit_temp_state')
+        .single();
+
+      if (stateError || !tempState) {
+        console.error('State validation error:', stateError);
+        return new Response(
+          JSON.stringify({ 
+            error: 'invalid_state',
+            message: 'Estado OAuth inválido ou expirado. Tente novamente.',
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const stateData = JSON.parse(tempState.access_token);
+      
+      // Verify state matches
+      if (stateData.state !== state) {
+        console.error('State mismatch - possible CSRF attack');
+        return new Response(
+          JSON.stringify({ 
+            error: 'state_mismatch',
+            message: 'Validação de estado falhou. Possível ataque CSRF.',
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Verify timestamp (state should not be older than 10 minutes)
+      const stateAge = Date.now() - stateData.timestamp;
+      if (stateAge > 10 * 60 * 1000) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'state_expired',
+            message: 'Estado OAuth expirado. Tente novamente.',
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-fit-auth`;
 
-      console.log('Exchanging code for tokens...');
+      console.log('Exchanging code for tokens with PKCE...');
 
-      // Exchange code for tokens
+      // Exchange code for tokens with PKCE
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -95,6 +206,7 @@ serve(async (req) => {
           client_secret: clientSecret,
           redirect_uri: redirectUri,
           grant_type: 'authorization_code',
+          code_verifier: stateData.codeVerifier,
         }),
       });
 
@@ -146,6 +258,13 @@ serve(async (req) => {
             console.error('Error storing connection:', connectionError);
           } else {
             console.log('Refresh token stored for automatic sync');
+            
+            // Clean up temporary state
+            await supabaseClient
+              .from('wearable_connections')
+              .delete()
+              .eq('user_id', user.id)
+              .eq('provider', 'google_fit_temp_state');
           }
         }
 
