@@ -136,6 +136,15 @@ serve(async (req) => {
               .eq('id', connection.id);
 
             accessToken = tokenData.access_token;
+            
+            // Audit token refresh
+            await supabaseClient
+              .from('wearable_token_audit')
+              .insert({
+                connection_id: connection.id,
+                action: 'token_refreshed',
+              });
+            
             console.log(`Token refreshed and rotated successfully for connection ${connection.id}`);
           } catch (refreshError) {
             console.error(`Error refreshing token for connection ${connection.id}:`, refreshError);

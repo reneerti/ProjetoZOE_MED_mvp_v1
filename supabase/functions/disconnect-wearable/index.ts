@@ -139,8 +139,11 @@ serve(async (req) => {
       .insert({
         connection_id: connectionId,
         action: 'token_revoked',
+        ip_address: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip'),
+        user_agent: req.headers.get('user-agent'),
       });
-      console.log(`Successfully revoked and deleted connection ${connectionId}`);
+    
+    console.log(`Successfully revoked and deleted connection ${connectionId}`);
 
     return new Response(
       JSON.stringify({ 
