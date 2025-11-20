@@ -127,7 +127,8 @@ export const EvolutionModule = ({ onNavigate }: EvolutionModuleProps) => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | undefined) => {
+    if (!status) return 'text-muted-foreground';
     switch (status.toLowerCase()) {
       case 'crítico': return 'text-destructive';
       case 'alto': return 'text-warning';
@@ -162,8 +163,7 @@ export const EvolutionModule = ({ onNavigate }: EvolutionModuleProps) => {
           )
         `)
         .eq('exam_images.user_id', user?.id)
-        .not('value', 'is', null)
-        .order('exam_images.exam_date', { ascending: true });
+        .not('value', 'is', null);
 
       if (error) throw error;
 
