@@ -26,7 +26,7 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
       if (!user) return;
 
       // Buscar dados de saúde
-      const [analysisRes, bioRes, wearableRes, examsRes] = await Promise.all([
+      const [analysisRes, bioRes, wearableRes, examsRes, alertsRes] = await Promise.all([
         supabase.from('health_analysis').select('*').eq('user_id', user.id).maybeSingle(),
         supabase.from('bioimpedance_measurements')
           .select('*')
@@ -43,14 +43,21 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
           .eq('user_id', user.id)
           .eq('processing_status', 'completed')
           .order('exam_date', { ascending: false })
-          .limit(5)
+          .limit(5),
+        supabase.from('health_alerts')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'unread')
+          .order('created_at', { ascending: false })
+          .limit(10)
       ]);
 
       setHealthData({
         analysis: analysisRes.data,
         bioimpedance: bioRes.data || [],
         wearable: wearableRes.data || [],
-        exams: examsRes.data || []
+        exams: examsRes.data || [],
+        alerts: alertsRes.data || []
       });
     } catch (error) {
       console.error('Error fetching health data:', error);
@@ -111,6 +118,155 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
       </div>
 
       <div className="px-6 space-y-6 mt-6">
+        {/* Alertas Críticos - PRIMEIRO */}
+        {(() => {
+          // Coletar todos os parâmetros críticos e altos dos exames
+          const criticalParams: any[] = [];
+          const highParams: any[] = [];
+          
+          healthData?.analysis?.analysis_summary?.grouped_results?.forEach((group: any) => {
+            group.parameters.forEach((param: any) => {
+              if (param.status === "critico") {
+                criticalParams.push({ ...param, category: group.category_name });
+              } else if (param.status === "alto") {
+                highParams.push({ ...param, category: group.category_name });
+              }
+            });
+          });
+
+          // Ordenar pré-diagnósticos por severidade
+          const sortedDiagnostics = healthData?.analysis?.analysis_summary?.pre_diagnostics
+            ?.slice()
+            .sort((a: any, b: any) => {
+              const severityOrder = { high: 0, medium: 1, low: 2 };
+              return severityOrder[a.severity as keyof typeof severityOrder] - 
+                     severityOrder[b.severity as keyof typeof severityOrder];
+            }) || [];
+
+          const highSeverityDiagnostics = sortedDiagnostics.filter((d: any) => d.severity === 'high');
+          const hasAlerts = criticalParams.length > 0 || highParams.length > 0 || highSeverityDiagnostics.length > 0;
+
+          if (!hasAlerts) return null;
+
+          return (
+            <Card className="p-5 border-2 border-destructive bg-destructive/5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center animate-pulse">
+                  <AlertTriangle className="w-6 h-6 text-destructive" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg text-destructive">Alertas Críticos</h3>
+                  <p className="text-xs text-muted-foreground">Requerem atenção imediata</p>
+                </div>
+                <Badge className="bg-destructive text-white text-lg px-3 py-1">
+                  {criticalParams.length + highParams.length + highSeverityDiagnostics.length}
+                </Badge>
+              </div>
+
+              <div className="space-y-3">
+                {/* Parâmetros Críticos */}
+                {criticalParams.map((param: any, idx: number) => (
+                  <Card key={`crit-${idx}`} className="p-4 bg-destructive/10 border-2 border-destructive">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge className="bg-destructive text-white text-xs">CRÍTICO</Badge>
+                          <span className="text-sm text-muted-foreground">{param.category}</span>
+                        </div>
+                        <h4 className="font-bold text-foreground">{param.name}</h4>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Ref: {param.reference_range}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-destructive">
+                          {param.value} {param.unit}
+                        </p>
+                        <Badge className="bg-destructive text-white mt-1">
+                          ⚠ Muito Alto
+                        </Badge>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+
+                {/* Parâmetros Altos */}
+                {highParams.map((param: any, idx: number) => (
+                  <Card key={`high-${idx}`} className="p-4 bg-warning/10 border-2 border-warning">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge className="bg-warning text-white text-xs">ALTO</Badge>
+                          <span className="text-sm text-muted-foreground">{param.category}</span>
+                        </div>
+                        <h4 className="font-semibold text-foreground">{param.name}</h4>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Ref: {param.reference_range}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-bold text-warning">
+                          {param.value} {param.unit}
+                        </p>
+                        <Badge className="bg-warning text-white mt-1">
+                          ↑ Elevado
+                        </Badge>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+
+                {/* Pré-diagnósticos de Alta Severidade */}
+                {highSeverityDiagnostics.map((diagnostic: any, idx: number) => (
+                  <Card key={`diag-${idx}`} className="p-4 bg-destructive/10 border-2 border-destructive">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center flex-shrink-0">
+                        <AlertTriangle className="w-5 h-5 text-destructive" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge className="bg-destructive text-white">ATENÇÃO</Badge>
+                          <h4 className="font-bold text-foreground">{diagnostic.name}</h4>
+                        </div>
+                        <p className="text-sm text-foreground mb-3">{diagnostic.explanation}</p>
+                        {diagnostic.related_parameters && diagnostic.related_parameters.length > 0 && (
+                          <div className="space-y-1 mb-3">
+                            {diagnostic.related_parameters.map((param: any, pidx: number) => (
+                              <div key={pidx} className="flex items-center justify-between text-sm bg-background/50 p-2 rounded">
+                                <span className="text-muted-foreground">{param.name}</span>
+                                <span className="font-semibold text-destructive">
+                                  {param.value}{param.unit ? ` ${param.unit}` : ""}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {diagnostic.recommendations && diagnostic.recommendations.length > 0 && (
+                          <div className="pt-3 border-t border-destructive/20">
+                            <p className="text-xs font-semibold text-foreground mb-2">Recomendações:</p>
+                            <ul className="space-y-1">
+                              {diagnostic.recommendations.map((rec: string, ridx: number) => (
+                                <li key={ridx} className="text-xs text-foreground">• {rec}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              <Button 
+                className="w-full mt-4 bg-destructive hover:bg-destructive/90 text-white"
+                onClick={() => onNavigate("exams")}
+              >
+                Ver Análise Completa dos Exames
+              </Button>
+            </Card>
+          );
+        })()}
+
         {/* Score Principal */}
         <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10">
           <div className="flex items-center justify-between mb-4">
@@ -184,30 +340,41 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
           </Card>
         )}
 
-        {/* Pré-Diagnósticos */}
-        {healthData?.analysis?.analysis_summary?.pre_diagnostics && healthData.analysis.analysis_summary.pre_diagnostics.length > 0 && (
-          <Card className="p-5 border-l-4 border-l-warning">
-            <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle className="w-5 h-5 text-warning" />
-              <h3 className="font-semibold text-foreground">Pontos de Atenção</h3>
-              <Badge className="bg-destructive text-destructive-foreground">
-                {healthData.analysis.analysis_summary.pre_diagnostics.length}
-              </Badge>
-            </div>
-            <div className="space-y-3">
-              {healthData.analysis.analysis_summary.pre_diagnostics.map((diagnostic: any, idx: number) => (
-                <Card key={idx} className={`p-4 ${
-                  diagnostic.severity === 'high' ? 'bg-destructive/10 border-destructive' :
-                  diagnostic.severity === 'medium' ? 'bg-warning/10 border-warning' :
-                  'bg-info/10 border-info'
-                }`}>
-                  <h4 className="font-medium text-sm mb-2">{diagnostic.name}</h4>
-                  <p className="text-xs text-muted-foreground">{diagnostic.explanation}</p>
-                </Card>
-              ))}
-            </div>
-          </Card>
-        )}
+        {/* Pré-Diagnósticos - Outros níveis de atenção */}
+        {(() => {
+          const sortedDiagnostics = healthData?.analysis?.analysis_summary?.pre_diagnostics
+            ?.slice()
+            .sort((a: any, b: any) => {
+              const severityOrder = { high: 0, medium: 1, low: 2 };
+              return severityOrder[a.severity as keyof typeof severityOrder] - 
+                     severityOrder[b.severity as keyof typeof severityOrder];
+            }) || [];
+
+          const nonCriticalDiagnostics = sortedDiagnostics.filter((d: any) => d.severity !== 'high');
+          
+          if (nonCriticalDiagnostics.length === 0) return null;
+
+          return (
+            <Card className="p-5 border-l-4 border-l-warning">
+              <div className="flex items-center gap-2 mb-4">
+                <AlertTriangle className="w-5 h-5 text-warning" />
+                <h3 className="font-semibold text-foreground">Outros Pontos de Atenção</h3>
+                <Badge variant="secondary">{nonCriticalDiagnostics.length}</Badge>
+              </div>
+              <div className="space-y-3">
+                {nonCriticalDiagnostics.map((diagnostic: any, idx: number) => (
+                  <Card key={idx} className={`p-4 ${
+                    diagnostic.severity === 'medium' ? 'bg-warning/10 border-warning' :
+                    'bg-info/10 border-info'
+                  }`}>
+                    <h4 className="font-medium text-sm mb-2">{diagnostic.name}</h4>
+                    <p className="text-xs text-muted-foreground">{diagnostic.explanation}</p>
+                  </Card>
+                ))}
+              </div>
+            </Card>
+          );
+        })()}
 
         {/* Bioimpedância */}
         {healthData?.bioimpedance && healthData.bioimpedance.length > 0 && (
