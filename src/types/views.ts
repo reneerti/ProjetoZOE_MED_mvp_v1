@@ -1,6 +1,7 @@
 export type View = 
   | "dashboard" 
   | "exams" 
+  | "exams-by-date"
   | "myexams" 
   | "bioimpedance" 
   | "medication" 

@@ -1,4 +1,4 @@
-import { ArrowLeft, Upload, Camera, FileText, AlertCircle, Loader2, History, CheckCircle, XCircle, BarChart3, Sparkles } from "lucide-react";
+import { ArrowLeft, Upload, Camera, FileText, AlertCircle, Loader2, History, CheckCircle, XCircle, BarChart3, Sparkles, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -484,24 +484,14 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
           </Button>
         </div>
 
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={() => setShowHistory(true)}
-            className="flex-1"
-          >
-            <History className="w-4 h-4 mr-2" />
-            Histórico
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => setShowStats(true)}
-            className="flex-1"
-          >
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Estatísticas
-          </Button>
-        </div>
+        <Button 
+          variant="outline" 
+          onClick={() => onNavigate("exams-by-date")}
+          className="w-full"
+        >
+          <Calendar className="w-4 h-4 mr-2" />
+          Ver Exames por Data
+        </Button>
 
         <div className="flex gap-2">
           <Button 
