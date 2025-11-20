@@ -16,6 +16,7 @@ import { AIThresholdManager } from "./AIThresholdManager";
 import { AIRecommendationsPanel } from "./AIRecommendationsPanel";
 import { WebhookConfigDialog } from "./WebhookConfigDialog";
 import { AutoTuningConfig } from "./AutoTuningConfig";
+import { AIProviderStatusPanel } from "./AIProviderStatusPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -142,8 +143,9 @@ export const AIMonitoringDashboard = () => {
         </CardHeader>
       </Card>
       
-      <Tabs defaultValue="usage" className="w-full">
-        <TabsList className="grid w-full grid-cols-8">
+      <Tabs defaultValue="status" className="w-full">
+        <TabsList className="grid w-full grid-cols-9">
+          <TabsTrigger value="status">Status Real-Time</TabsTrigger>
           <TabsTrigger value="usage">Uso de AI</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="trends">Tendências</TabsTrigger>
@@ -153,6 +155,10 @@ export const AIMonitoringDashboard = () => {
           <TabsTrigger value="budget">Orçamento</TabsTrigger>
           <TabsTrigger value="cache">Cache</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="status" className="space-y-6">
+          <AIProviderStatusPanel />
+        </TabsContent>
 
         <TabsContent value="usage" className="space-y-6">
       {/* Overview Cards */}
