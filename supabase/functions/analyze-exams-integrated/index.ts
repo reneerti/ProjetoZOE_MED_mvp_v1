@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { callAIWithFallback } from '../_shared/aiFallback.ts';
+import { extractJSON } from '../_shared/jsonParser.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -171,7 +172,7 @@ Analise os seguintes exames do paciente e forneça:
 
     const aiData = await aiResponse.json();
     const analysisText = aiData.choices[0].message.content;
-    const analysis = JSON.parse(analysisText);
+    const analysis = extractJSON(analysisText);
 
     // LOG 4: Análise concluída
     const aiEndTime = Date.now();

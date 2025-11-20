@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sanitizeStructuredData } from '../_shared/promptSanitizer.ts';
 import { callAIWithFallback } from '../_shared/aiFallback.ts';
+import { extractJSON } from '../_shared/jsonParser.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -157,9 +158,9 @@ Responda APENAS em JSON válido no formato:
     
     let analysis;
     try {
-      analysis = JSON.parse(aiContent);
-    } catch {
-      console.error('Failed to parse AI response, using simple analysis');
+      analysis = extractJSON(aiContent);
+    } catch (error) {
+      console.error('Failed to parse AI response, using simple analysis:', error);
       return simpleAnalysis(supabaseClient, user.id, stats, wearableData);
     }
 
