@@ -13,6 +13,8 @@ import { ExamChatDialog } from "./ExamChatDialog";
 import { HealthScoreCard } from "./HealthScoreCard";
 import { WearableTokenNotifications } from "./wearables/WearableTokenNotifications";
 import { AIUsageNotifications } from "./AIUsageNotifications";
+import { ExamPreDiagnostics } from "./ExamPreDiagnostics";
+import { ExamGroupedResults } from "./ExamGroupedResults";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables" | "ai-monitoring";
 
@@ -201,10 +203,16 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
         </div>
       )}
 
-      {/* Patient Analysis Section */}
-      {false && patientAnalysis && (
+{/* Patient Analysis Section */}
+      {patientAnalysis?.pre_diagnostics && patientAnalysis.pre_diagnostics.length > 0 && (
         <div className="px-4 mb-6">
-          <PatientAnalysisView patientView={patientAnalysis} />
+          <ExamPreDiagnostics preDiagnostics={patientAnalysis.pre_diagnostics} />
+        </div>
+      )}
+      
+      {patientAnalysis?.grouped_results && patientAnalysis.grouped_results.length > 0 && (
+        <div className="px-4 mb-6">
+          <ExamGroupedResults groupedResults={patientAnalysis.grouped_results} />
         </div>
       )}
 

@@ -1,7 +1,7 @@
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 /**
- * Schema para análise integrada de exames
+ * Schema para análise integrada de exames com pré-diagnósticos
  */
 export const analysisSchema = z.object({
   health_score: z.number().min(0).max(10),
@@ -27,7 +27,30 @@ export const analysisSchema = z.object({
     specialty: z.string(),
     reason: z.string(),
     priority: z.enum(['urgent', 'high', 'medium', 'low'])
-  }))
+  })),
+  pre_diagnostics: z.array(z.object({
+    name: z.string(),
+    severity: z.enum(['high', 'medium', 'low']),
+    related_parameters: z.array(z.object({
+      name: z.string(),
+      value: z.union([z.string(), z.number()]),
+      unit: z.string().optional(),
+      status: z.enum(['normal', 'alto', 'baixo', 'critico'])
+    })),
+    explanation: z.string(),
+    recommendations: z.array(z.string())
+  })).optional(),
+  grouped_results: z.array(z.object({
+    category_name: z.string(),
+    category_icon: z.string(),
+    parameters: z.array(z.object({
+      name: z.string(),
+      value: z.union([z.string(), z.number()]),
+      unit: z.string().optional(),
+      status: z.enum(['normal', 'alto', 'baixo', 'critico']),
+      reference_range: z.string().optional()
+    }))
+  })).optional()
 });
 
 export type AnalysisResult = z.infer<typeof analysisSchema>;

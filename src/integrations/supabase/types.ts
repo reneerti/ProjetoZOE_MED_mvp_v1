@@ -733,6 +733,51 @@ export type Database = {
         }
         Relationships: []
       }
+      clinical_reference_parameters: {
+        Row: {
+          created_at: string | null
+          critical_max: number | null
+          critical_min: number | null
+          description: string | null
+          id: string
+          parameter_category: string
+          parameter_name: string
+          reference_max: number | null
+          reference_min: number | null
+          related_conditions: string[] | null
+          unit: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          critical_max?: number | null
+          critical_min?: number | null
+          description?: string | null
+          id?: string
+          parameter_category: string
+          parameter_name: string
+          reference_max?: number | null
+          reference_min?: number | null
+          related_conditions?: string[] | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          critical_max?: number | null
+          critical_min?: number | null
+          description?: string | null
+          id?: string
+          parameter_category?: string
+          parameter_name?: string
+          reference_max?: number | null
+          reference_min?: number | null
+          related_conditions?: string[] | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       controller_patients: {
         Row: {
           controller_id: string

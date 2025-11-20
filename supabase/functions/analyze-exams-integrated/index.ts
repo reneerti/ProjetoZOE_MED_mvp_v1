@@ -31,7 +31,7 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    // Rate limiting: 5 requests per minute for comprehensive integrated analysis (most expensive)
+    // Rate limiting
     const { data: rateLimitResult } = await supabase.rpc('check_rate_limit', {
       p_user_id: user.id,
       p_endpoint: 'analyze-exams-integrated',
@@ -60,15 +60,14 @@ serve(async (req) => {
       );
     }
 
-    // LOG 1: Início da análise integrada
     console.log("═══════════════════════════════════════");
     console.log("🧬 ANALYZE-EXAMS-INTEGRATED INICIADO");
     console.log("═══════════════════════════════════════");
     console.log("📋 User ID:", user.id);
     const startTime = Date.now();
 
-    // Buscar todos os exames do usuário com resultados
-    console.log("🔍 [1/5] Buscando exames processados...");
+    // Buscar exames processados
+    console.log("🔍 [1/6] Buscando exames processados...");
     const { data: examImages, error: examError } = await supabase
       .from('exam_images')
       .select(`
@@ -102,10 +101,21 @@ serve(async (req) => {
       );
     }
 
-    console.log(`✅ [1/5] ${examImages.length} exames encontrados`);
+    console.log(`✅ [1/6] ${examImages.length} exames encontrados`);
+
+    // Buscar parâmetros de referência clínica
+    console.log("🔍 [2/6] Buscando parâmetros de referência clínica...");
+    const { data: clinicalParams, error: paramsError } = await supabase
+      .from('clinical_reference_parameters')
+      .select('*');
+    
+    if (paramsError) {
+      console.error('⚠️ Erro ao buscar parâmetros clínicos:', paramsError);
+    }
+    console.log(`✅ [2/6] ${clinicalParams?.length || 0} parâmetros clínicos carregados`);
 
     // Buscar resultados de exames
-    console.log("🔍 [2/5] Buscando resultados dos exames...");
+    console.log("🔍 [3/6] Buscando resultados dos exames...");
     const { data: examResults, error: resultsError } = await supabase
       .from('exam_results')
       .select(`
@@ -123,28 +133,138 @@ serve(async (req) => {
       console.error('Error fetching results:', resultsError);
     }
 
-    // Preparar dados para análise
-    const examsSummary = examImages.map(exam => ({
-      id: exam.id,
-      category: (exam.exam_categories as any)?.name || 'Não categorizado',
-      type: (exam.exam_types as any)?.name || 'Não especificado',
-      date: exam.exam_date,
-      lab: exam.lab_name,
-      results: examResults?.filter(r => r.exam_image_id === exam.id) || []
-    }));
+    // Preparar dados enriquecidos com parâmetros clínicos
+    const examsSummary = examImages.map(exam => {
+      const results = (examResults || [])
+        .filter(r => r.exam_image_id === exam.id)
+        .map(r => {
+          const clinicalParam = clinicalParams?.find(p => 
+            p.parameter_name.toLowerCase() === r.parameter_name.toLowerCase()
+          );
+          
+          return {
+            name: r.parameter_name,
+            value: r.value || r.value_text,
+            unit: r.unit,
+            status: r.status,
+            reference_min: clinicalParam?.reference_min,
+            reference_max: clinicalParam?.reference_max,
+            critical_min: clinicalParam?.critical_min,
+            critical_max: clinicalParam?.critical_max,
+            category: clinicalParam?.parameter_category,
+            related_conditions: clinicalParam?.related_conditions || []
+          };
+        });
 
-    console.log(`✅ [2/5] ${examResults?.length || 0} resultados de parâmetros carregados`);
+      return {
+        id: exam.id,
+        category: (exam.exam_categories as any)?.name || 'Não categorizado',
+        type: (exam.exam_types as any)?.name || 'Não especificado',
+        date: exam.exam_date,
+        lab: exam.lab_name,
+        results
+      };
+    }).filter(exam => exam.results.length > 0);
 
-    // Chamar Gemini AI para análise integrada
-    console.log("🤖 [3/5] Chamando AI com fallback automático (Lovable AI → Gemini) para análise integrada...");
+    console.log(`✅ [3/6] ${examResults?.length || 0} resultados de parâmetros carregados`);
+
+    if (examsSummary.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Nenhum resultado de exame encontrado para análise.' 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Chamar AI para análise integrada com pré-diagnósticos
+    console.log("🤖 [4/6] Chamando AI para análise integrada com pré-diagnósticos...");
     const aiStartTime = Date.now();
 
     const prompt = `Você é um assistente médico especializado em análise de exames laboratoriais.
 
-Analise os seguintes exames do paciente e forneça:
-...
-    ]
-  }
+Analise os seguintes exames do paciente e forneça uma análise INTEGRADA E AGRUPADA:
+
+DADOS DOS EXAMES:
+${JSON.stringify(examsSummary, null, 2)}
+
+PARÂMETROS DE REFERÊNCIA CLÍNICA DISPONÍVEIS:
+${JSON.stringify(clinicalParams, null, 2)}
+
+INSTRUÇÕES IMPORTANTES:
+
+1. **PRÉ-DIAGNÓSTICOS**: Agrupe parâmetros alterados que juntos possam indicar condições clínicas específicas:
+   - Síndrome Metabólica (HOMA-IR elevado, dislipidemia, HDL baixo)
+   - Esteatose Hepática (TGO/TGP/GGT elevados em ultrassom)
+   - Desbalanço Vitamínico (B12, Folato, Vitamina C, Vitamina D baixos)
+   - Anemia/Microcitose (Ferro, Ferritina, VCM, HCM baixos)
+   - Risco Cardiovascular (colesterol, triglicerídeos, LDL elevados)
+
+2. **AGRUPAMENTO POR CATEGORIA**: Organize resultados por categorias clínicas:
+   - Glicemia e Insulina
+   - Lipidograma
+   - Função Hepática
+   - Vitaminas
+   - Hemograma/Ferro
+
+3. **COMPARAÇÃO COM REFERÊNCIAS**: Para cada parâmetro:
+   - Compare com os valores de referência fornecidos
+   - Identifique se está normal, elevado, baixo ou crítico
+   - Calcule a faixa de referência (reference_min - reference_max)
+
+4. **DISCLAIMER MÉDICO**: Esta análise é educacional e NÃO substitui consulta médica profissional.
+
+Retorne APENAS um JSON válido com a estrutura:
+{
+  "health_score": <número 0-10>,
+  "summary": "<resumo geral>",
+  "pre_diagnostics": [
+    {
+      "name": "<nome do possível pré-diagnóstico>",
+      "severity": "high|medium|low",
+      "related_parameters": [
+        {
+          "name": "<nome do parâmetro>",
+          "value": <valor>,
+          "unit": "<unidade>",
+          "status": "normal|alto|baixo|critico"
+        }
+      ],
+      "explanation": "<explicação simples do que está acontecendo>",
+      "recommendations": ["<recomendação 1>", "<recomendação 2>"]
+    }
+  ],
+  "grouped_results": [
+    {
+      "category_name": "<nome da categoria ex: Glicemia e Insulina>",
+      "category_icon": "<ícone sugerido: heart, droplet, activity, pill, etc>",
+      "parameters": [
+        {
+          "name": "<nome do parâmetro>",
+          "value": <valor>,
+          "unit": "<unidade>",
+          "status": "normal|alto|baixo|critico",
+          "reference_range": "<min - max valores de referência>"
+        }
+      ]
+    }
+  ],
+  "attention_points": [
+    {
+      "category": "<categoria>",
+      "parameter": "<parâmetro>",
+      "value": <valor>,
+      "severity": "high|medium|low",
+      "recommendation": "<recomendação>"
+    }
+  ],
+  "specialists": [
+    {
+      "specialty": "<especialidade médica>",
+      "reason": "<motivo da recomendação>",
+      "priority": "urgent|high|medium|low"
+    }
+  ]
 }`;
 
     let analysis: AnalysisResult;
@@ -188,6 +308,8 @@ Analise os seguintes exames do paciente e forneça:
       analysis = extractJSON<AnalysisResult>(analysisText, analysisSchema);
       
       console.log('✅ Análise validada com sucesso pelo schema Zod');
+      console.log(`📊 Pré-diagnósticos identificados: ${analysis.pre_diagnostics?.length || 0}`);
+      console.log(`📋 Categorias agrupadas: ${analysis.grouped_results?.length || 0}`);
       
     } catch (retryError) {
       console.error('❌ Erro após todas as tentativas:', retryError);
@@ -201,26 +323,22 @@ Analise os seguintes exames do paciente e forneça:
       );
     }
 
-    // LOG 4: Análise concluída
     const aiEndTime = Date.now();
-    console.log(`✅ [3/5] Análise IA concluída em ${aiEndTime - aiStartTime}ms`);
+    console.log(`✅ [4/6] Análise IA concluída em ${aiEndTime - aiStartTime}ms`);
     console.log(`📊 Health Score calculado: ${analysis.health_score}/10`);
-    console.log(`📌 Pontos de atenção: ${analysis.attention_points?.length || 0}`);
-    console.log(`👨‍⚕️ Especialistas recomendados: ${analysis.specialists?.length || 0}`);
 
-    // Buscar parâmetros de referência para detectar valores críticos
-    console.log("🔍 [4/5] Verificando valores críticos e criando alertas...");
+    // Criar alertas para valores críticos
+    console.log("🔍 [5/6] Verificando valores críticos e criando alertas...");
     const { data: examParameters } = await supabase
       .from('exam_parameters')
       .select('*');
 
-    // Criar alertas para valores críticos
     const criticalAlerts = [];
     for (const exam of examsSummary) {
       for (const result of exam.results) {
         if (result.value) {
           const parameter = examParameters?.find(
-            p => p.parameter_name.toLowerCase() === result.parameter_name.toLowerCase()
+            p => p.parameter_name.toLowerCase() === result.name.toLowerCase()
           );
 
           if (parameter) {
@@ -229,21 +347,18 @@ Analise os seguintes exames do paciente e forneça:
             let criticalThreshold = 0;
             let severity: 'warning' | 'critical' = 'warning';
 
-            // Verificar se ultrapassou limite crítico alto
             if (parameter.critical_high && result.value > parameter.critical_high) {
               shouldAlert = true;
               thresholdType = 'high';
               criticalThreshold = parameter.critical_high;
               severity = 'critical';
             }
-            // Verificar se ultrapassou limite crítico baixo
             else if (parameter.critical_low && result.value < parameter.critical_low) {
               shouldAlert = true;
               thresholdType = 'low';
               criticalThreshold = parameter.critical_low;
               severity = 'critical';
             }
-            // Verificar se está fora da referência normal (warning)
             else if (parameter.reference_max && result.value > parameter.reference_max) {
               shouldAlert = true;
               thresholdType = 'high';
@@ -261,11 +376,11 @@ Analise os seguintes exames do paciente e forneça:
               criticalAlerts.push({
                 user_id: user.id,
                 exam_image_id: exam.id,
-                parameter_name: result.parameter_name,
+                parameter_name: result.name,
                 value: result.value,
                 critical_threshold: criticalThreshold,
                 threshold_type: thresholdType,
-                severity: severity
+                severity
               });
             }
           }
@@ -273,89 +388,76 @@ Analise os seguintes exames do paciente e forneça:
       }
     }
 
-    // Inserir alertas no banco de dados
     if (criticalAlerts.length > 0) {
-      const { error: alertsError } = await supabase
+      console.log(`⚠️ ${criticalAlerts.length} alertas críticos identificados. Criando alertas...`);
+      const { error: alertError } = await supabase
         .from('health_alerts')
         .insert(criticalAlerts);
 
-      if (alertsError) {
-        console.error('❌ Erro ao criar alertas:', alertsError);
+      if (alertError) {
+        console.error('Erro ao criar alertas:', alertError);
       } else {
-        console.log(`✅ ${criticalAlerts.length} alertas críticos criados`);
+        console.log(`✅ ${criticalAlerts.length} alertas criados com sucesso`);
       }
-    } else {
-      console.log('✅ Nenhum alerta crítico detectado');
     }
 
-    // Salvar análise no banco de dados
-    console.log("💾 [5/5] Salvando análise no banco de dados...");
-    const { data: savedAnalysis, error: saveError } = await supabase
+    console.log(`✅ [5/6] Alertas processados`);
+
+    // Salvar análise no banco
+    console.log("💾 [6/6] Salvando análise no banco de dados...");
+    const { error: saveError } = await supabase
       .from('health_analysis')
       .upsert({
         user_id: user.id,
         health_score: analysis.health_score,
         analysis_summary: {
           summary: analysis.summary,
-          evolution: analysis.evolution || [],
-          patient_view: analysis.patient_view || null
+          evolution: analysis.evolution,
+          patient_view: analysis.patient_view,
+          pre_diagnostics: analysis.pre_diagnostics,
+          grouped_results: analysis.grouped_results
         },
-        attention_points: analysis.attention_points || [],
-        specialist_recommendations: analysis.specialists || [],
+        attention_points: analysis.attention_points,
+        specialist_recommendations: analysis.specialists,
         updated_at: new Date().toISOString()
       }, {
         onConflict: 'user_id'
-      })
-      .select()
-      .single();
+      });
 
     if (saveError) {
-      console.error('❌ Erro ao salvar análise:', saveError);
-      throw saveError;
+      console.error('Erro ao salvar análise:', saveError);
+    } else {
+      console.log('✅ Análise salva com sucesso');
     }
 
-    // LOG 5: Processo concluído
-    const endTime = Date.now();
-    const totalTime = endTime - startTime;
+    const totalTime = Date.now() - startTime;
     console.log("═══════════════════════════════════════");
-    console.log("✅ [5/5] ANALYZE-EXAMS-INTEGRATED CONCLUÍDO");
-    console.log(`⏱️  Tempo total: ${totalTime}ms (${(totalTime / 1000).toFixed(2)}s)`);
-    console.log(`📊 Resumo:`);
-    console.log(`   - Exames analisados: ${examImages.length}`);
-    console.log(`   - Parâmetros processados: ${examResults?.length || 0}`);
-    console.log(`   - Health Score: ${analysis.health_score}/10`);
-    console.log(`   - Alertas criados: ${criticalAlerts.length}`);
-    console.log(`   - Tempo AI: ${aiEndTime - aiStartTime}ms`);
+    console.log(`✅ ANÁLISE INTEGRADA CONCLUÍDA EM ${totalTime}ms`);
     console.log("═══════════════════════════════════════");
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        analysis: savedAnalysis || analysis
+        analysis,
+        processing_time_ms: totalTime,
+        alerts_created: criticalAlerts.length
       }),
       { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
       }
     );
 
   } catch (error) {
-    const errorId = `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    console.error(`[${errorId}] Error in analyze-exams-integrated:`, {
-      error,
-      timestamp: new Date().toISOString(),
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
+    console.error('Erro geral:', error);
     
     return new Response(
       JSON.stringify({ 
-        error: 'Erro ao analisar exames. Por favor, tente novamente.',
-        errorId,
-        timestamp: new Date().toISOString()
+        error: error instanceof Error ? error.message : 'Erro desconhecido ao processar análise'
       }),
       { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
       }
     );
   }
