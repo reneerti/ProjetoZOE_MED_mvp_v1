@@ -11,6 +11,7 @@ import { UsersManager } from "./UsersManager";
 import { ControllersManager } from "./ControllersManager";
 import { SystemConfigManager } from "./SystemConfigManager";
 import { AuditLogsViewer } from "./AuditLogsViewer";
+import { AuditStatsDashboard } from "./AuditStatsDashboard";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin";
 
@@ -123,12 +124,13 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
       {/* Management Tabs */}
       <div className="p-6">
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="controllers">Controladores</TabsTrigger>
             <TabsTrigger value="plans">Planos</TabsTrigger>
             <TabsTrigger value="config">Configurações</TabsTrigger>
             <TabsTrigger value="audit">Logs</TabsTrigger>
+            <TabsTrigger value="stats">Estatísticas</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="mt-6">
@@ -149,6 +151,10 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
 
           <TabsContent value="audit" className="mt-6">
             <AuditLogsViewer />
+          </TabsContent>
+
+          <TabsContent value="stats" className="mt-6">
+            <AuditStatsDashboard />
           </TabsContent>
         </Tabs>
       </div>
