@@ -20,6 +20,7 @@ export const ProfileModule = ({ onNavigate }: ProfileModuleProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   
   const [displayName, setDisplayName] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -45,6 +46,15 @@ export const ProfileModule = ({ onNavigate }: ProfileModuleProps) => {
         if (profile) {
           setDisplayName(profile.display_name || "");
         }
+
+        // Check user role
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .single();
+        
+        setUserRole(roleData?.role || null);
       }
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -201,6 +211,64 @@ export const ProfileModule = ({ onNavigate }: ProfileModuleProps) => {
               )}
               Salvar Alterações
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Role Management Card */}
+        <Card className="border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Função do Usuário
+            </CardTitle>
+            <CardDescription>
+              Sua função atual no sistema: <strong className="text-primary">{userRole || 'usuário'}</strong>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {userRole !== 'admin' && (
+              <Button
+                onClick={async () => {
+                  try {
+                    setLoading(true);
+                    const { error } = await supabase
+                      .from("user_roles")
+                      .upsert({ 
+                        user_id: user.id, 
+                        role: 'admin' 
+                      });
+                    
+                    if (error) throw error;
+                    
+                    toast({
+                      title: "Sucesso!",
+                      description: "Você agora é um administrador. Recarregue a página para ver o botão Recursos na barra inferior.",
+                    });
+                    
+                    await loadUserData();
+                  } catch (error) {
+                    console.error("Erro:", error);
+                    toast({
+                      title: "Erro",
+                      description: "Não foi possível alterar a função",
+                      variant: "destructive",
+                    });
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={loading}
+                variant="outline"
+                className="w-full"
+              >
+                Tornar-me Admin (para teste)
+              </Button>
+            )}
+            {userRole === 'admin' && (
+              <p className="text-sm text-muted-foreground">
+                ✓ Você tem acesso ao módulo Recursos na barra inferior
+              </p>
+            )}
           </CardContent>
         </Card>
 
