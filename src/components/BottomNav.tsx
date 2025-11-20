@@ -1,5 +1,7 @@
-import { Home, FileText, TrendingUp, User } from "lucide-react";
+import { Home, FileText, Settings, User } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables" | "ai-monitoring";
 
@@ -9,8 +11,26 @@ interface BottomNavProps {
 }
 
 export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
+  const { user } = useAuth();
   const [scrollingUp, setScrollingUp] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) return;
+      
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+      
+      setIsAdmin(roles?.role === 'admin');
+    };
+    
+    checkAdminRole();
+  }, [user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,12 +49,17 @@ export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
-  const navItems = [
+  const baseNavItems = [
     { id: "dashboard" as View, icon: Home, label: "Início" },
     { id: "myexams" as View, icon: FileText, label: "Exames" },
-    { id: "evolution" as View, icon: TrendingUp, label: "Evolução" },
     { id: "profile" as View, icon: User, label: "Perfil" },
   ];
+
+  const adminNavItems = [
+    { id: "resources" as View, icon: Settings, label: "Recursos" },
+  ];
+
+  const navItems = isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems;
 
   return (
     <nav className={`fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl border-t border-border/50 shadow-md z-50 transition-all duration-300 ${
