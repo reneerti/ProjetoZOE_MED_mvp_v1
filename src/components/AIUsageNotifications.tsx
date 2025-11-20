@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, DollarSign, TrendingDown } from "lucide-react";
+import { AlertTriangle, DollarSign, TrendingDown, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useFailureAlerts, useCircuitBreakerStates } from "@/hooks/useCircuitBreaker";
 
 interface AlertStatus {
-  type: 'cache_performance' | 'budget_warning' | 'fallback_frequent';
+  type: 'cache_performance' | 'budget_warning' | 'fallback_frequent' | 'circuit_breaker' | 'failure_rate';
   title: string;
   message: string;
   severity: 'warning' | 'error';
@@ -17,6 +18,9 @@ export const AIUsageNotifications = () => {
   const [alerts, setAlerts] = useState<AlertStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  
+  const { data: failureAlerts } = useFailureAlerts();
+  const { data: circuitBreakerStates } = useCircuitBreakerStates();
 
   useEffect(() => {
     if (user) {
@@ -141,6 +145,42 @@ export const AIUsageNotifications = () => {
     }
   };
 
+  // Adicionar alertas de falhas e circuit breaker
+  useEffect(() => {
+    if (!failureAlerts || !circuitBreakerStates || !isAdmin) return;
+
+    setAlerts(prev => {
+      const baseAlerts = prev.filter(a => a.type !== 'failure_rate' && a.type !== 'circuit_breaker');
+      const newAlerts: AlertStatus[] = [...baseAlerts];
+
+      // Alertas de taxa de falhas alta
+      failureAlerts.forEach(alert => {
+        if (alert.should_alert) {
+          newAlerts.push({
+            type: 'failure_rate',
+            title: `Taxa de Falhas Alta: ${alert.function_name}`,
+            message: `Taxa de falhas de ${alert.failure_rate.toFixed(1)}% (${alert.total_failures} falhas). Limite: ${alert.threshold_percentage}%`,
+            severity: 'error'
+          });
+        }
+      });
+
+      // Alertas de circuit breaker aberto
+      circuitBreakerStates
+        .filter(state => state.state === 'open')
+        .forEach(state => {
+          newAlerts.push({
+            type: 'circuit_breaker',
+            title: `Circuit Breaker Aberto: ${state.function_name}`,
+            message: `Chamadas temporariamente bloqueadas devido a múltiplas falhas (${state.failure_count}). Sistema em modo de proteção.`,
+            severity: 'error'
+          });
+        });
+
+      return newAlerts;
+    });
+  }, [failureAlerts, circuitBreakerStates, isAdmin]);
+
   const handleViewDashboard = () => {
     // Este será chamado pelo componente pai
     window.dispatchEvent(new CustomEvent('navigate-to-ai-monitoring'));
@@ -169,6 +209,12 @@ export const AIUsageNotifications = () => {
               )}
               {alert.type === 'fallback_frequent' && (
                 <AlertTriangle className="w-5 h-5" />
+              )}
+              {alert.type === 'failure_rate' && (
+                <AlertTriangle className="w-5 h-5" />
+              )}
+              {alert.type === 'circuit_breaker' && (
+                <XCircle className="w-5 h-5" />
               )}
             </div>
             <div className="flex-1 min-w-0">
