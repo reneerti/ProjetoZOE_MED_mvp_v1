@@ -96,7 +96,11 @@ export const ExamPreDiagnostics = ({ preDiagnostics }: ExamPreDiagnosticsProps) 
 
             <div className="space-y-2 mb-3">
               {diagnostic.related_parameters.map((param, pIndex) => (
-                <div key={pIndex} className="flex items-center justify-between text-sm bg-background/50 p-2 rounded-md">
+                <div key={pIndex} className={`flex items-center justify-between text-sm p-2 rounded-md ${
+                  param.status === "normal" 
+                    ? "bg-success/10 border border-success/30" 
+                    : "bg-background/50"
+                }`}>
                   <span className="text-muted-foreground">
                     <strong>{param.name}:</strong>{" "}
                     <span className={`font-bold ${
