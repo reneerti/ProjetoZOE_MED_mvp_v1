@@ -62,6 +62,92 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_autotuning_config: {
+        Row: {
+          auto_apply_low_risk: boolean
+          auto_apply_medium_risk: boolean
+          created_at: string
+          enabled: boolean
+          excluded_functions: string[] | null
+          id: string
+          max_daily_applications: number
+          min_confidence_score: number
+          require_admin_approval: boolean
+          updated_at: string
+        }
+        Insert: {
+          auto_apply_low_risk?: boolean
+          auto_apply_medium_risk?: boolean
+          created_at?: string
+          enabled?: boolean
+          excluded_functions?: string[] | null
+          id?: string
+          max_daily_applications?: number
+          min_confidence_score?: number
+          require_admin_approval?: boolean
+          updated_at?: string
+        }
+        Update: {
+          auto_apply_low_risk?: boolean
+          auto_apply_medium_risk?: boolean
+          created_at?: string
+          enabled?: boolean
+          excluded_functions?: string[] | null
+          id?: string
+          max_daily_applications?: number
+          min_confidence_score?: number
+          require_admin_approval?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_autotuning_history: {
+        Row: {
+          applied_at: string
+          applied_by: string | null
+          auto_applied: boolean
+          created_at: string
+          id: string
+          new_config: Json | null
+          previous_config: Json | null
+          recommendation_id: string
+          result: string | null
+          success: boolean | null
+        }
+        Insert: {
+          applied_at?: string
+          applied_by?: string | null
+          auto_applied?: boolean
+          created_at?: string
+          id?: string
+          new_config?: Json | null
+          previous_config?: Json | null
+          recommendation_id: string
+          result?: string | null
+          success?: boolean | null
+        }
+        Update: {
+          applied_at?: string
+          applied_by?: string | null
+          auto_applied?: boolean
+          created_at?: string
+          id?: string
+          new_config?: Json | null
+          previous_config?: Json | null
+          recommendation_id?: string
+          result?: string | null
+          success?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_autotuning_history_recommendation_id_fkey"
+            columns: ["recommendation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_optimization_recommendations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_budget_config: {
         Row: {
           alert_threshold_percentage: number

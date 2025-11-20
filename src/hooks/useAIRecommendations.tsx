@@ -21,7 +21,7 @@ export interface AIRecommendation {
 
 export interface WebhookConfig {
   id: string;
-  webhook_type: 'slack' | 'discord';
+  webhook_type: 'slack' | 'discord' | 'teams';
   webhook_url: string;
   enabled: boolean;
   alert_types: string[];

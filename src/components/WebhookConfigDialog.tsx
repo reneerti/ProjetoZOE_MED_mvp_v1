@@ -14,7 +14,7 @@ import { toast } from "sonner";
 export function WebhookConfigDialog() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [webhookType, setWebhookType] = useState<'slack' | 'discord'>('slack');
+  const [webhookType, setWebhookType] = useState<'slack' | 'discord' | 'teams'>('slack');
   const [webhookUrl, setWebhookUrl] = useState('');
   const [enabled, setEnabled] = useState(true);
   const [selectedAlertTypes, setSelectedAlertTypes] = useState<string[]>(['critical', 'threshold_breach', 'anomaly']);
@@ -191,13 +191,14 @@ export function WebhookConfigDialog() {
             <div className="space-y-3">
               <div>
                 <Label htmlFor="webhook-type">Tipo de Webhook</Label>
-                <Select value={webhookType} onValueChange={(v) => setWebhookType(v as 'slack' | 'discord')}>
+                <Select value={webhookType} onValueChange={(v) => setWebhookType(v as 'slack' | 'discord' | 'teams')}>
                   <SelectTrigger id="webhook-type">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="slack">Slack</SelectItem>
                     <SelectItem value="discord">Discord</SelectItem>
+                    <SelectItem value="teams">Microsoft Teams</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -208,7 +209,9 @@ export function WebhookConfigDialog() {
                   id="webhook-url"
                   placeholder={webhookType === 'slack' 
                     ? "https://hooks.slack.com/services/..." 
-                    : "https://discord.com/api/webhooks/..."}
+                    : webhookType === 'discord'
+                    ? "https://discord.com/api/webhooks/..."
+                    : "https://outlook.office.com/webhook/..."}
                   value={webhookUrl}
                   onChange={(e) => setWebhookUrl(e.target.value)}
                 />
