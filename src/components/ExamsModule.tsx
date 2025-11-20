@@ -423,18 +423,51 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
         }}
       />
       
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-[#3B82F6] to-[#2563EB] text-white p-6 shadow-lg">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => onNavigate("dashboard")}
-            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" strokeWidth={2.4} />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold drop-shadow-md">Upload de Exames</h1>
-            <p className="text-white/90 text-sm drop-shadow">Enviar novas imagens</p>
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-[#3B82F6] to-[#2563EB] text-white shadow-lg">
+        <div className="p-6">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => onNavigate("dashboard")}
+              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" strokeWidth={2.4} />
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold drop-shadow-md">Resultados</h1>
+              <p className="text-white/90 text-sm drop-shadow">Análises e diagnósticos</p>
+            </div>
           </div>
+        </div>
+
+        {/* Botões de Navegação */}
+        <div className="px-6 pb-4 flex gap-2">
+          <Button
+            onClick={() => onNavigate("exam-upload")}
+            variant="secondary"
+            size="sm"
+            className="flex-1"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Upload
+          </Button>
+          <Button
+            onClick={() => onNavigate("exams-by-date")}
+            variant="secondary"
+            size="sm"
+            className="flex-1"
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            Histórico
+          </Button>
+          <Button
+            onClick={() => setShowStats(true)}
+            variant="secondary"
+            size="sm"
+            className="flex-1"
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Estatísticas
+          </Button>
         </div>
       </div>
 
