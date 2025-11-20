@@ -58,6 +58,50 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
   const [showAlerts, setShowAlerts] = useState(false);
   const [patientAnalysis, setPatientAnalysis] = useState<any>(null);
   const [showChat, setShowChat] = useState(false);
+  const [analyzingExams, setAnalyzingExams] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfileAndStats();
+    }
+  }, [user]);
+
+  const runIntegratedAnalysis = async () => {
+    setAnalyzingExams(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-exams-integrated', {
+        body: {}
+      });
+
+      if (error) {
+        console.error('Erro na análise:', error);
+        toast.error('Erro ao processar análise integrada');
+        return;
+      }
+
+      if (data?.analysis) {
+        // Atualizar o estado com os novos dados
+        if (data.analysis.analysis_summary) {
+          setPatientAnalysis(data.analysis.analysis_summary);
+        } else {
+          setPatientAnalysis({
+            pre_diagnostics: data.analysis.pre_diagnostics,
+            grouped_results: data.analysis.grouped_results
+          });
+        }
+        
+        toast.success('Análise integrada concluída com sucesso!');
+        
+        // Recarregar stats
+        await fetchProfileAndStats();
+      }
+    } catch (error) {
+      console.error('Erro ao executar análise:', error);
+      toast.error('Erro ao executar análise integrada');
+    } finally {
+      setAnalyzingExams(false);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -83,7 +127,7 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
         supabase.from('exam_images').select('id, processing_status').eq('user_id', user?.id),
         supabase.from('medications').select('id').eq('user_id', user?.id).eq('active', true),
         supabase.from('bioimpedance_measurements').select('*').eq('user_id', user?.id).order('measurement_date', { ascending: false }).limit(2),
-        supabase.from('health_analysis').select('health_score').eq('user_id', user?.id).order('updated_at', { ascending: false }).limit(1).single(),
+        supabase.from('health_analysis').select('health_score, analysis_summary').eq('user_id', user?.id).order('updated_at', { ascending: false }).limit(1).single(),
         supabase.from('health_alerts').select('id').eq('user_id', user?.id).eq('status', 'unread'),
         supabase.from('user_roles').select('role').eq('user_id', user?.id).single()
       ]);
@@ -120,6 +164,12 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
       }
 
       const healthScore = analysisResult.data?.health_score || null;
+      
+      // Carregar dados de análise para pré-diagnósticos e resultados agrupados
+      if (analysisResult.data?.analysis_summary) {
+        setPatientAnalysis(analysisResult.data.analysis_summary);
+      }
+      
       const unreadAlerts = alertsResult.data?.length || 0;
 
       // Fetch unread alerts count
@@ -184,6 +234,28 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
         <WearableTokenNotifications />
         <AIUsageNotifications />
         <HealthScoreCard score={stats.healthScore ? stats.healthScore * 100 : null} />
+        
+        {/* Botão de Análise Integrada */}
+        {stats.examsCount > 0 && (
+          <Button 
+            onClick={runIntegratedAnalysis}
+            disabled={analyzingExams}
+            className="w-full"
+            variant="outline"
+          >
+            {analyzingExams ? (
+              <>
+                <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                Analisando exames...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Gerar Análise Integrada com IA
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Alerts Section */}
