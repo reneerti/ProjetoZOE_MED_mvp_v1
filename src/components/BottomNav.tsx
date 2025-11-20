@@ -2,8 +2,7 @@ import { Home, FileText, Settings, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "patient-timeline" | "admin" | "controller" | "wearables" | "ai-monitoring";
+import type { View } from "@/types/views";
 
 interface BottomNavProps {
   currentView: View;

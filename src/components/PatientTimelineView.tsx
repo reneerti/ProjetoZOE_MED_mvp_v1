@@ -10,8 +10,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import zoeMedLogo from "@/assets/zoe-med-logo-new.png";
-
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "patient-timeline";
+import type { View } from "@/types/views";
 
 interface PatientTimelineViewProps {
   onNavigate: (view: View) => void;
