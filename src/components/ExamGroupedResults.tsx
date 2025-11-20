@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Droplet, Heart, Pill, TestTube, TrendingUp } from "lucide-react";
+import { Activity, Droplet, Heart, Pill, TestTube, TrendingUp, Brain, CheckCircle } from "lucide-react";
 import { ExamCategoryEvolutionModal } from "./ExamCategoryEvolutionModal";
 
 interface GroupedResult {
@@ -117,9 +117,12 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-foreground">
-        Exames Laboratoriais - Evolução
-      </h2>
+      <div className="flex items-center gap-2 mb-2">
+        <CheckCircle className="w-5 h-5 text-success" />
+        <h2 className="text-xl font-bold text-foreground">
+          Resultados Agrupados por Categoria
+        </h2>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {groupedResults.map((group, index) => (
@@ -139,22 +142,22 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
                 `}>
                   {getCategoryIcon(group.category_icon)}
                 </div>
-                <h3 className="font-semibold text-foreground text-lg">
+                <h3 className="font-bold text-foreground text-base">
                   {group.category_name}
                 </h3>
               </div>
-              <TrendingUp className="w-5 h-5 text-primary" />
+              <TrendingUp className="w-5 h-5 text-[#8B5CF6]" />
             </div>
 
             <div className="space-y-3">
               {group.parameters.map((param, pIndex) => (
-                <div key={pIndex} className="flex items-start justify-between gap-3">
+                <div key={pIndex} className="flex items-start justify-between gap-3 bg-background/50 p-2 rounded-md">
                   <div className="flex-1">
-                    <div className="text-sm text-foreground font-medium">
+                    <div className="text-sm text-foreground font-bold">
                       {param.name}
                     </div>
                     {param.reference_range && (
-                      <div className="text-xs text-muted-foreground mt-0.5">
+                      <div className="text-xs text-muted-foreground mt-0.5 italic">
                         Ref: {param.reference_range}
                       </div>
                     )}
@@ -167,10 +170,10 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
         ))}
       </div>
 
-      <Card className="bg-info/10 border-info/30 p-4">
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          ⚕️ <strong>Importante:</strong> Esta análise é baseada em dados fornecidos e não substitui consulta médica profissional. 
-          Sempre consulte seu médico antes de tomar decisões sobre tratamento ou medicação.
+      <Card className="bg-muted/30 border-dashed border-2 p-4">
+        <p className="text-xs text-muted-foreground leading-relaxed text-center">
+          ⚕️ <strong>Importante:</strong> <em>Esta análise é baseada em dados fornecidos e não substitui consulta médica profissional. 
+          Sempre consulte seu médico antes de tomar decisões sobre tratamento ou medicação.</em>
         </p>
       </Card>
 

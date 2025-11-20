@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Heart, Activity, Droplet, AlertCircle } from "lucide-react";
+import { AlertTriangle, Heart, Activity, Droplet, AlertCircle, Brain } from "lucide-react";
 
 interface PreDiagnostic {
   name: string;
@@ -57,11 +57,16 @@ export const ExamPreDiagnostics = ({ preDiagnostics }: ExamPreDiagnosticsProps) 
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <AlertTriangle className="w-5 h-5 text-warning" />
-        <h2 className="text-xl font-semibold text-foreground">
-          Alertas e Pontos de Atenção
-        </h2>
+      <div className="flex items-center gap-2 mb-2">
+        <div className="w-10 h-10 rounded-full bg-[#8B5CF6]/10 flex items-center justify-center">
+          <Brain className="w-5 h-5 text-[#8B5CF6]" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-foreground">
+            Alertas e Pontos de Atenção
+          </h2>
+          <p className="text-xs text-[#8B5CF6] font-medium">Análise por IA</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -80,10 +85,10 @@ export const ExamPreDiagnostics = ({ preDiagnostics }: ExamPreDiagnosticsProps) 
                 {getIcon(diagnostic.name)}
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-foreground mb-1">
+                <h3 className="font-bold text-foreground mb-1">
                   {diagnostic.name}
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground italic">
                   {diagnostic.explanation}
                 </p>
               </div>
@@ -91,10 +96,10 @@ export const ExamPreDiagnostics = ({ preDiagnostics }: ExamPreDiagnosticsProps) 
 
             <div className="space-y-2 mb-3">
               {diagnostic.related_parameters.map((param, pIndex) => (
-                <div key={pIndex} className="flex items-center justify-between text-sm">
+                <div key={pIndex} className="flex items-center justify-between text-sm bg-background/50 p-2 rounded-md">
                   <span className="text-muted-foreground">
-                    • {param.name}:{" "}
-                    <span className={`font-medium ${
+                    <strong>{param.name}:</strong>{" "}
+                    <span className={`font-bold ${
                       param.status === "normal" ? "text-success" : "text-destructive"
                     }`}>
                       {param.value}{param.unit ? ` ${param.unit}` : ""}
@@ -106,13 +111,14 @@ export const ExamPreDiagnostics = ({ preDiagnostics }: ExamPreDiagnosticsProps) 
             </div>
 
             {diagnostic.recommendations.length > 0 && (
-              <div className="pt-3 border-t border-border/30">
-                <p className="text-xs font-medium text-muted-foreground mb-2">
-                  Recomendações:
+              <div className="pt-3 border-t border-border/30 bg-[#8B5CF6]/5 p-3 rounded-md">
+                <p className="text-xs font-bold text-[#8B5CF6] mb-2 flex items-center gap-1">
+                  <Brain className="w-3 h-3" />
+                  Recomendações da IA:
                 </p>
                 <ul className="space-y-1">
                   {diagnostic.recommendations.map((rec, rIndex) => (
-                    <li key={rIndex} className="text-xs text-foreground">
+                    <li key={rIndex} className="text-xs text-muted-foreground">
                       • {rec}
                     </li>
                   ))}
@@ -123,10 +129,10 @@ export const ExamPreDiagnostics = ({ preDiagnostics }: ExamPreDiagnosticsProps) 
         ))}
       </div>
 
-      <Card className="bg-info/10 border-info/30 p-4">
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          ⚕️ <strong>Importante:</strong> Esta análise é baseada em dados fornecidos e não substitui consulta médica profissional. 
-          Sempre consulte seu médico antes de tomar decisões sobre tratamento ou medicação.
+      <Card className="bg-muted/30 border-dashed border-2 p-4">
+        <p className="text-xs text-muted-foreground leading-relaxed text-center">
+          ⚕️ <strong>Importante:</strong> <em>Esta análise é baseada em dados fornecidos e não substitui consulta médica profissional. 
+          Sempre consulte seu médico antes de tomar decisões sobre tratamento ou medicação.</em>
         </p>
       </Card>
     </div>

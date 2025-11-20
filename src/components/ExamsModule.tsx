@@ -1,8 +1,6 @@
-import { ArrowLeft, Upload, Camera, FileText, AlertCircle, Loader2, History, CheckCircle, XCircle, BarChart3, Sparkles, Calendar, TrendingUp, TrendingDown, Minus, Brain } from "lucide-react";
+import { ArrowLeft, Upload, Camera, FileText, Loader2, History, BarChart3, Sparkles, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useRef, useEffect } from "react";
@@ -15,36 +13,12 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ExamUploadDialog } from "./bioimpedance/ExamUploadDialog";
 import type { ExamMetadata } from "@/lib/validation";
+import { ExamPreDiagnostics } from "./ExamPreDiagnostics";
+import { ExamGroupedResults } from "./ExamGroupedResults";
 import type { View } from "@/types/views";
 
 interface ExamsModuleProps {
   onNavigate: (view: View) => void;
-}
-
-interface PreDiagnostic {
-  name: string;
-  severity: string;
-  parameters: Array<{
-    name: string;
-    value: number;
-    unit: string;
-    status: string;
-  }>;
-  explanation: string;
-  recommendations: string[];
-}
-
-interface GroupedResult {
-  category: string;
-  parameters: Array<{
-    name: string;
-    value: number;
-    unit: string;
-    status: string;
-    reference_range?: string;
-  }>;
-  summary: string;
-  trends?: string;
 }
 
 export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
@@ -341,166 +315,6 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "high":
-      case "alto":
-      case "critical":
-        return <TrendingUp className="w-4 h-4 text-destructive" />;
-      case "low":
-      case "baixo":
-        return <TrendingDown className="w-4 h-4 text-warning" />;
-      case "normal":
-        return <CheckCircle className="w-4 h-4 text-success" />;
-      default:
-        return <Minus className="w-4 h-4 text-muted-foreground" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "high":
-      case "alto":
-      case "critical":
-        return "border-destructive/30 bg-destructive/5";
-      case "low":
-      case "baixo":
-        return "border-warning/30 bg-warning/5";
-      case "normal":
-        return "border-success/30 bg-success/5";
-      default:
-        return "border-border bg-card";
-    }
-  };
-
-  const renderPreDiagnostics = (preDiagnostics: PreDiagnostic[]) => {
-    return (
-      <Card className="p-6 space-y-4 border-l-4 border-l-[#8B5CF6]">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-10 h-10 rounded-full bg-[#8B5CF6]/10 flex items-center justify-center">
-            <Brain className="w-5 h-5 text-[#8B5CF6]" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold">Análise por IA</h3>
-            <p className="text-sm text-muted-foreground">Alertas e Pontos de Atenção</p>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {preDiagnostics.map((diag, idx) => (
-            <Card key={idx} className={`p-4 ${getStatusColor(diag.severity)}`}>
-              <div className="flex items-start gap-3">
-                {getStatusIcon(diag.severity)}
-                <div className="flex-1">
-                  <h4 className="font-semibold text-sm mb-2">{diag.name}</h4>
-                  <p className="text-sm text-muted-foreground mb-3 italic">{diag.explanation}</p>
-                  
-                  {diag.parameters && diag.parameters.length > 0 && (
-                    <div className="space-y-1 mb-3">
-                      {diag.parameters.map((param, pidx) => (
-                        <div key={pidx} className="flex items-center justify-between text-xs">
-                          <span className="font-medium">{param.name}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold">{param.value} {param.unit}</span>
-                            {getStatusIcon(param.status)}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {diag.recommendations && diag.recommendations.length > 0 && (
-                    <div className="mt-3 p-3 bg-[#8B5CF6]/5 rounded-md border border-[#8B5CF6]/20">
-                      <p className="text-xs font-semibold text-[#8B5CF6] mb-2 flex items-center gap-1">
-                        <Brain className="w-3 h-3" />
-                        Recomendações da IA:
-                      </p>
-                      <ul className="text-xs space-y-1 text-muted-foreground">
-                        {diag.recommendations.map((rec, ridx) => (
-                          <li key={ridx}>• {rec}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-
-        <Card className="p-4 bg-muted/30 border-dashed">
-          <p className="text-xs text-muted-foreground text-center italic">
-            <strong>Aviso:</strong> Esta análise é baseada em dados fornecidos e não substitui consulta médica profissional. Sempre consulte seu médico antes de tomar decisões sobre tratamento ou medicação.
-          </p>
-        </Card>
-      </Card>
-    );
-  };
-
-  const renderGroupedResults = (groupedResults: GroupedResult[]) => {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 mb-2">
-          <FileText className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-bold">Resultados Agrupados por Categoria</h3>
-        </div>
-
-        {groupedResults.map((group, idx) => {
-          const hasAbnormal = group.parameters.some(p => p.status?.toLowerCase() !== 'normal');
-          const cardBorder = hasAbnormal ? 'border-l-warning' : 'border-l-success';
-          
-          return (
-            <Card key={idx} className={`p-4 border-l-4 ${cardBorder}`}>
-              <div className="flex items-center gap-2 mb-3">
-                {hasAbnormal ? (
-                  <AlertCircle className="w-5 h-5 text-warning" />
-                ) : (
-                  <CheckCircle className="w-5 h-5 text-success" />
-                )}
-                <h4 className="font-bold">{group.category}</h4>
-              </div>
-
-              <div className="space-y-2 mb-3">
-                {group.parameters.map((param, pidx) => (
-                  <div key={pidx} className={`flex items-center justify-between p-2 rounded-md ${getStatusColor(param.status)}`}>
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(param.status)}
-                      <span className="text-sm font-medium">{param.name}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-sm font-bold">{param.value} {param.unit}</span>
-                      {param.reference_range && (
-                        <p className="text-xs text-muted-foreground">Ref: {param.reference_range}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {group.summary && (
-                <div className="p-3 bg-[#8B5CF6]/5 rounded-md border border-[#8B5CF6]/20">
-                  <p className="text-xs font-semibold text-[#8B5CF6] mb-1 flex items-center gap-1">
-                    <Brain className="w-3 h-3" />
-                    Resumo da IA:
-                  </p>
-                  <p className="text-xs text-muted-foreground italic">{group.summary}</p>
-                </div>
-              )}
-
-              {group.trends && (
-                <div className="mt-2 p-2 bg-muted/30 rounded-md">
-                  <p className="text-xs text-muted-foreground">
-                    <strong>Tendências:</strong> {group.trends}
-                  </p>
-                </div>
-              )}
-            </Card>
-          );
-        })}
-      </div>
-    );
-  };
-
   return (
     <div className="animate-fade-in pb-24">
       <ExamHistoryModal open={showHistory} onOpenChange={setShowHistory} />
@@ -662,12 +476,14 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
         ) : (
           <>
             {patientAnalysis?.pre_diagnostics && patientAnalysis.pre_diagnostics.length > 0 && (
-              renderPreDiagnostics(patientAnalysis.pre_diagnostics)
+              <div>
+                <ExamPreDiagnostics preDiagnostics={patientAnalysis.pre_diagnostics} />
+              </div>
             )}
             
             {patientAnalysis?.grouped_results && patientAnalysis.grouped_results.length > 0 && (
               <div className="mt-4">
-                {renderGroupedResults(patientAnalysis.grouped_results)}
+                <ExamGroupedResults groupedResults={patientAnalysis.grouped_results} />
               </div>
             )}
           </>
