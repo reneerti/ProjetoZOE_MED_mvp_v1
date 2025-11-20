@@ -79,7 +79,7 @@ const Index = () => {
     const viewKey = currentView;
     switch (currentView) {
       case "dashboard":
-        return <div key={viewKey} className="animate-fade-in"><Dashboard onNavigate={setCurrentView} /></div>;
+        return <div key={viewKey} className="animate-fade-in"><Dashboard onNavigate={setCurrentView} currentView={currentView} /></div>;
       case "exams":
         return <div key={viewKey} className="animate-slide-in-right"><ExamsModule onNavigate={setCurrentView} /></div>;
       case "myexams":
@@ -167,7 +167,7 @@ const Index = () => {
           </div>
         );
       default:
-        return <div key={viewKey} className="animate-fade-in"><Dashboard onNavigate={setCurrentView} /></div>;
+        return <div key={viewKey} className="animate-fade-in"><Dashboard onNavigate={setCurrentView} currentView={currentView} /></div>;
     }
   };
 

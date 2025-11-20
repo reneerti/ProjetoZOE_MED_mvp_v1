@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity, FileText, Scale, Pill, TrendingUp, LogOut, Bell, Sparkles, Target, Database, Settings, Watch } from "lucide-react";
+import { FileText, Scale, Pill, TrendingUp, Target, Database, Settings, Watch, Bell, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { HealthAlerts } from "./HealthAlerts";
 import { Badge } from "@/components/ui/badge";
+import { DashboardHeader } from "./DashboardHeader";
 import { PatientAnalysisView } from "./PatientAnalysisView";
 import { ExamChatDialog } from "./ExamChatDialog";
 import { HealthScoreCard } from "./HealthScoreCard";
@@ -17,6 +18,7 @@ type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | 
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
+  currentView: View;
 }
 
 interface DashboardStats {
@@ -36,7 +38,7 @@ interface DashboardStats {
   unreadAlerts: number;
 }
 
-export const Dashboard = ({ onNavigate }: DashboardProps) => {
+export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -165,63 +167,15 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <div className={`sticky top-0 z-50 border-b ${isAdmin ? 'bg-[#6B7280] text-white' : 'bg-card/95 backdrop-blur-sm border-border'}`}>
-        <div className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isAdmin ? 'bg-white/20' : 'bg-gradient-to-br from-primary/10 to-accent/10'}`}>
-                <Activity className={`w-5 h-5 ${isAdmin ? 'text-white' : 'text-primary'}`} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className={`text-xl font-semibold ${isAdmin ? 'text-white' : 'text-foreground'}`}>ZoeMed</h1>
-                  {isAdmin && (
-                    <Badge variant="secondary" className="bg-white/20 text-white border-white/30 text-[10px] px-1.5 py-0">
-                      Admin
-                    </Badge>
-                  )}
-                </div>
-                <p className={`text-xs ${isAdmin ? 'text-white/80' : 'text-muted-foreground'}`}>Saúde Inteligente</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowChat(true)}
-                className={`h-9 w-9 ${isAdmin ? 'text-white hover:bg-white/20' : ''}`}
-                title="Chat com IA sobre seus exames"
-              >
-                <Sparkles className="w-5 h-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowAlerts(!showAlerts)}
-                className={`relative h-9 w-9 ${isAdmin ? 'text-white hover:bg-white/20' : ''}`}
-              >
-                <Bell className="w-5 h-5" />
-                {stats.unreadAlerts > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px]"
-                  >
-                    {stats.unreadAlerts}
-                  </Badge>
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={signOut}
-                className={`h-9 w-9 ${isAdmin ? 'text-white hover:bg-white/20' : ''}`}
-              >
-                <LogOut className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <DashboardHeader
+        isAdmin={isAdmin}
+        unreadAlerts={stats.unreadAlerts}
+        currentView={currentView}
+        onShowChat={() => setShowChat(true)}
+        onShowAlerts={() => setShowAlerts(!showAlerts)}
+        onNavigate={onNavigate}
+        onSignOut={signOut}
+      />
 
       {/* Health Score Section */}
       <div className="p-6 space-y-4">
