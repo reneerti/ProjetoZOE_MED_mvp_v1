@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Database, HardDrive, TrendingUp, DollarSign, RefreshCw, Trash2, LineChart, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/hooks/useAuth";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables" | "ai-monitoring";
 
@@ -24,10 +25,19 @@ export const ResourceDashboard = ({ onNavigate }: ResourceDashboardProps) => {
   const [stats, setStats] = useState<ResourceStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [cleaning, setCleaning] = useState(false);
+  const { user, hasRole } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     fetchStats();
+    checkAdminRole();
   }, []);
+
+  const checkAdminRole = async () => {
+    if (!user) return;
+    const adminStatus = await hasRole('admin');
+    setIsAdmin(adminStatus);
+  };
 
   const fetchStats = async () => {
     try {
@@ -161,28 +171,30 @@ export const ResourceDashboard = ({ onNavigate }: ResourceDashboardProps) => {
         </div>
       </Card>
 
-      {/* Administration Button */}
-      <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent/10">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
-            <Shield className="w-6 h-6 text-white" />
+      {/* Administration Button - Only for Admins */}
+      {isAdmin && (
+        <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent/10">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
+              <Shield className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground mb-2">Administração</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Gerenciar usuários, controladores e planos de assinatura
+              </p>
+              <Button 
+                onClick={() => onNavigate("admin")}
+                variant="default"
+                className="w-full sm:w-auto"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Abrir Administração
+              </Button>
+            </div>
           </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-foreground mb-2">Administração</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Gerenciar usuários, controladores e planos de assinatura
-            </p>
-            <Button 
-              onClick={() => onNavigate("admin")}
-              variant="default"
-              className="w-full sm:w-auto"
-            >
-              <Shield className="w-4 h-4 mr-2" />
-              Abrir Administração
-            </Button>
-          </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* Storage Usage */}
       <Card className="p-6">

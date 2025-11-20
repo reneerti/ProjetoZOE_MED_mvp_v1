@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { PlansManager } from "./PlansManager";
 import { UsersManager } from "./UsersManager";
 import { ControllersManager } from "./ControllersManager";
+import { SystemConfigManager } from "./SystemConfigManager";
+import { AuditLogsViewer } from "./AuditLogsViewer";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin";
 
@@ -17,7 +19,7 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalControllers: 0,
@@ -34,14 +36,9 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
   }, [user]);
 
   const checkAdminAccess = async () => {
-    const { data: roles } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user?.id)
-      .single();
-
-    if (roles?.role !== 'admin') {
-      toast.error("Acesso negado");
+    const isAdmin = await hasRole('admin');
+    if (!isAdmin) {
+      toast.error("Acesso negado. Apenas administradores podem acessar esta página.");
       onNavigate("dashboard");
     }
   };
@@ -126,10 +123,12 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
       {/* Management Tabs */}
       <div className="p-6">
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="controllers">Controladores</TabsTrigger>
             <TabsTrigger value="plans">Planos</TabsTrigger>
+            <TabsTrigger value="config">Configurações</TabsTrigger>
+            <TabsTrigger value="audit">Logs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="mt-6">
@@ -142,6 +141,14 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
 
           <TabsContent value="plans" className="mt-6">
             <PlansManager onRefresh={fetchStats} />
+          </TabsContent>
+
+          <TabsContent value="config" className="mt-6">
+            <SystemConfigManager />
+          </TabsContent>
+
+          <TabsContent value="audit" className="mt-6">
+            <AuditLogsViewer />
           </TabsContent>
         </Tabs>
       </div>
