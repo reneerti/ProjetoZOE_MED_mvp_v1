@@ -49,7 +49,11 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
     }
   };
 
-  const getCategoryColor = (categoryName: string) => {
+  const getCategoryColor = (categoryName: string, hasAbnormal: boolean) => {
+    if (!hasAbnormal) {
+      return "from-success/20 to-success/10 border-l-success";
+    }
+    
     const name = categoryName.toLowerCase();
     if (name.includes("glicemia") || name.includes("insulina")) {
       return "from-red-50 to-red-100 border-l-red-400";
@@ -125,20 +129,24 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {groupedResults.map((group, index) => (
-          <Card
-            key={index}
-            onClick={() => handleCardClick(group)}
-            className={`p-5 bg-gradient-to-br ${getCategoryColor(group.category_name)} border-l-4 cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02]`}
-          >
+        {groupedResults.map((group, index) => {
+          const hasAbnormal = group.parameters.some(p => p.status?.toLowerCase() !== 'normal');
+          
+          return (
+            <Card
+              key={index}
+              onClick={() => handleCardClick(group)}
+              className={`p-5 bg-gradient-to-br ${getCategoryColor(group.category_name, hasAbnormal)} border-l-4 cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02]`}
+            >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className={`
                   p-2 rounded-lg
-                  ${group.category_name.toLowerCase().includes("glicemia") ? "bg-red-200 text-red-700" : ""}
-                  ${group.category_name.toLowerCase().includes("lipidograma") ? "bg-yellow-200 text-yellow-700" : ""}
-                  ${group.category_name.toLowerCase().includes("hepática") || group.category_name.toLowerCase().includes("hepatica") ? "bg-orange-200 text-orange-700" : ""}
-                  ${group.category_name.toLowerCase().includes("vitamina") ? "bg-purple-200 text-purple-700" : ""}
+                  ${!hasAbnormal ? "bg-success/20 text-success" : ""}
+                  ${hasAbnormal && group.category_name.toLowerCase().includes("glicemia") ? "bg-red-200 text-red-700" : ""}
+                  ${hasAbnormal && group.category_name.toLowerCase().includes("lipidograma") ? "bg-yellow-200 text-yellow-700" : ""}
+                  ${hasAbnormal && (group.category_name.toLowerCase().includes("hepática") || group.category_name.toLowerCase().includes("hepatica")) ? "bg-orange-200 text-orange-700" : ""}
+                  ${hasAbnormal && group.category_name.toLowerCase().includes("vitamina") ? "bg-purple-200 text-purple-700" : ""}
                 `}>
                   {getCategoryIcon(group.category_icon)}
                 </div>
@@ -151,7 +159,11 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
 
             <div className="space-y-3">
               {group.parameters.map((param, pIndex) => (
-                <div key={pIndex} className="flex items-start justify-between gap-3 bg-background/50 p-2 rounded-md">
+                <div key={pIndex} className={`flex items-start justify-between gap-3 p-2 rounded-md ${
+                  param.status?.toLowerCase() === 'normal'
+                    ? 'bg-success/10 border border-success/30'
+                    : 'bg-background/50'
+                }`}>
                   <div className="flex-1">
                     <div className="text-sm text-foreground font-bold">
                       {param.name}
@@ -167,7 +179,8 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
               ))}
             </div>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       <Card className="bg-muted/30 border-dashed border-2 p-4">
