@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Activity, Scale, FileText, Watch, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
+import { ArrowLeft, Activity, Scale, FileText, Watch, TrendingUp, AlertTriangle, CheckCircle, Filter } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { View } from "@/types/views";
 
 interface HealthDashboardViewProps {
@@ -15,6 +17,8 @@ interface HealthDashboardViewProps {
 export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) => {
   const [loading, setLoading] = useState(true);
   const [healthData, setHealthData] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [chartData, setChartData] = useState<any[]>([]);
 
   useEffect(() => {
     fetchHealthData();
@@ -59,10 +63,73 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
         exams: examsRes.data || [],
         alerts: alertsRes.data || []
       });
+
+      // Preparar dados para gráficos de evolução
+      await prepareChartData(analysisRes.data);
     } catch (error) {
       console.error('Error fetching health data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const prepareChartData = async (analysisData: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Buscar histórico de exames dos últimos 6 meses
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+      const { data: examImages } = await supabase
+        .from('exam_images')
+        .select('id, exam_date')
+        .eq('user_id', user.id)
+        .eq('processing_status', 'completed')
+        .gte('exam_date', sixMonthsAgo.toISOString())
+        .order('exam_date', { ascending: true });
+
+      if (!examImages || examImages.length === 0) return;
+
+      const examIds = examImages.map(e => e.id);
+      const { data: results } = await supabase
+        .from('exam_results')
+        .select('exam_image_id, parameter_name, value, status')
+        .in('exam_image_id', examIds)
+        .not('value', 'is', null);
+
+      // Identificar parâmetros críticos
+      const criticalParams = new Set<string>();
+      analysisData?.analysis_summary?.grouped_results?.forEach((group: any) => {
+        group.parameters.forEach((param: any) => {
+          if (param.status === 'critico' || param.status === 'alto') {
+            criticalParams.add(param.name);
+          }
+        });
+      });
+
+      // Agrupar dados por data para gráfico
+      const dataByDate: Record<string, any> = {};
+      
+      examImages.forEach(exam => {
+        const dateKey = exam.exam_date || '';
+        if (!dataByDate[dateKey]) {
+          dataByDate[dateKey] = { date: format(new Date(dateKey), 'dd/MM') };
+        }
+
+        const examResults = results?.filter(r => r.exam_image_id === exam.id) || [];
+        examResults.forEach(result => {
+          if (criticalParams.has(result.parameter_name) && result.value) {
+            const paramKey = result.parameter_name.substring(0, 20); // Limitar nome
+            dataByDate[dateKey][paramKey] = Number(result.value);
+          }
+        });
+      });
+
+      setChartData(Object.values(dataByDate));
+    } catch (error) {
+      console.error('Error preparing chart data:', error);
     }
   };
 
@@ -292,18 +359,101 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
           </div>
         </Card>
 
-        {/* Exames */}
-        {healthData?.analysis?.analysis_summary?.grouped_results && (
+        {/* Gráficos de Evolução Temporal */}
+        {chartData.length > 0 && (
+          <Card className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold text-foreground">Evolução Temporal dos Parâmetros Críticos</h3>
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="hsl(var(--foreground))"
+                  tick={{ fill: 'hsl(var(--foreground))' }}
+                />
+                <YAxis 
+                  stroke="hsl(var(--foreground))"
+                  tick={{ fill: 'hsl(var(--foreground))' }}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Legend />
+                {Object.keys(chartData[0] || {})
+                  .filter(key => key !== 'date')
+                  .map((key, index) => (
+                    <Line 
+                      key={key}
+                      type="monotone" 
+                      dataKey={key} 
+                      stroke={`hsl(${index * 60}, 70%, 50%)`}
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                    />
+                  ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </Card>
+        )}
+
+        {/* Filtros por Categoria */}
+        <Card className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold text-foreground">Filtrar por Categoria</h3>
+          </div>
+          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="all">Todos</TabsTrigger>
+              <TabsTrigger value="cardiovascular">Cardio</TabsTrigger>
+              <TabsTrigger value="metabolico">Metab.</TabsTrigger>
+              <TabsTrigger value="hepatico">Hepát.</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="all" className="mt-4">
+              <p className="text-sm text-muted-foreground">Exibindo todos os parâmetros</p>
+            </TabsContent>
+            <TabsContent value="cardiovascular" className="mt-4">
+              <p className="text-sm text-muted-foreground">Filtro: Parâmetros cardiovasculares</p>
+            </TabsContent>
+            <TabsContent value="metabolico" className="mt-4">
+              <p className="text-sm text-muted-foreground">Filtro: Parâmetros metabólicos</p>
+            </TabsContent>
+            <TabsContent value="hepatico" className="mt-4">
+              <p className="text-sm text-muted-foreground">Filtro: Parâmetros hepáticos</p>
+            </TabsContent>
+          </Tabs>
+        </Card>
+
+        {/* Exames - Com Filtro Aplicado */}
+        {healthData?.analysis?.analysis_summary?.grouped_results && (() => {
+          const filteredGroups = selectedCategory === "all" 
+            ? healthData.analysis.analysis_summary.grouped_results
+            : healthData.analysis.analysis_summary.grouped_results.filter((group: any) => {
+                const categoryLower = group.category_name?.toLowerCase() || '';
+                return categoryLower.includes(selectedCategory);
+              });
+
+          if (filteredGroups.length === 0) return null;
+
+          return (
           <Card className="p-5 border-l-4 border-l-[#3B82F6] bg-gradient-to-br from-[#3B82F6]/5 to-transparent">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-10 h-10 rounded-full bg-[#3B82F6]/10 flex items-center justify-center">
                 <FileText className="w-5 h-5 text-[#3B82F6]" />
               </div>
               <h3 className="font-semibold text-foreground">Exames Laboratoriais</h3>
-              <Badge variant="secondary" className="bg-[#3B82F6]/10 text-[#3B82F6]">{healthData.analysis.analysis_summary.grouped_results.length}</Badge>
+              <Badge variant="secondary" className="bg-[#3B82F6]/10 text-[#3B82F6]">{filteredGroups.length}</Badge>
             </div>
             <div className="space-y-3">
-              {healthData.analysis.analysis_summary.grouped_results.map((group: any, idx: number) => (
+              {filteredGroups.map((group: any, idx: number) => (
                 <Card key={idx} className="p-4 bg-muted/30">
                   <h4 className="font-medium text-sm mb-3">{group.category_name}</h4>
                   <div className="space-y-2">
@@ -340,7 +490,8 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
               Ver Todos os Exames
             </Button>
           </Card>
-        )}
+          );
+        })()}
 
         {/* Pré-Diagnósticos - Outros níveis de atenção */}
         {(() => {
