@@ -10,8 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables" | "ai-monitoring";
+import type { View } from "@/types/views";
 
 interface DashboardHeaderProps {
   isAdmin: boolean;
@@ -37,6 +36,7 @@ const viewLabels: Record<View, string> = {
   "exam-charts": "Gráficos de Exames",
   alerts: "Alertas",
   "period-comparison": "Comparação de Períodos",
+  "patient-timeline": "Linha do Tempo",
   admin: "Administração",
   controller: "Controle de Pacientes",
   wearables: "Wearables",

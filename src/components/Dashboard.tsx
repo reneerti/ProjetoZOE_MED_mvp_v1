@@ -13,8 +13,7 @@ import { ExamChatDialog } from "./ExamChatDialog";
 import { HealthScoreCard } from "./HealthScoreCard";
 import { WearableTokenNotifications } from "./wearables/WearableTokenNotifications";
 import { AIUsageNotifications } from "./AIUsageNotifications";
-
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "patient-timeline" | "admin" | "controller" | "wearables" | "ai-monitoring";
+import type { View } from "@/types/views";
 
 interface DashboardProps {
   onNavigate: (view: View) => void;

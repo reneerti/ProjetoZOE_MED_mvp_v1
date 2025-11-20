@@ -28,8 +28,7 @@ import { WearablesModule } from "@/components/WearablesModule";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AIMonitoringDashboard } from "@/components/AIMonitoringDashboard";
 import { AIUsageNotifications } from "@/components/AIUsageNotifications";
-
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "patient-timeline" | "admin" | "controller" | "wearables" | "ai-monitoring";
+import type { View } from "@/types/views";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>(() => {

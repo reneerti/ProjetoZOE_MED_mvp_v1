@@ -13,8 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import zoeMedLogo from "@/assets/zoe-med-logo-new.png";
-
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison";
+import type { View } from "@/types/views";
 
 interface PeriodComparisonViewProps {
   onNavigate: (view: View) => void;
