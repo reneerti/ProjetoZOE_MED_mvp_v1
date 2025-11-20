@@ -1,9 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import React from 'npm:react@18.3.1';
-import { Resend } from 'npm:resend@4.0.0';
-import { render } from 'npm:@react-email/render@1.0.1';
-import { MonthlyReportEmail } from './_templates/monthly-report.tsx';
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -45,7 +42,7 @@ serve(async (req) => {
       usageLogs?.reduce((sum, log) => sum + (log.response_time_ms || 0), 0) / (totalRequests || 1)
     );
     const successRate = totalRequests > 0
-      ? Math.round((usageLogs?.filter(log => log.success).length / totalRequests) * 100)
+      ? Math.round(((usageLogs?.filter(log => log.success).length || 0) / totalRequests) * 100)
       : 0;
 
     // Get applied recommendations and cost savings
@@ -84,28 +81,81 @@ serve(async (req) => {
       ? '⚠️ Aceitável (5-10s)'
       : '🔴 Necessita atenção (> 10s)';
 
-    // Render email template
-    const html = render(
-      React.createElement(MonthlyReportEmail, {
-        month,
-        year,
-        totalRequests,
-        totalCost,
-        avgResponseTime,
-        successRate,
-        costSavings,
-        pendingRecommendations: pendingCount,
-        trends: {
-          costTrend,
-          performanceTrend,
-        },
-        topRecommendations: (pendingRecs || []).map(rec => ({
-          function_name: rec.function_name,
-          recommendation_type: rec.recommendation_type,
-          estimated_cost_savings: rec.estimated_cost_savings,
-        })),
-      })
-    );
+    // Generate HTML email
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; }
+            .metric { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+            .metric-label { font-size: 14px; color: #666; margin-bottom: 5px; }
+            .metric-value { font-size: 28px; font-weight: bold; color: #667eea; }
+            .recommendation { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 10px 0; border-radius: 4px; }
+            .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>📊 Relatório Mensal de IA</h1>
+              <p>${month}/${year}</p>
+            </div>
+            <div class="content">
+              <h2>Resumo do Mês</h2>
+              <div class="metric">
+                <div class="metric-label">Total de Requisições</div>
+                <div class="metric-value">${totalRequests.toLocaleString()}</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Custo Total</div>
+                <div class="metric-value">$${totalCost.toFixed(2)}</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Tempo Médio de Resposta</div>
+                <div class="metric-value">${(avgResponseTime / 1000).toFixed(1)}s</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Taxa de Sucesso</div>
+                <div class="metric-value">${successRate}%</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Economia Obtida</div>
+                <div class="metric-value">$${costSavings.toFixed(2)}</div>
+              </div>
+              
+              <h2>Tendências</h2>
+              <div class="metric">
+                <div class="metric-label">Tendência de Custo</div>
+                <div>${costTrend}</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Tendência de Performance</div>
+                <div>${performanceTrend}</div>
+              </div>
+              
+              ${pendingCount > 0 ? `
+                <h2>Recomendações Pendentes (${pendingCount})</h2>
+                ${(pendingRecs || []).map(rec => `
+                  <div class="recommendation">
+                    <strong>${rec.function_name}</strong> - ${rec.recommendation_type}<br>
+                    <small>Economia estimada: $${(rec.estimated_cost_savings || 0).toFixed(2)}</small>
+                  </div>
+                `).join('')}
+              ` : ''}
+            </div>
+            <div class="footer">
+              <p>ZoeMed AI Analytics System</p>
+              <p>Este é um relatório automático gerado pelo sistema</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
 
     // Get admin emails
     const { data: adminUsers } = await supabaseClient
