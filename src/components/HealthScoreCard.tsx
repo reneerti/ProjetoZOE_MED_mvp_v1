@@ -11,11 +11,11 @@ export const HealthScoreCard = ({ score }: HealthScoreCardProps) => {
   const percentage = score !== null ? (score / 1000) * 100 : 0;
 
   const getScoreLabel = (score: number) => {
-    if (score >= 800) return { label: "Excelente", color: "bg-success/10 text-success border-success/20" };
-    if (score >= 600) return { label: "Muito Bom", color: "bg-accent/10 text-accent border-accent/20" };
-    if (score >= 400) return { label: "Bom", color: "bg-warning/10 text-warning border-warning/20" };
-    if (score >= 200) return { label: "Regular", color: "bg-warning/15 text-warning border-warning/30" };
-    return { label: "Necessita Atenção", color: "bg-destructive/10 text-destructive border-destructive/20" };
+    if (score >= 800) return { label: "Excelente", color: "bg-success/5 text-success border-success/10" };
+    if (score >= 600) return { label: "Muito Bom", color: "bg-accent/5 text-accent border-accent/10" };
+    if (score >= 400) return { label: "Bom", color: "bg-warning/5 text-warning border-warning/10" };
+    if (score >= 200) return { label: "Regular", color: "bg-warning/8 text-warning border-warning/15" };
+    return { label: "Necessita Atenção", color: "bg-destructive/5 text-destructive border-destructive/10" };
   };
 
   const scoreInfo = getScoreLabel(displayScore);
@@ -44,9 +44,9 @@ export const HealthScoreCard = ({ score }: HealthScoreCardProps) => {
           <span>500</span>
           <span>1000</span>
         </div>
-        <div className="relative h-3 bg-muted/50 rounded-full overflow-hidden">
+        <div className="relative h-3 bg-muted/30 rounded-full overflow-hidden">
           <div 
-            className="absolute inset-y-0 left-0 bg-gradient-to-r from-success/80 via-accent/80 to-success/80 rounded-full transition-all duration-500"
+            className="absolute inset-y-0 left-0 bg-gradient-to-r from-success/60 via-accent/60 to-success/60 rounded-full transition-all duration-500"
             style={{ width: `${percentage}%` }}
           />
         </div>

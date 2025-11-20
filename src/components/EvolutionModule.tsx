@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ChartSkeleton } from "@/components/ui/chart-skeleton";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison";
 
@@ -244,7 +246,8 @@ export const EvolutionModule = ({ onNavigate }: EvolutionModuleProps) => {
   };
 
   return (
-    <div className="animate-fade-in">
+    <ErrorBoundary>
+      <div className="animate-fade-in">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-white p-6 shadow-lg">
         <div className="flex items-center gap-4 mb-4">
@@ -432,7 +435,12 @@ export const EvolutionModule = ({ onNavigate }: EvolutionModuleProps) => {
             )}
 
             {/* Parameter Evolution Charts */}
-            {parameterHistory.length > 0 && (
+            {loadingCharts ? (
+              <div className="space-y-6">
+                <ChartSkeleton />
+                <ChartSkeleton />
+              </div>
+            ) : parameterHistory.length > 0 ? (
               <Card className="p-6">
                 <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                   <LineChartIcon className="w-5 h-5 text-primary" />
@@ -567,7 +575,7 @@ export const EvolutionModule = ({ onNavigate }: EvolutionModuleProps) => {
                   );
                 })()}
               </Card>
-            )}
+            ) : null}
 
             {/* Refresh Button */}
             <Button 
@@ -604,5 +612,6 @@ export const EvolutionModule = ({ onNavigate }: EvolutionModuleProps) => {
         </Card>
       </div>
     </div>
+    </ErrorBoundary>
   );
 };

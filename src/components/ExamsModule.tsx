@@ -1,10 +1,10 @@
-import { ArrowLeft, Upload, Camera, FileText, AlertCircle, Loader2, History, CheckCircle, XCircle, BarChart3 } from "lucide-react";
+import { ArrowLeft, Upload, Camera, FileText, AlertCircle, Loader2, History, CheckCircle, XCircle, BarChart3, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import { ExamHistoryModal } from "./ExamHistoryModal";
 import { compressImage } from "@/lib/imageCompression";
@@ -14,6 +14,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ExamUploadDialog } from "./bioimpedance/ExamUploadDialog";
 import type { ExamMetadata } from "@/lib/validation";
+import { ExamPreDiagnostics } from "./ExamPreDiagnostics";
+import { ExamGroupedResults } from "./ExamGroupedResults";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller";
 
@@ -37,8 +39,85 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [limitMessage, setLimitMessage] = useState("");
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [patientAnalysis, setPatientAnalysis] = useState<any>(null);
+  const [analyzingExams, setAnalyzingExams] = useState(false);
+  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetchAnalysis();
+  }, []);
+
+  const fetchAnalysis = async () => {
+    setLoadingAnalysis(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('health_analysis')
+        .select('analysis_summary')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data?.analysis_summary) {
+        setPatientAnalysis(data.analysis_summary);
+      }
+    } catch (error) {
+      console.error('Error fetching analysis:', error);
+    } finally {
+      setLoadingAnalysis(false);
+    }
+  };
+
+  const runIntegratedAnalysis = async () => {
+    setAnalyzingExams(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-exams-integrated', {
+        body: {}
+      });
+
+      if (error) {
+        console.error('Erro na análise:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao processar análise integrada",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data?.analysis) {
+        if (data.analysis.analysis_summary) {
+          setPatientAnalysis(data.analysis.analysis_summary);
+        } else {
+          setPatientAnalysis({
+            pre_diagnostics: data.analysis.pre_diagnostics,
+            grouped_results: data.analysis.grouped_results
+          });
+        }
+        
+        toast({
+          title: "Sucesso",
+          description: "Análise integrada concluída com sucesso!",
+        });
+        
+        await fetchAnalysis();
+      }
+    } catch (error) {
+      console.error('Erro ao executar análise:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao executar análise integrada",
+        variant: "destructive",
+      });
+    } finally {
+      setAnalyzingExams(false);
+    }
+  };
 
   const handleFileSelect = async (file: File) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -443,6 +522,39 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
           </Button>
         </div>
 
+        {/* Botão de Análise Integrada */}
+        <Button 
+          onClick={runIntegratedAnalysis}
+          disabled={analyzingExams}
+          className="w-full"
+          variant="default"
+        >
+          {analyzingExams ? (
+            <>
+              <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+              Analisando exames...
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4 mr-2" />
+              Gerar Análise Integrada com IA
+            </>
+          )}
+        </Button>
+
+        {/* Resultados da Análise */}
+        {patientAnalysis?.pre_diagnostics && patientAnalysis.pre_diagnostics.length > 0 && (
+          <div className="mt-4">
+            <ExamPreDiagnostics preDiagnostics={patientAnalysis.pre_diagnostics} />
+          </div>
+        )}
+        
+        {patientAnalysis?.grouped_results && patientAnalysis.grouped_results.length > 0 && (
+          <div className="mt-4">
+            <ExamGroupedResults groupedResults={patientAnalysis.grouped_results} />
+          </div>
+        )}
+
         <Card className="p-4 border-l-4 border-l-primary mt-4">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -451,7 +563,7 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
             <div className="flex-1">
               <h3 className="font-semibold text-sm mb-1">Como funciona</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Faça upload ou tire foto dos seus exames. Após o processamento OCR, acesse <strong>Meus Exames</strong> no dashboard para ver as análises agrupadas e comparativos temporais.
+                Faça upload ou tire foto dos seus exames. Após o processamento OCR, clique em "Gerar Análise Integrada" para visualizar os resultados agrupados e pré-diagnósticos.
               </p>
             </div>
           </div>
