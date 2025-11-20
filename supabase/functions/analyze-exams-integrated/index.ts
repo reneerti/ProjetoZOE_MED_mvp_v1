@@ -141,10 +141,38 @@ serve(async (req) => {
 
     const prompt = `Você é um assistente médico especializado em análise de exames laboratoriais.
 
-Analise os seguintes exames do paciente e forneça:
-...
-    ]
-  }
+IMPORTANTE: Responda APENAS com um objeto JSON válido, sem texto adicional, markdown ou explicações. Não adicione comentários ou texto fora do JSON.
+
+Analise os seguintes exames do paciente e forneça uma análise completa no formato JSON especificado abaixo.
+
+EXAMES DO PACIENTE:
+${JSON.stringify(examsSummary, null, 2)}
+
+FORMATO DA RESPOSTA (JSON OBRIGATÓRIO):
+{
+  "health_score": <número de 0 a 10>,
+  "analysis_summary": {
+    "general_status": "<resumo do estado geral>",
+    "positive_points": ["<ponto positivo 1>", "<ponto positivo 2>"],
+    "areas_for_improvement": ["<área 1>", "<área 2>"]
+  },
+  "attention_points": [
+    {
+      "category": "<categoria do exame>",
+      "parameter": "<nome do parâmetro>",
+      "current_value": "<valor atual>",
+      "reference_range": "<faixa de referência>",
+      "interpretation": "<interpretação clínica>",
+      "severity": "<high|medium|low>"
+    }
+  ],
+  "specialists": [
+    {
+      "specialty": "<especialidade>",
+      "reason": "<motivo da recomendação>",
+      "priority": "<high|medium|low>"
+    }
+  ]
 }`;
 
     let analysis: AnalysisResult;

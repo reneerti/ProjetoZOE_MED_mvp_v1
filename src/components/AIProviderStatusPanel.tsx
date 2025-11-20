@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { AIProviderTimelineChart } from "./AIProviderTimelineChart";
 
 interface ProviderStatus {
   provider: 'lovable_ai' | 'gemini_api' | 'groq_api';
