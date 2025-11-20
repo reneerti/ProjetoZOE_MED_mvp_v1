@@ -13,8 +13,6 @@ import { ExamChatDialog } from "./ExamChatDialog";
 import { HealthScoreCard } from "./HealthScoreCard";
 import { WearableTokenNotifications } from "./wearables/WearableTokenNotifications";
 import { AIUsageNotifications } from "./AIUsageNotifications";
-import { ExamPreDiagnostics } from "./ExamPreDiagnostics";
-import { ExamGroupedResults } from "./ExamGroupedResults";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables" | "ai-monitoring";
 
@@ -56,52 +54,13 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
   });
   const [loading, setLoading] = useState(true);
   const [showAlerts, setShowAlerts] = useState(false);
-  const [patientAnalysis, setPatientAnalysis] = useState<any>(null);
   const [showChat, setShowChat] = useState(false);
-  const [analyzingExams, setAnalyzingExams] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchProfileAndStats();
     }
   }, [user]);
-
-  const runIntegratedAnalysis = async () => {
-    setAnalyzingExams(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('analyze-exams-integrated', {
-        body: {}
-      });
-
-      if (error) {
-        console.error('Erro na análise:', error);
-        toast.error('Erro ao processar análise integrada');
-        return;
-      }
-
-      if (data?.analysis) {
-        // Atualizar o estado com os novos dados
-        if (data.analysis.analysis_summary) {
-          setPatientAnalysis(data.analysis.analysis_summary);
-        } else {
-          setPatientAnalysis({
-            pre_diagnostics: data.analysis.pre_diagnostics,
-            grouped_results: data.analysis.grouped_results
-          });
-        }
-        
-        toast.success('Análise integrada concluída com sucesso!');
-        
-        // Recarregar stats
-        await fetchProfileAndStats();
-      }
-    } catch (error) {
-      console.error('Erro ao executar análise:', error);
-      toast.error('Erro ao executar análise integrada');
-    } finally {
-      setAnalyzingExams(false);
-    }
-  };
 
   useEffect(() => {
     if (user) {
@@ -165,11 +124,6 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
 
       const healthScore = analysisResult.data?.health_score || null;
       
-      // Carregar dados de análise para pré-diagnósticos e resultados agrupados
-      if (analysisResult.data?.analysis_summary) {
-        setPatientAnalysis(analysisResult.data.analysis_summary);
-      }
-      
       const unreadAlerts = alertsResult.data?.length || 0;
 
       // Fetch unread alerts count
@@ -178,20 +132,6 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
         .select('id')
         .eq('user_id', user?.id)
         .eq('status', 'unread');
-
-      // Fetch patient analysis
-      const { data: analysisData } = await supabase
-        .from('health_analysis')
-        .select('*')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (analysisData?.analysis_summary && typeof analysisData.analysis_summary === 'object') {
-        const summary = analysisData.analysis_summary as any;
-        if (summary.patient_view) {
-          setPatientAnalysis(summary.patient_view);
-        }
-      }
 
       setStats({
         examsCount,
@@ -234,28 +174,6 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
         <WearableTokenNotifications />
         <AIUsageNotifications />
         <HealthScoreCard score={stats.healthScore ? stats.healthScore * 100 : null} />
-        
-        {/* Botão de Análise Integrada */}
-        {stats.examsCount > 0 && (
-          <Button 
-            onClick={runIntegratedAnalysis}
-            disabled={analyzingExams}
-            className="w-full"
-            variant="outline"
-          >
-            {analyzingExams ? (
-              <>
-                <Sparkles className="w-4 h-4 mr-2 animate-spin" />
-                Analisando exames...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Gerar Análise Integrada com IA
-              </>
-            )}
-          </Button>
-        )}
       </div>
 
       {/* Alerts Section */}
@@ -272,19 +190,6 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
             </Button>
           </div>
           <HealthAlerts />
-        </div>
-      )}
-
-{/* Patient Analysis Section */}
-      {patientAnalysis?.pre_diagnostics && patientAnalysis.pre_diagnostics.length > 0 && (
-        <div className="px-4 mb-6">
-          <ExamPreDiagnostics preDiagnostics={patientAnalysis.pre_diagnostics} />
-        </div>
-      )}
-      
-      {patientAnalysis?.grouped_results && patientAnalysis.grouped_results.length > 0 && (
-        <div className="px-4 mb-6">
-          <ExamGroupedResults groupedResults={patientAnalysis.grouped_results} />
         </div>
       )}
 
