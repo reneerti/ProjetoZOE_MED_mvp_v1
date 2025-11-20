@@ -1,5 +1,8 @@
 project_id = "irlfnzxmeympvsslbnwn"
 
+[functions.test-monthly-report]
+verify_jwt = false
+
 [functions.google-fit-auth]
 verify_jwt = false
 
