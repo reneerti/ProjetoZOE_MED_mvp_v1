@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Droplet, Heart, Pill, TestTube, TrendingUp, Brain, CheckCircle } from "lucide-react";
+import { Activity, Droplet, Heart, Pill, TestTube, TrendingUp, Brain, CheckCircle, AlertTriangle } from "lucide-react";
 import { ExamCategoryEvolutionModal } from "./ExamCategoryEvolutionModal";
 
 interface GroupedResult {
@@ -142,7 +142,7 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
               <div className="flex items-center gap-3">
                 <div className={`
                   p-2 rounded-lg
-                  ${!hasAbnormal ? "bg-success/20 text-success" : ""}
+                  ${!hasAbnormal ? "bg-success/30 text-success" : ""}
                   ${hasAbnormal && group.category_name.toLowerCase().includes("glicemia") ? "bg-red-200 text-red-700" : ""}
                   ${hasAbnormal && group.category_name.toLowerCase().includes("lipidograma") ? "bg-yellow-200 text-yellow-700" : ""}
                   ${hasAbnormal && (group.category_name.toLowerCase().includes("hepática") || group.category_name.toLowerCase().includes("hepatica")) ? "bg-orange-200 text-orange-700" : ""}
@@ -154,7 +154,11 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
                   {group.category_name}
                 </h3>
               </div>
-              <TrendingUp className="w-5 h-5 text-[#8B5CF6]" />
+              {!hasAbnormal ? (
+                <CheckCircle className="w-6 h-6 text-success" />
+              ) : (
+                <AlertTriangle className="w-6 h-6 text-warning" />
+              )}
             </div>
 
             <div className="space-y-3">
