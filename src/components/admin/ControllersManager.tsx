@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserPlus, Users, Trash2 } from "lucide-react";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface ControllersManagerProps {
   onRefresh: () => void;
@@ -19,6 +20,7 @@ export const ControllersManager = ({ onRefresh }: ControllersManagerProps) => {
   const [patients, setPatients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
+  const { logAction } = useAuditLog();
 
   useEffect(() => {
     fetchData();
@@ -74,11 +76,21 @@ export const ControllersManager = ({ onRefresh }: ControllersManagerProps) => {
 
   const handlePromoteToController = async (userId: string) => {
     try {
+      const user = allUsers.find(u => u.id === userId);
+      
       const { error } = await supabase
         .from('user_roles')
         .upsert({ user_id: userId, role: 'controller' }, { onConflict: 'user_id,role' });
 
       if (error) throw error;
+
+      await logAction({
+        action: 'role_changed',
+        entityType: 'user_role',
+        entityId: userId,
+        oldValues: { role: 'user' },
+        newValues: { role: 'controller', user_name: user?.display_name }
+      });
 
       toast.success("Usuário promovido a controlador!");
       fetchData();

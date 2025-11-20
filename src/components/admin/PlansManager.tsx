@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Edit, CreditCard } from "lucide-react";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface PlansManagerProps {
   onRefresh: () => void;
@@ -18,6 +19,7 @@ export const PlansManager = ({ onRefresh }: PlansManagerProps) => {
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingPlan, setEditingPlan] = useState<any>(null);
+  const { logAction } = useAuditLog();
   const [formData, setFormData] = useState({
     name: "",
     max_exams_per_month: "",
@@ -70,13 +72,41 @@ export const PlansManager = ({ onRefresh }: PlansManagerProps) => {
           .eq('id', editingPlan.id);
 
         if (error) throw error;
+
+        await logAction({
+          action: 'plan_updated',
+          entityType: 'subscription_plan',
+          entityId: editingPlan.id,
+          oldValues: { 
+            name: editingPlan.name,
+            price: editingPlan.price_monthly
+          },
+          newValues: { 
+            name: planData.name,
+            price: planData.price_monthly
+          }
+        });
+
         toast.success("Plano atualizado!");
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('subscription_plans')
-          .insert(planData);
+          .insert(planData)
+          .select()
+          .single();
 
         if (error) throw error;
+
+        await logAction({
+          action: 'plan_created',
+          entityType: 'subscription_plan',
+          entityId: data.id,
+          newValues: { 
+            name: planData.name,
+            price: planData.price_monthly
+          }
+        });
+
         toast.success("Plano criado!");
       }
 

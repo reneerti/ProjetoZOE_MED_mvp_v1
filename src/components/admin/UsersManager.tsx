@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserCog, Mail } from "lucide-react";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface UsersManagerProps {
   onRefresh: () => void;
@@ -15,6 +16,7 @@ export const UsersManager = ({ onRefresh }: UsersManagerProps) => {
   const [users, setUsers] = useState<any[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { logAction } = useAuditLog();
 
   useEffect(() => {
     fetchData();
@@ -50,6 +52,9 @@ export const UsersManager = ({ onRefresh }: UsersManagerProps) => {
       const plan = plans.find(p => p.id === planId);
       if (!plan) return;
 
+      const user = users.find(u => u.id === userId);
+      const oldPlan = plans.find(p => p.id === user?.subscription?.plan_id);
+
       const { error } = await supabase
         .from('user_subscriptions')
         .upsert({
@@ -62,6 +67,15 @@ export const UsersManager = ({ onRefresh }: UsersManagerProps) => {
         }, { onConflict: 'user_id' });
 
       if (error) throw error;
+
+      // Log action
+      await logAction({
+        action: 'subscription_updated',
+        entityType: 'user_subscription',
+        entityId: userId,
+        oldValues: { plan_name: oldPlan?.name || 'Nenhum' },
+        newValues: { plan_name: plan.name }
+      });
 
       toast.success("Plano atualizado!");
       fetchData();

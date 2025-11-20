@@ -143,24 +143,21 @@ export const AIMonitoringDashboard = () => {
         </CardHeader>
       </Card>
       
-      <Tabs defaultValue="status" className="w-full">
-        <TabsList className="grid w-full grid-cols-9">
-          <TabsTrigger value="status">Status Real-Time</TabsTrigger>
-          <TabsTrigger value="usage">Uso de AI</TabsTrigger>
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="trends">Tendências</TabsTrigger>
-          <TabsTrigger value="thresholds">Thresholds</TabsTrigger>
-          <TabsTrigger value="recommendations">Recomendações</TabsTrigger>
-          <TabsTrigger value="autotuning">Auto-Tuning</TabsTrigger>
-          <TabsTrigger value="budget">Orçamento</TabsTrigger>
+          <TabsTrigger value="costs">Custos</TabsTrigger>
+          <TabsTrigger value="optimization">Otimização</TabsTrigger>
+          <TabsTrigger value="config">Configuração</TabsTrigger>
           <TabsTrigger value="cache">Cache</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="status" className="space-y-6">
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
           <AIProviderStatusPanel />
-        </TabsContent>
-
-        <TabsContent value="usage" className="space-y-6">
+          
+          {/* Usage Stats */}
       {/* Overview Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -348,31 +345,30 @@ export const AIMonitoringDashboard = () => {
       </Card>
         </TabsContent>
 
+        {/* Performance Tab */}
         <TabsContent value="performance" className="space-y-6">
           <AIPerformanceDashboard />
           <AIFunctionMetrics />
-        </TabsContent>
-
-        <TabsContent value="trends" className="space-y-6">
           <AITrendsDashboard />
         </TabsContent>
 
-        <TabsContent value="thresholds" className="space-y-6">
-          <AIThresholdManager />
-        </TabsContent>
-
-        <TabsContent value="recommendations" className="space-y-6">
-          <AIRecommendationsPanel />
-        </TabsContent>
-
-        <TabsContent value="autotuning" className="space-y-6">
-          <AutoTuningConfig />
-        </TabsContent>
-
-        <TabsContent value="budget" className="space-y-6">
+        {/* Costs Tab */}
+        <TabsContent value="costs" className="space-y-6">
           <AIBudgetManager />
         </TabsContent>
 
+        {/* Optimization Tab */}
+        <TabsContent value="optimization" className="space-y-6">
+          <AIRecommendationsPanel />
+          <AIThresholdManager />
+        </TabsContent>
+
+        {/* Configuration Tab */}
+        <TabsContent value="config" className="space-y-6">
+          <AutoTuningConfig />
+        </TabsContent>
+
+        {/* Cache Tab */}
         <TabsContent value="cache" className="space-y-6">
           <AICacheStatsDashboard />
         </TabsContent>
