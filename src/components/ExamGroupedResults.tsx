@@ -55,6 +55,9 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
     }
     
     const name = categoryName.toLowerCase();
+    if (name.includes("cardiovascular") || name.includes("cardíaco") || name.includes("cardiaco")) {
+      return "from-red-50 to-red-100 border-l-red-400";
+    }
     if (name.includes("glicemia") || name.includes("insulina")) {
       return "from-red-50 to-red-100 border-l-red-400";
     }
@@ -143,6 +146,7 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
                 <div className={`
                   p-2 rounded-lg
                   ${!hasAbnormal ? "bg-success/30 text-success" : ""}
+                  ${hasAbnormal && (group.category_name.toLowerCase().includes("cardiovascular") || group.category_name.toLowerCase().includes("cardíaco") || group.category_name.toLowerCase().includes("cardiaco")) ? "bg-red-200 text-red-700" : ""}
                   ${hasAbnormal && group.category_name.toLowerCase().includes("glicemia") ? "bg-red-200 text-red-700" : ""}
                   ${hasAbnormal && group.category_name.toLowerCase().includes("lipidograma") ? "bg-yellow-200 text-yellow-700" : ""}
                   ${hasAbnormal && (group.category_name.toLowerCase().includes("hepática") || group.category_name.toLowerCase().includes("hepatica")) ? "bg-orange-200 text-orange-700" : ""}
