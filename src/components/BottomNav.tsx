@@ -50,7 +50,7 @@ export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
 
   const baseNavItems = [
     { id: "dashboard" as View, icon: Home, label: "Início" },
-    { id: "myexams" as View, icon: FileText, label: "Exames" },
+    { id: "health-dashboard" as View, icon: FileText, label: "Dashboard" },
     { id: "profile" as View, icon: User, label: "Perfil" },
   ];
 

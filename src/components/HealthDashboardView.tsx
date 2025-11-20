@@ -96,7 +96,7 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
     );
   }
 
-  const score = healthData?.analysis?.health_score || 0;
+  const score = (healthData?.analysis?.health_score || 0) * 100;
   const scoreInfo = getScoreLabel(score);
 
   return (
@@ -294,11 +294,13 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
 
         {/* Exames */}
         {healthData?.analysis?.analysis_summary?.grouped_results && (
-          <Card className="p-5">
+          <Card className="p-5 border-l-4 border-l-[#3B82F6] bg-gradient-to-br from-[#3B82F6]/5 to-transparent">
             <div className="flex items-center gap-2 mb-4">
-              <FileText className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-full bg-[#3B82F6]/10 flex items-center justify-center">
+                <FileText className="w-5 h-5 text-[#3B82F6]" />
+              </div>
               <h3 className="font-semibold text-foreground">Exames Laboratoriais</h3>
-              <Badge variant="secondary">{healthData.analysis.analysis_summary.grouped_results.length}</Badge>
+              <Badge variant="secondary" className="bg-[#3B82F6]/10 text-[#3B82F6]">{healthData.analysis.analysis_summary.grouped_results.length}</Badge>
             </div>
             <div className="space-y-3">
               {healthData.analysis.analysis_summary.grouped_results.map((group: any, idx: number) => (
@@ -378,9 +380,11 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
 
         {/* Bioimpedância */}
         {healthData?.bioimpedance && healthData.bioimpedance.length > 0 && (
-          <Card className="p-5">
+          <Card className="p-5 border-l-4 border-l-[#10B981] bg-gradient-to-br from-[#10B981]/5 to-transparent">
             <div className="flex items-center gap-2 mb-4">
-              <Scale className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-full bg-[#10B981]/10 flex items-center justify-center">
+                <Scale className="w-5 h-5 text-[#10B981]" />
+              </div>
               <h3 className="font-semibold text-foreground">Composição Corporal</h3>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -423,9 +427,11 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
 
         {/* Wearables */}
         {healthData?.wearable && healthData.wearable.length > 0 && (
-          <Card className="p-5">
+          <Card className="p-5 border-l-4 border-l-[#8B5CF6] bg-gradient-to-br from-[#8B5CF6]/5 to-transparent">
             <div className="flex items-center gap-2 mb-4">
-              <Watch className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-full bg-[#8B5CF6]/10 flex items-center justify-center">
+                <Watch className="w-5 h-5 text-[#8B5CF6]" />
+              </div>
               <h3 className="font-semibold text-foreground">Dados de Wearables</h3>
             </div>
             <div className="grid grid-cols-2 gap-3">
