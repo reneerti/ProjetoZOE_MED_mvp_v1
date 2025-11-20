@@ -172,7 +172,7 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
       <div className="p-6 space-y-4">
         <WearableTokenNotifications />
         <AIUsageNotifications />
-        <HealthScoreCard score={stats.healthScore ? stats.healthScore * 100 : null} />
+        <HealthScoreCard score={stats.healthScore ? stats.healthScore * 100 : null} onNavigate={onNavigate} />
       </div>
 
       {/* Alerts Section */}
