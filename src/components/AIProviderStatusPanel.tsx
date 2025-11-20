@@ -293,6 +293,9 @@ export const AIProviderStatusPanel = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Gráfico Temporal */}
+      <AIProviderTimelineChart />
     </div>
   );
 };
