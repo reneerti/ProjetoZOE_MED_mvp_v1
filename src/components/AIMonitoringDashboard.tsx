@@ -15,6 +15,7 @@ import { AITrendsDashboard } from "./AITrendsDashboard";
 import { AIThresholdManager } from "./AIThresholdManager";
 import { AIRecommendationsPanel } from "./AIRecommendationsPanel";
 import { WebhookConfigDialog } from "./WebhookConfigDialog";
+import { AutoTuningConfig } from "./AutoTuningConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -138,12 +139,13 @@ export const AIMonitoringDashboard = () => {
       </Card>
       
       <Tabs defaultValue="usage" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="usage">Uso de AI</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="trends">Tendências</TabsTrigger>
           <TabsTrigger value="thresholds">Thresholds</TabsTrigger>
           <TabsTrigger value="recommendations">Recomendações</TabsTrigger>
+          <TabsTrigger value="autotuning">Auto-Tuning</TabsTrigger>
           <TabsTrigger value="budget">Orçamento</TabsTrigger>
           <TabsTrigger value="cache">Cache</TabsTrigger>
         </TabsList>
@@ -348,6 +350,10 @@ export const AIMonitoringDashboard = () => {
 
         <TabsContent value="recommendations" className="space-y-6">
           <AIRecommendationsPanel />
+        </TabsContent>
+
+        <TabsContent value="autotuning" className="space-y-6">
+          <AutoTuningConfig />
         </TabsContent>
 
         <TabsContent value="budget" className="space-y-6">

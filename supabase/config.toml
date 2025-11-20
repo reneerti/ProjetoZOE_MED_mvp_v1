@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.send-webhook-notification]
 verify_jwt = false
+
+[functions.send-monthly-ai-report]
+verify_jwt = false

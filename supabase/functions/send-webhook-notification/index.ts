@@ -160,6 +160,48 @@ serve(async (req) => {
             inline: true
           });
         }
+      } else if (config.webhook_type === 'teams') {
+        // Formato Microsoft Teams
+        const themeColor = notification.severity === 'critical' ? 'FF0000' : 
+                          notification.severity === 'warning' ? 'FFA500' : '00FF00';
+        
+        payload = {
+          "@type": "MessageCard",
+          "@context": "https://schema.org/extensions",
+          "summary": "AI System Alert",
+          "themeColor": themeColor,
+          "title": "🚨 AI System Alert",
+          "sections": [{
+            "activityTitle": notification.alertType,
+            "activitySubtitle": `Severity: ${notification.severity.toUpperCase()}`,
+            "facts": [
+              {
+                "name": "Function:",
+                "value": notification.functionName
+              },
+              {
+                "name": "Message:",
+                "value": notification.message
+              }
+            ]
+          }]
+        };
+
+        if (notification.details?.thresholdValue && notification.details?.actualValue) {
+          payload.sections[0].facts.push({
+            name: "Threshold:",
+            value: `${notification.details.thresholdValue}`
+          });
+          payload.sections[0].facts.push({
+            name: "Actual Value:",
+            value: `${notification.details.actualValue}`
+          });
+        }
+
+        payload.sections[0].facts.push({
+          name: "Timestamp:",
+          value: new Date(notification.details?.timestamp || new Date()).toLocaleString('pt-BR')
+        });
       }
 
       try {
