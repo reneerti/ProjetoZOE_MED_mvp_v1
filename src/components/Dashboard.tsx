@@ -165,23 +165,23 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border">
+      <div className={`sticky top-0 z-50 border-b ${isAdmin ? 'bg-[#6B7280] text-white' : 'bg-card/95 backdrop-blur-sm border-border'}`}>
         <div className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-                <Activity className="w-5 h-5 text-primary" />
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isAdmin ? 'bg-white/20' : 'bg-gradient-to-br from-primary/10 to-accent/10'}`}>
+                <Activity className={`w-5 h-5 ${isAdmin ? 'text-white' : 'text-primary'}`} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-semibold text-foreground">ZoeMed</h1>
+                  <h1 className={`text-xl font-semibold ${isAdmin ? 'text-white' : 'text-foreground'}`}>ZoeMed</h1>
                   {isAdmin && (
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    <Badge variant="secondary" className="bg-white/20 text-white border-white/30 text-[10px] px-1.5 py-0">
                       Admin
                     </Badge>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">Saúde Inteligente</p>
+                <p className={`text-xs ${isAdmin ? 'text-white/80' : 'text-muted-foreground'}`}>Saúde Inteligente</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -189,7 +189,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowChat(true)}
-                className="h-9 w-9"
+                className={`h-9 w-9 ${isAdmin ? 'text-white hover:bg-white/20' : ''}`}
                 title="Chat com IA sobre seus exames"
               >
                 <Sparkles className="w-5 h-5" />
@@ -198,7 +198,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowAlerts(!showAlerts)}
-                className="relative h-9 w-9"
+                className={`relative h-9 w-9 ${isAdmin ? 'text-white hover:bg-white/20' : ''}`}
               >
                 <Bell className="w-5 h-5" />
                 {stats.unreadAlerts > 0 && (
@@ -214,7 +214,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
                 variant="ghost"
                 size="icon"
                 onClick={signOut}
-                className="h-9 w-9"
+                className={`h-9 w-9 ${isAdmin ? 'text-white hover:bg-white/20' : ''}`}
               >
                 <LogOut className="w-5 h-5" />
               </Button>
@@ -471,23 +471,6 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
           </div>
         </Card>
 
-        <Card
-          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#8B5CF6] bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
-          style={{ animationDelay: '0.52s' }}
-          onClick={() => onNavigate("ai-monitoring")}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-[#8B5CF6] flex items-center justify-center flex-shrink-0 shadow-lg">
-              <Sparkles className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-foreground text-sm mb-0.5">Monitoramento IA</h3>
-              <p className="text-xs text-muted-foreground truncate">
-                Uso de Lovable AI e Gemini
-              </p>
-            </div>
-          </div>
-        </Card>
 
         {isAdmin && (
           <Card
