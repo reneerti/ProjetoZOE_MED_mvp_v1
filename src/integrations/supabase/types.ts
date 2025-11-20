@@ -304,6 +304,7 @@ export type Database = {
           reasoning: string
           recommendation_type: string
           recommended_action: string
+          risk_level: string | null
           status: string
         }
         Insert: {
@@ -320,6 +321,7 @@ export type Database = {
           reasoning: string
           recommendation_type: string
           recommended_action: string
+          risk_level?: string | null
           status?: string
         }
         Update: {
@@ -336,6 +338,7 @@ export type Database = {
           reasoning?: string
           recommendation_type?: string
           recommended_action?: string
+          risk_level?: string | null
           status?: string
         }
         Relationships: []
@@ -1800,6 +1803,7 @@ export type Database = {
           reasoning: string
           recommendation_type: string
           recommended_action: string
+          risk_level: string
         }[]
       }
       get_admin_stats: {
