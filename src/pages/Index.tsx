@@ -112,7 +112,7 @@ const Index = () => {
               </div>
             </div>
             <div className="px-6">
-              <ResourceDashboard />
+              <ResourceDashboard onNavigate={setCurrentView} />
             </div>
           </div>
         );

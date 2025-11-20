@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Database, HardDrive, TrendingUp, DollarSign, RefreshCw, Trash2 } from "lucide-react";
+import { Database, HardDrive, TrendingUp, DollarSign, RefreshCw, Trash2, LineChart } from "lucide-react";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
+
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables" | "ai-monitoring";
 
 interface ResourceStats {
   storageUsedMB: number;
@@ -14,7 +16,11 @@ interface ResourceStats {
   oldUploadsCount: number;
 }
 
-export const ResourceDashboard = () => {
+interface ResourceDashboardProps {
+  onNavigate: (view: View) => void;
+}
+
+export const ResourceDashboard = ({ onNavigate }: ResourceDashboardProps) => {
   const [stats, setStats] = useState<ResourceStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [cleaning, setCleaning] = useState(false);
@@ -124,13 +130,36 @@ export const ResourceDashboard = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Uso de Recursos</h2>
         <Button variant="outline" size="sm" onClick={fetchStats} disabled={loading}>
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
           Atualizar
         </Button>
       </div>
+
+      {/* AI Monitoring Button */}
+      <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent/10">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
+            <LineChart className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-foreground mb-2">Monitoramento de IA</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Acompanhe o uso, performance e custos dos provedores de IA em tempo real
+            </p>
+            <Button 
+              onClick={() => onNavigate("ai-monitoring")}
+              variant="default"
+              className="w-full sm:w-auto"
+            >
+              <LineChart className="w-4 h-4 mr-2" />
+              Abrir Monitoramento IA
+            </Button>
+          </div>
+        </div>
+      </Card>
 
       {/* Storage Usage */}
       <Card className="p-6">
