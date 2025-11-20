@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, TrendingUp, AlertTriangle, CheckCircle, DollarSign, Zap, Shield } from "lucide-react";
+import { Activity, TrendingUp, AlertTriangle, CheckCircle, DollarSign, Zap, Shield, Lightbulb, BarChart3, Database } from "lucide-react";
 import { useAIUsageStats, useAIUsageLogs } from "@/hooks/useAIUsageStats";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,8 @@ import { AIPerformanceDashboard } from "./AIPerformanceDashboard";
 import { AIFunctionMetrics } from "./AIFunctionMetrics";
 import { AITrendsDashboard } from "./AITrendsDashboard";
 import { AIThresholdManager } from "./AIThresholdManager";
+import { AIRecommendationsPanel } from "./AIRecommendationsPanel";
+import { WebhookConfigDialog } from "./WebhookConfigDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -118,12 +120,30 @@ export const AIMonitoringDashboard = () => {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Dashboard de Monitoramento de IA
+              </CardTitle>
+              <CardDescription>
+                Acompanhe performance, custos e saúde do sistema de IA
+              </CardDescription>
+            </div>
+            <WebhookConfigDialog />
+          </div>
+        </CardHeader>
+      </Card>
+      
       <Tabs defaultValue="usage" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="usage">Uso de AI</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="trends">Tendências</TabsTrigger>
           <TabsTrigger value="thresholds">Thresholds</TabsTrigger>
+          <TabsTrigger value="recommendations">Recomendações</TabsTrigger>
           <TabsTrigger value="budget">Orçamento</TabsTrigger>
           <TabsTrigger value="cache">Cache</TabsTrigger>
         </TabsList>
@@ -324,6 +344,10 @@ export const AIMonitoringDashboard = () => {
 
         <TabsContent value="thresholds" className="space-y-6">
           <AIThresholdManager />
+        </TabsContent>
+
+        <TabsContent value="recommendations" className="space-y-6">
+          <AIRecommendationsPanel />
         </TabsContent>
 
         <TabsContent value="budget" className="space-y-6">

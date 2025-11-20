@@ -203,6 +203,57 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_optimization_recommendations: {
+        Row: {
+          applied_at: string | null
+          created_at: string
+          current_metric_value: number
+          dismissed_at: string | null
+          estimated_cost_savings: number | null
+          estimated_performance_gain: number | null
+          expected_improvement: string
+          function_name: string
+          id: string
+          priority: string
+          reasoning: string
+          recommendation_type: string
+          recommended_action: string
+          status: string
+        }
+        Insert: {
+          applied_at?: string | null
+          created_at?: string
+          current_metric_value: number
+          dismissed_at?: string | null
+          estimated_cost_savings?: number | null
+          estimated_performance_gain?: number | null
+          expected_improvement: string
+          function_name: string
+          id?: string
+          priority: string
+          reasoning: string
+          recommendation_type: string
+          recommended_action: string
+          status?: string
+        }
+        Update: {
+          applied_at?: string | null
+          created_at?: string
+          current_metric_value?: number
+          dismissed_at?: string | null
+          estimated_cost_savings?: number | null
+          estimated_performance_gain?: number | null
+          expected_improvement?: string
+          function_name?: string
+          id?: string
+          priority?: string
+          reasoning?: string
+          recommendation_type?: string
+          recommended_action?: string
+          status?: string
+        }
+        Relationships: []
+      }
       ai_response_cache: {
         Row: {
           cache_key: string
@@ -368,6 +419,36 @@ export type Database = {
           success?: boolean
           tokens_used?: number | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      ai_webhook_config: {
+        Row: {
+          alert_types: string[]
+          created_at: string
+          enabled: boolean
+          id: string
+          updated_at: string
+          webhook_type: string
+          webhook_url: string
+        }
+        Insert: {
+          alert_types?: string[]
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          updated_at?: string
+          webhook_type: string
+          webhook_url: string
+        }
+        Update: {
+          alert_types?: string[]
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          updated_at?: string
+          webhook_type?: string
+          webhook_url?: string
         }
         Relationships: []
       }
@@ -1619,6 +1700,20 @@ export type Database = {
           function_name: string
           is_anomaly: boolean
           std_dev: number
+        }[]
+      }
+      generate_ai_optimization_recommendations: {
+        Args: never
+        Returns: {
+          current_metric_value: number
+          estimated_cost_savings: number
+          estimated_performance_gain: number
+          expected_improvement: string
+          function_name: string
+          priority: string
+          reasoning: string
+          recommendation_type: string
+          recommended_action: string
         }[]
       }
       get_admin_stats: {
