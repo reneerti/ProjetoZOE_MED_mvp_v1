@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Database, HardDrive, TrendingUp, DollarSign, RefreshCw, Trash2, LineChart } from "lucide-react";
+import { Database, HardDrive, TrendingUp, DollarSign, RefreshCw, Trash2, LineChart, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 
@@ -156,6 +156,29 @@ export const ResourceDashboard = ({ onNavigate }: ResourceDashboardProps) => {
             >
               <LineChart className="w-4 h-4 mr-2" />
               Abrir Monitoramento IA
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {/* Administration Button */}
+      <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent/10">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
+            <Shield className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-foreground mb-2">Administração</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Gerenciar usuários, controladores e planos de assinatura
+            </p>
+            <Button 
+              onClick={() => onNavigate("admin")}
+              variant="default"
+              className="w-full sm:w-auto"
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              Abrir Administração
             </Button>
           </div>
         </div>
