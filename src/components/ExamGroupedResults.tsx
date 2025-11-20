@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Droplet, Heart, Pill, TestTube } from "lucide-react";
+import { Activity, Droplet, Heart, Pill, TestTube, TrendingUp } from "lucide-react";
+import { ExamCategoryEvolutionModal } from "./ExamCategoryEvolutionModal";
 
 interface GroupedResult {
   category_name: string;
@@ -19,6 +21,14 @@ interface ExamGroupedResultsProps {
 }
 
 export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) => {
+  const [selectedGroup, setSelectedGroup] = useState<GroupedResult | null>(null);
+  const [showEvolution, setShowEvolution] = useState(false);
+
+  const handleCardClick = (group: GroupedResult) => {
+    setSelectedGroup(group);
+    setShowEvolution(true);
+  };
+
   const getCategoryIcon = (iconName: string) => {
     switch (iconName.toLowerCase()) {
       case "heart":
@@ -115,21 +125,25 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
         {groupedResults.map((group, index) => (
           <Card
             key={index}
-            className={`p-5 bg-gradient-to-br ${getCategoryColor(group.category_name)} border-l-4`}
+            onClick={() => handleCardClick(group)}
+            className={`p-5 bg-gradient-to-br ${getCategoryColor(group.category_name)} border-l-4 cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02]`}
           >
-            <div className="flex items-center gap-3 mb-4">
-              <div className={`
-                p-2 rounded-lg
-                ${group.category_name.toLowerCase().includes("glicemia") ? "bg-red-200 text-red-700" : ""}
-                ${group.category_name.toLowerCase().includes("lipidograma") ? "bg-yellow-200 text-yellow-700" : ""}
-                ${group.category_name.toLowerCase().includes("hepática") || group.category_name.toLowerCase().includes("hepatica") ? "bg-orange-200 text-orange-700" : ""}
-                ${group.category_name.toLowerCase().includes("vitamina") ? "bg-purple-200 text-purple-700" : ""}
-              `}>
-                {getCategoryIcon(group.category_icon)}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className={`
+                  p-2 rounded-lg
+                  ${group.category_name.toLowerCase().includes("glicemia") ? "bg-red-200 text-red-700" : ""}
+                  ${group.category_name.toLowerCase().includes("lipidograma") ? "bg-yellow-200 text-yellow-700" : ""}
+                  ${group.category_name.toLowerCase().includes("hepática") || group.category_name.toLowerCase().includes("hepatica") ? "bg-orange-200 text-orange-700" : ""}
+                  ${group.category_name.toLowerCase().includes("vitamina") ? "bg-purple-200 text-purple-700" : ""}
+                `}>
+                  {getCategoryIcon(group.category_icon)}
+                </div>
+                <h3 className="font-semibold text-foreground text-lg">
+                  {group.category_name}
+                </h3>
               </div>
-              <h3 className="font-semibold text-foreground text-lg">
-                {group.category_name}
-              </h3>
+              <TrendingUp className="w-5 h-5 text-primary" />
             </div>
 
             <div className="space-y-3">
@@ -159,6 +173,15 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
           Sempre consulte seu médico antes de tomar decisões sobre tratamento ou medicação.
         </p>
       </Card>
+
+      {selectedGroup && (
+        <ExamCategoryEvolutionModal
+          open={showEvolution}
+          onOpenChange={setShowEvolution}
+          categoryName={selectedGroup.category_name}
+          parameters={selectedGroup.parameters}
+        />
+      )}
     </div>
   );
 };
