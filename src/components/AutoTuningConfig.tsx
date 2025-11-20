@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { Settings, History, CheckCircle, AlertTriangle, Zap } from "lucide-react";
+import { Settings, History, CheckCircle, AlertTriangle, Zap, Filter } from "lucide-react";
 import { useAutoTuningConfig, useUpdateAutoTuningConfig, useAutoTuningHistory } from "@/hooks/useAutoTuning";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -24,6 +24,7 @@ export function AutoTuningConfig() {
   const [requireApproval, setRequireApproval] = useState(config?.require_admin_approval ?? true);
   const [minConfidence, setMinConfidence] = useState(config?.min_confidence_score ?? 0.8);
   const [maxDaily, setMaxDaily] = useState(config?.max_daily_applications ?? 5);
+  const [riskFilters, setRiskFilters] = useState<Set<string>>(new Set(['low', 'medium', 'high']));
 
   const handleSave = () => {
     updateConfig.mutate({
@@ -42,6 +43,26 @@ export function AutoTuningConfig() {
       }
     });
   };
+
+  const toggleRiskFilter = (risk: string) => {
+    const newFilters = new Set(riskFilters);
+    if (newFilters.has(risk)) {
+      newFilters.delete(risk);
+    } else {
+      newFilters.add(risk);
+    }
+    setRiskFilters(newFilters);
+  };
+
+  const filteredHistory = useMemo(() => {
+    if (!history) return [];
+    return history.filter(item => {
+      // Parse risk level from new_config or previous_config if available
+      const newConfig = item.new_config as any;
+      const riskLevel = newConfig?.risk_level || 'low';
+      return riskFilters.has(riskLevel);
+    });
+  }, [history, riskFilters]);
 
   if (isLoading) {
     return (
@@ -192,12 +213,38 @@ export function AutoTuningConfig() {
             Últimas recomendações aplicadas automaticamente
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          {!history || history.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma aplicação registrada ainda.</p>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Filtrar por risco:</span>
+            <Button
+              size="sm"
+              variant={riskFilters.has('low') ? 'default' : 'outline'}
+              onClick={() => toggleRiskFilter('low')}
+            >
+              Baixo
+            </Button>
+            <Button
+              size="sm"
+              variant={riskFilters.has('medium') ? 'default' : 'outline'}
+              onClick={() => toggleRiskFilter('medium')}
+            >
+              Médio
+            </Button>
+            <Button
+              size="sm"
+              variant={riskFilters.has('high') ? 'default' : 'outline'}
+              onClick={() => toggleRiskFilter('high')}
+            >
+              Alto
+            </Button>
+          </div>
+
+          {!filteredHistory || filteredHistory.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma aplicação registrada nos filtros selecionados.</p>
           ) : (
             <div className="space-y-3">
-              {history.map((item) => (
+              {filteredHistory.map((item) => (
                 <div key={item.id} className="border rounded-lg p-3">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
