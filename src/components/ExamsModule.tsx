@@ -543,16 +543,33 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
         </Button>
 
         {/* Resultados da Análise */}
-        {patientAnalysis?.pre_diagnostics && patientAnalysis.pre_diagnostics.length > 0 && (
-          <div className="mt-4">
-            <ExamPreDiagnostics preDiagnostics={patientAnalysis.pre_diagnostics} />
-          </div>
-        )}
-        
-        {patientAnalysis?.grouped_results && patientAnalysis.grouped_results.length > 0 && (
-          <div className="mt-4">
-            <ExamGroupedResults groupedResults={patientAnalysis.grouped_results} />
-          </div>
+        {loadingAnalysis ? (
+          <Card className="p-8 text-center mt-4">
+            <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+            <p className="text-muted-foreground">Carregando análise...</p>
+          </Card>
+        ) : !patientAnalysis || (!patientAnalysis.pre_diagnostics && !patientAnalysis.grouped_results) ? (
+          <Card className="p-6 text-center mt-4 border-dashed border-2">
+            <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+            <h3 className="font-semibold text-foreground mb-2">Nenhuma Análise Disponível</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Clique no botão acima para gerar uma análise integrada dos seus exames
+            </p>
+          </Card>
+        ) : (
+          <>
+            {patientAnalysis?.pre_diagnostics && patientAnalysis.pre_diagnostics.length > 0 && (
+              <div className="mt-4">
+                <ExamPreDiagnostics preDiagnostics={patientAnalysis.pre_diagnostics} />
+              </div>
+            )}
+            
+            {patientAnalysis?.grouped_results && patientAnalysis.grouped_results.length > 0 && (
+              <div className="mt-4">
+                <ExamGroupedResults groupedResults={patientAnalysis.grouped_results} />
+              </div>
+            )}
+          </>
         )}
 
         <Card className="p-4 border-l-4 border-l-primary mt-4">
