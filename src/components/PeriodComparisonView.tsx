@@ -3,11 +3,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Calendar, TrendingUp, TrendingDown, Minus, ArrowRight } from "lucide-react";
+import { ArrowLeft, Calendar, TrendingUp, TrendingDown, Minus, ArrowRight, BarChart3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend, ReferenceLine } from "recharts";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison";
 
@@ -332,67 +334,207 @@ export const PeriodComparisonView = ({ onNavigate }: PeriodComparisonViewProps) 
           </Card>
         </div>
 
-        {/* Comparisons */}
-        <ScrollArea className="h-[calc(100vh-450px)]">
-          <div className="space-y-3">
-            {loading ? (
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">Carregando comparação...</p>
-              </Card>
-            ) : comparisons.length === 0 ? (
-              <Card className="p-8 text-center">
-                <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-                <p className="text-muted-foreground">
-                  Nenhum parâmetro comum encontrado entre os períodos selecionados
-                </p>
-              </Card>
-            ) : (
-              comparisons.map((comp, index) => (
-                <Card key={index} className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-muted">
-                      {getTrendIcon(comp.trend)}
-                    </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <h3 className="font-semibold">{comp.parameter}</h3>
-                        <Badge variant={comp.trend === 'improved' ? 'default' : comp.trend === 'worsened' ? 'destructive' : 'outline'}>
-                          {comp.trend === 'improved' ? 'Melhorou' : comp.trend === 'worsened' ? 'Piorou' : 'Estável'}
-                        </Badge>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4 mb-3">
-                        <div className="space-y-1">
-                          <p className="text-xs text-muted-foreground">{getPeriodLabel(period1)}</p>
-                          <div className="flex items-center justify-between">
-                            <span className="text-lg font-semibold">{comp.period1Value.toFixed(2)}</span>
-                            <span className="text-xs text-muted-foreground">{comp.unit}</span>
-                          </div>
-                          {getStatusBadge(comp.period1Status)}
+        {/* Comparisons with Tabs */}
+        <Tabs defaultValue="list" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="list">Lista</TabsTrigger>
+            <TabsTrigger value="charts">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Gráficos
+            </TabsTrigger>
+          </TabsList>
+
+          {/* List View */}
+          <TabsContent value="list" className="space-y-0">
+            <ScrollArea className="h-[calc(100vh-480px)]">
+              <div className="space-y-3 pr-4">
+                {loading ? (
+                  <Card className="p-8 text-center">
+                    <p className="text-muted-foreground">Carregando comparação...</p>
+                  </Card>
+                ) : comparisons.length === 0 ? (
+                  <Card className="p-8 text-center">
+                    <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-muted-foreground">
+                      Nenhum parâmetro comum encontrado entre os períodos selecionados
+                    </p>
+                  </Card>
+                ) : (
+                  comparisons.map((comp, index) => (
+                    <Card key={index} className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-muted">
+                          {getTrendIcon(comp.trend)}
                         </div>
                         
-                        <div className="space-y-1">
-                          <p className="text-xs text-muted-foreground">{getPeriodLabel(period2)}</p>
-                          <div className="flex items-center justify-between">
-                            <span className="text-lg font-semibold">{comp.period2Value.toFixed(2)}</span>
-                            <span className="text-xs text-muted-foreground">{comp.unit}</span>
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between gap-2 mb-3">
+                            <h3 className="font-semibold">{comp.parameter}</h3>
+                            <Badge variant={comp.trend === 'improved' ? 'default' : comp.trend === 'worsened' ? 'destructive' : 'outline'}>
+                              {comp.trend === 'improved' ? 'Melhorou' : comp.trend === 'worsened' ? 'Piorou' : 'Estável'}
+                            </Badge>
                           </div>
-                          {getStatusBadge(comp.period2Status)}
+                          
+                          <div className="grid grid-cols-2 gap-4 mb-3">
+                            <div className="space-y-1">
+                              <p className="text-xs text-muted-foreground">{getPeriodLabel(period1)}</p>
+                              <div className="flex items-center justify-between">
+                                <span className="text-lg font-semibold">{comp.period1Value.toFixed(2)}</span>
+                                <span className="text-xs text-muted-foreground">{comp.unit}</span>
+                              </div>
+                              {getStatusBadge(comp.period1Status)}
+                            </div>
+                            
+                            <div className="space-y-1">
+                              <p className="text-xs text-muted-foreground">{getPeriodLabel(period2)}</p>
+                              <div className="flex items-center justify-between">
+                                <span className="text-lg font-semibold">{comp.period2Value.toFixed(2)}</span>
+                                <span className="text-xs text-muted-foreground">{comp.unit}</span>
+                              </div>
+                              {getStatusBadge(comp.period2Status)}
+                            </div>
+                          </div>
+                          
+                          <div className={`text-sm font-medium ${getTrendColor(comp.trend)}`}>
+                            {comp.change > 0 ? '+' : ''}{comp.change.toFixed(2)} {comp.unit} 
+                            ({comp.changePercent > 0 ? '+' : ''}{comp.changePercent.toFixed(1)}%)
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className={`text-sm font-medium ${getTrendColor(comp.trend)}`}>
-                        {comp.change > 0 ? '+' : ''}{comp.change.toFixed(2)} {comp.unit} 
-                        ({comp.changePercent > 0 ? '+' : ''}{comp.changePercent.toFixed(1)}%)
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))
-            )}
-          </div>
-        </ScrollArea>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+
+          {/* Charts View */}
+          <TabsContent value="charts" className="space-y-0">
+            <ScrollArea className="h-[calc(100vh-480px)]">
+              <div className="space-y-6 pr-4">
+                {loading ? (
+                  <Card className="p-8 text-center">
+                    <p className="text-muted-foreground">Carregando comparação...</p>
+                  </Card>
+                ) : comparisons.length === 0 ? (
+                  <Card className="p-8 text-center">
+                    <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-muted-foreground">
+                      Nenhum parâmetro comum encontrado entre os períodos selecionados
+                    </p>
+                  </Card>
+                ) : (
+                  comparisons.slice(0, 10).map((comp, index) => {
+                    const chartData = [
+                      {
+                        name: getPeriodLabel(period1),
+                        value: comp.period1Value,
+                        period: 'Inicial'
+                      },
+                      {
+                        name: getPeriodLabel(period2),
+                        value: comp.period2Value,
+                        period: 'Final'
+                      }
+                    ];
+
+                    const barColor = comp.trend === 'improved' 
+                      ? 'hsl(var(--success))' 
+                      : comp.trend === 'worsened' 
+                      ? 'hsl(var(--destructive))' 
+                      : 'hsl(var(--muted-foreground))';
+
+                    return (
+                      <Card key={index} className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-muted">
+                              {getTrendIcon(comp.trend)}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg">{comp.parameter}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {comp.change > 0 ? '+' : ''}{comp.change.toFixed(2)} {comp.unit} 
+                                ({comp.changePercent > 0 ? '+' : ''}{comp.changePercent.toFixed(1)}%)
+                              </p>
+                            </div>
+                          </div>
+                          <Badge 
+                            variant={comp.trend === 'improved' ? 'default' : comp.trend === 'worsened' ? 'destructive' : 'outline'}
+                            className="text-sm"
+                          >
+                            {comp.trend === 'improved' ? 'Melhorou' : comp.trend === 'worsened' ? 'Piorou' : 'Estável'}
+                          </Badge>
+                        </div>
+
+                        <ResponsiveContainer width="100%" height={200}>
+                          <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                            <XAxis 
+                              dataKey="name" 
+                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                              angle={-15}
+                              textAnchor="end"
+                              height={60}
+                            />
+                            <YAxis 
+                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                              label={{ 
+                                value: comp.unit, 
+                                angle: -90, 
+                                position: 'insideLeft',
+                                style: { fill: 'hsl(var(--muted-foreground))' }
+                              }}
+                            />
+                            <Tooltip 
+                              contentStyle={{
+                                backgroundColor: 'hsl(var(--card))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px',
+                                fontSize: '12px'
+                              }}
+                              formatter={(value: any) => [`${Number(value).toFixed(2)} ${comp.unit}`, 'Valor']}
+                            />
+                            <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                              <Cell fill="hsl(var(--primary))" fillOpacity={0.6} />
+                              <Cell fill={barColor} fillOpacity={0.9} />
+                            </Bar>
+                            {/* Trend Arrow Overlay */}
+                            {comp.trend !== 'stable' && (
+                              <ReferenceLine 
+                                y={Math.max(comp.period1Value, comp.period2Value)} 
+                                stroke="transparent"
+                              />
+                            )}
+                          </BarChart>
+                        </ResponsiveContainer>
+
+                        {/* Status badges below chart */}
+                        <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t">
+                          <div className="text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Status Inicial</p>
+                            {getStatusBadge(comp.period1Status)}
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Status Final</p>
+                            {getStatusBadge(comp.period2Status)}
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })
+                )}
+                {comparisons.length > 10 && (
+                  <Card className="p-4 bg-muted/50 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Mostrando os 10 parâmetros com maiores mudanças
+                    </p>
+                  </Card>
+                )}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
