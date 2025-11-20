@@ -7,6 +7,8 @@ import { BioimpedanceModuleRevised } from "@/components/BioimpedanceModuleRevise
 import { ExamEvolutionCharts } from "@/components/ExamEvolutionCharts";
 import { CriticalAlertsDashboard } from "@/components/CriticalAlertsDashboard";
 import { PeriodComparisonView } from "@/components/PeriodComparisonView";
+import { PatientAnalysisView } from "@/components/PatientAnalysisView";
+import { PatientTimelineView } from "@/components/PatientTimelineView";
 import { MedicationModule } from "@/components/MedicationModule";
 import { EvolutionModule } from "@/components/EvolutionModule";
 import { GoalsModule } from "@/components/GoalsModule";
@@ -27,7 +29,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AIMonitoringDashboard } from "@/components/AIMonitoringDashboard";
 import { AIUsageNotifications } from "@/components/AIUsageNotifications";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller" | "wearables" | "ai-monitoring";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "patient-timeline" | "admin" | "controller" | "wearables" | "ai-monitoring";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>(() => {
@@ -131,6 +133,8 @@ const Index = () => {
         return <div key={viewKey} className="animate-slide-in-right"><CriticalAlertsDashboard onNavigate={setCurrentView} /></div>;
       case "period-comparison":
         return <div key={viewKey} className="animate-slide-in-right"><PeriodComparisonView onNavigate={setCurrentView} /></div>;
+      case "patient-timeline":
+        return <div key={viewKey} className="animate-slide-in-right"><PatientTimelineView onNavigate={setCurrentView} /></div>;
       case "admin":
         return <div key={viewKey} className="animate-slide-in-right"><AdminDashboard onNavigate={setCurrentView} /></div>;
       case "controller":
