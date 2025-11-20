@@ -1,8 +1,8 @@
 /**
- * AI Fallback System with Intelligent Caching: Lovable AI → Google Gemini API
+ * AI Fallback System with Intelligent Caching: Lovable AI → Google Gemini API → Groq
  * 
  * Features:
- * - Automatic fallback from Lovable AI to Gemini
+ * - Triple fallback chain for maximum reliability
  * - Intelligent response caching (24h TTL)
  * - Budget tracking and enforcement
  * - Usage logging and cost estimation
@@ -245,7 +245,7 @@ async function logAIUsage(
   supabaseKey: string,
   userId: string,
   functionName: string,
-  provider: 'lovable_ai' | 'gemini_api' | 'fallback' | 'cache_hit',
+  provider: 'lovable_ai' | 'gemini_api' | 'groq_api' | 'fallback' | 'cache_hit',
   model: string,
   success: boolean,
   responseTimeMs: number,
@@ -439,30 +439,129 @@ export async function callAIWithFallback(
   }
 
   // Fallback to Gemini
-  if (!GOOGLE_AI_API_KEY) {
-    throw new Error('No AI provider available');
+  if (GOOGLE_AI_API_KEY) {
+    console.log('Using Gemini API fallback...');
+    const fallbackStartTime = Date.now();
+
+    try {
+      const geminiMessages = options.messages.map(msg => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }]
+      }));
+
+      const geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_AI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: geminiMessages })
+        }
+      );
+
+      if (geminiResponse.ok) {
+        const geminiData = await geminiResponse.json();
+        const content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        
+        const responseTime = Date.now() - fallbackStartTime;
+        const estimatedTokens = options.messages.reduce((sum, m) => sum + m.content.length / 4, 0);
+        const estimatedCost = 0.0002;
+
+        if (userId && functionName) {
+          await logAIUsage(
+            supabaseUrl,
+            supabaseKey,
+            userId,
+            functionName,
+            'gemini_api',
+            'gemini-2.0-flash-exp',
+            true,
+            responseTime,
+            estimatedTokens,
+            estimatedCost,
+            undefined
+          );
+          await updateMonthlySpending(supabaseUrl, supabaseKey, estimatedCost);
+        }
+
+        // Cache Gemini response
+        if (options.enableCache !== false) {
+          await saveToCache(
+            supabaseUrl,
+            supabaseKey,
+            functionName || 'unknown',
+            promptHash,
+            cacheKey,
+            { content },
+            'gemini_api',
+            'gemini-2.0-flash-exp',
+            estimatedTokens
+          );
+        }
+
+        console.log(`✓ Gemini fallback successful (${responseTime}ms)`);
+
+        return new Response(JSON.stringify({
+          choices: [{
+            message: { content }
+          }]
+        }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      const errorText = await geminiResponse.text();
+      const errorMsg = `Gemini API error (${geminiResponse.status}): ${errorText}`;
+      console.log(`✗ Gemini failed:`, errorMsg);
+      
+      if (userId && functionName) {
+        await logAIUsage(
+          supabaseUrl,
+          supabaseKey,
+          userId,
+          functionName,
+          'gemini_api',
+          'gemini-2.0-flash-exp',
+          false,
+          Date.now() - fallbackStartTime,
+          undefined,
+          undefined,
+          errorMsg
+        );
+      }
+      
+      console.log('→ Falling back to Groq...');
+    } catch (error) {
+      console.log('✗ Gemini error:', error);
+      console.log('→ Falling back to Groq...');
+    }
   }
 
-  console.log('Using Gemini API fallback...');
-  const fallbackStartTime = Date.now();
+  // Final fallback to Groq
+  const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
+  if (!GROQ_API_KEY) {
+    throw new Error('All AI providers failed and no Groq API key available');
+  }
 
-  const geminiMessages = options.messages.map(msg => ({
-    role: msg.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: msg.content }]
-  }));
+  console.log('Using Groq API as final fallback...');
+  const groqStartTime = Date.now();
 
-  const geminiResponse = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_AI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: geminiMessages })
-    }
-  );
+  const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${GROQ_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: options.messages,
+      temperature: options.temperature || 0.7,
+      max_tokens: options.max_tokens || 2048,
+    }),
+  });
 
-  if (!geminiResponse.ok) {
-    const errorText = await geminiResponse.text();
-    const errorMsg = `Gemini API error (${geminiResponse.status}): ${errorText}`;
+  if (!groqResponse.ok) {
+    const errorText = await groqResponse.text();
+    const errorMsg = `Groq API error (${groqResponse.status}): ${errorText}`;
     
     if (userId && functionName) {
       await logAIUsage(
@@ -470,10 +569,10 @@ export async function callAIWithFallback(
         supabaseKey,
         userId,
         functionName,
-        'gemini_api',
-        'gemini-2.0-flash-exp',
+        'groq_api',
+        'llama-3.3-70b-versatile',
         false,
-        Date.now() - fallbackStartTime,
+        Date.now() - groqStartTime,
         undefined,
         undefined,
         errorMsg
@@ -483,12 +582,12 @@ export async function callAIWithFallback(
     throw new Error(errorMsg);
   }
 
-  const geminiData = await geminiResponse.json();
-  const content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const groqData = await groqResponse.json();
+  const content = groqData.choices[0].message.content;
   
-  const responseTime = Date.now() - fallbackStartTime;
-  const estimatedTokens = options.messages.reduce((sum, m) => sum + m.content.length / 4, 0);
-  const estimatedCost = 0.0002;
+  const responseTime = Date.now() - groqStartTime;
+  const estimatedTokens = groqData.usage?.total_tokens || options.messages.reduce((sum, m) => sum + m.content.length / 4, 0);
+  const estimatedCost = 0.0001; // Groq is very cheap
 
   if (userId && functionName) {
     await logAIUsage(
@@ -496,8 +595,8 @@ export async function callAIWithFallback(
       supabaseKey,
       userId,
       functionName,
-      'gemini_api',
-      'gemini-2.0-flash-exp',
+      'groq_api',
+      'llama-3.3-70b-versatile',
       true,
       responseTime,
       estimatedTokens,
@@ -507,7 +606,7 @@ export async function callAIWithFallback(
     await updateMonthlySpending(supabaseUrl, supabaseKey, estimatedCost);
   }
 
-  // Cache Gemini response
+  // Cache Groq response
   if (options.enableCache !== false) {
     await saveToCache(
       supabaseUrl,
@@ -516,13 +615,13 @@ export async function callAIWithFallback(
       promptHash,
       cacheKey,
       { content },
-      'gemini_api',
-      'gemini-2.0-flash-exp',
+      'groq_api',
+      'llama-3.3-70b-versatile',
       estimatedTokens
     );
   }
 
-  console.log(`✓ Gemini fallback successful (${responseTime}ms)`);
+  console.log(`✓ Groq fallback successful (${responseTime}ms)`);
 
   return new Response(JSON.stringify({
     choices: [{

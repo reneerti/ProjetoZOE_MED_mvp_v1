@@ -6,6 +6,7 @@ export interface AIUsageStats {
   total_requests: number;
   lovable_ai_requests: number;
   gemini_api_requests: number;
+  groq_api_requests: number;
   fallback_requests: number;
   success_rate: number;
   total_cost_usd: number;
@@ -15,6 +16,7 @@ export interface AIUsageStats {
     requests: number;
     lovable_count: number;
     gemini_count: number;
+    groq_count: number;
     fallback_count: number;
     cost: number;
   }>;
