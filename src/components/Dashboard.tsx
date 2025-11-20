@@ -173,7 +173,14 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
                 <Activity className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-foreground">ZoeMed</h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-semibold text-foreground">ZoeMed</h1>
+                  {isAdmin && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                      Admin
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">Saúde Inteligente</p>
               </div>
             </div>
