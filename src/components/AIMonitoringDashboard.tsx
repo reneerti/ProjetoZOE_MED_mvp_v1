@@ -38,6 +38,7 @@ import {
 const COLORS = {
   lovable: '#8B5CF6',
   gemini: '#10B981',
+  groq: '#3B82F6',
   fallback: '#F59E0B'
 };
 
@@ -104,17 +105,20 @@ export const AIMonitoringDashboard = () => {
   const providerData = [
     { name: 'Lovable AI', value: Number(stats.lovable_ai_requests), color: COLORS.lovable },
     { name: 'Gemini API', value: Number(stats.gemini_api_requests), color: COLORS.gemini },
+    { name: 'Groq API', value: Number(stats.groq_api_requests || 0), color: COLORS.groq },
     { name: 'Fallback', value: Number(stats.fallback_requests), color: COLORS.fallback }
   ].filter(d => d.value > 0);
 
+  const totalFallbacks = Number(stats.gemini_api_requests) + Number(stats.groq_api_requests || 0) + Number(stats.fallback_requests);
   const fallbackRate = stats.total_requests > 0 
-    ? ((Number(stats.fallback_requests) / Number(stats.total_requests)) * 100).toFixed(1)
+    ? ((totalFallbacks / Number(stats.total_requests)) * 100).toFixed(1)
     : '0';
 
   const chartData = stats.daily_stats?.map((day) => ({
     date: format(new Date(day.day), 'dd/MM', { locale: ptBR }),
     'Lovable AI': day.lovable_count,
     'Gemini API': day.gemini_count,
+    'Groq API': day.groq_count || 0,
     'Fallback': day.fallback_count,
     'Custo': Number(day.cost).toFixed(4)
   })).reverse() || [];
@@ -268,6 +272,7 @@ export const AIMonitoringDashboard = () => {
                 <Legend />
                 <Area type="monotone" dataKey="Lovable AI" stackId="1" stroke={COLORS.lovable} fill={COLORS.lovable} />
                 <Area type="monotone" dataKey="Gemini API" stackId="1" stroke={COLORS.gemini} fill={COLORS.gemini} />
+                <Area type="monotone" dataKey="Groq API" stackId="1" stroke={COLORS.groq} fill={COLORS.groq} />
                 <Area type="monotone" dataKey="Fallback" stackId="1" stroke={COLORS.fallback} fill={COLORS.fallback} />
               </AreaChart>
             </ResponsiveContainer>
@@ -303,11 +308,13 @@ export const AIMonitoringDashboard = () => {
                           variant={
                             log.provider === 'lovable_ai' ? 'default' :
                             log.provider === 'gemini_api' ? 'secondary' :
+                            log.provider === 'groq_api' ? 'secondary' :
                             'outline'
                           }
                         >
                           {log.provider === 'lovable_ai' ? 'Lovable AI' :
                            log.provider === 'gemini_api' ? 'Gemini API' :
+                           log.provider === 'groq_api' ? 'Groq API' :
                            'Fallback'}
                         </Badge>
                         {log.success ? (
