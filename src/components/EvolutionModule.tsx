@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Sparkles, TrendingUp, AlertCircle, User, Loader2, LineChart as LineChartIcon } from "lucide-react";
+import { ArrowLeft, Sparkles, TrendingUp, AlertCircle, User, Loader2, LineChart as LineChartIcon, BarChart3, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChartSkeleton } from "@/components/ui/chart-skeleton";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison";
 
@@ -257,10 +258,19 @@ export const EvolutionModule = ({ onNavigate }: EvolutionModuleProps) => {
           >
             <ArrowLeft className="w-5 h-5" strokeWidth={2.4} />
           </button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold drop-shadow-md">Evolução Geral</h1>
             <p className="text-white/90 text-sm drop-shadow">Análise integrada com IA</p>
           </div>
+          <Button
+            onClick={() => onNavigate("period-comparison")}
+            variant="secondary"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <BarChart3 className="w-4 h-4" />
+            Comparar
+          </Button>
         </div>
       </div>
 
@@ -440,6 +450,16 @@ export const EvolutionModule = ({ onNavigate }: EvolutionModuleProps) => {
                 <ChartSkeleton />
                 <ChartSkeleton />
               </div>
+            ) : parameterHistory.length === 0 ? (
+              <Card>
+                <EmptyState
+                  icon={FileText}
+                  title="Sem dados de evolução"
+                  description="Você ainda não possui exames processados com parâmetros suficientes para visualizar a evolução temporal. Faça upload de pelo menos 2 exames para começar."
+                  actionLabel="Fazer Upload"
+                  onAction={() => onNavigate("exams")}
+                />
+              </Card>
             ) : parameterHistory.length > 0 ? (
               <Card className="p-6">
                 <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
