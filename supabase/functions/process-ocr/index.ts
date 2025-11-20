@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.79.0';
+import { extractJSON } from '../_shared/jsonParser.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -270,7 +271,7 @@ Seja preciso na extração. Se não conseguir identificar alguma informação, u
 
     let extractedData;
     try {
-      extractedData = JSON.parse(extractedText);
+      extractedData = extractJSON(extractedText);
       console.log(`✅ JSON parseado com sucesso:`, {
         exam_name: extractedData.exam_name,
         category: extractedData.category,
