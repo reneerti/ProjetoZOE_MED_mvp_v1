@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_alert_history: {
+        Row: {
+          acknowledged: boolean | null
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          actual_value: number | null
+          alert_type: string
+          created_at: string
+          function_name: string
+          id: string
+          message: string
+          metadata: Json | null
+          severity: string
+          threshold_value: number | null
+          title: string
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          actual_value?: number | null
+          alert_type: string
+          created_at?: string
+          function_name: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          severity: string
+          threshold_value?: number | null
+          title: string
+        }
+        Update: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          actual_value?: number | null
+          alert_type?: string
+          created_at?: string
+          function_name?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          severity?: string
+          threshold_value?: number | null
+          title?: string
+        }
+        Relationships: []
+      }
       ai_budget_config: {
         Row: {
           alert_threshold_percentage: number
@@ -119,6 +167,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_function_thresholds: {
+        Row: {
+          created_at: string
+          enable_alerts: boolean
+          function_name: string
+          id: string
+          last_alert_sent_at: string | null
+          max_cost_per_request: number | null
+          max_failure_rate: number | null
+          max_response_time_ms: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enable_alerts?: boolean
+          function_name: string
+          id?: string
+          last_alert_sent_at?: string | null
+          max_cost_per_request?: number | null
+          max_failure_rate?: number | null
+          max_response_time_ms?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enable_alerts?: boolean
+          function_name?: string
+          id?: string
+          last_alert_sent_at?: string | null
+          max_cost_per_request?: number | null
+          max_failure_rate?: number | null
+          max_response_time_ms?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_response_cache: {
         Row: {
           cache_key: string
@@ -161,6 +245,51 @@ export type Database = {
           provider?: string
           response_data?: Json
           tokens_used?: number | null
+        }
+        Relationships: []
+      }
+      ai_trend_analysis: {
+        Row: {
+          analysis_date: string
+          anomaly_severity: string | null
+          confidence_score: number | null
+          created_at: string
+          current_value: number
+          function_name: string | null
+          id: string
+          is_anomaly: boolean | null
+          metadata: Json | null
+          metric_type: string
+          predicted_value: number | null
+          trend_direction: string | null
+        }
+        Insert: {
+          analysis_date?: string
+          anomaly_severity?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          current_value: number
+          function_name?: string | null
+          id?: string
+          is_anomaly?: boolean | null
+          metadata?: Json | null
+          metric_type: string
+          predicted_value?: number | null
+          trend_direction?: string | null
+        }
+        Update: {
+          analysis_date?: string
+          anomaly_severity?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          current_value?: number
+          function_name?: string | null
+          id?: string
+          is_anomaly?: boolean | null
+          metadata?: Json | null
+          metric_type?: string
+          predicted_value?: number | null
+          trend_direction?: string | null
         }
         Relationships: []
       }
@@ -1429,6 +1558,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_cost_trend: {
+        Args: { _days?: number; _function_name?: string }
+        Returns: {
+          confidence_score: number
+          current_daily_avg: number
+          function_name: string
+          predicted_daily_avg: number
+          predicted_monthly_cost: number
+          trend_direction: string
+        }[]
+      }
       check_ai_failure_alert: {
         Args: never
         Returns: {
@@ -1447,6 +1587,17 @@ export type Database = {
           should_alert: boolean
         }[]
       }
+      check_function_thresholds: {
+        Args: never
+        Returns: {
+          actual_value: number
+          alert_type: string
+          function_name: string
+          severity: string
+          should_alert: boolean
+          threshold_value: number
+        }[]
+      }
       check_rate_limit: {
         Args: {
           p_endpoint: string
@@ -1458,6 +1609,18 @@ export type Database = {
       }
       cleanup_expired_cache: { Args: never; Returns: number }
       cleanup_old_rate_limits: { Args: never; Returns: number }
+      detect_cost_anomalies: {
+        Args: { _days?: number; _threshold_std_dev?: number }
+        Returns: {
+          actual_cost: number
+          date: string
+          deviation_score: number
+          expected_cost: number
+          function_name: string
+          is_anomaly: boolean
+          std_dev: number
+        }[]
+      }
       get_admin_stats: {
         Args: never
         Returns: {
