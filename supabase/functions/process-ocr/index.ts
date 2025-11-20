@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.79.0';
 import { extractJSON } from '../_shared/jsonParser.ts';
+import { ocrExtractionSchema, type OCRExtraction } from '../_shared/aiSchemas.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -269,16 +270,17 @@ Seja preciso na extração. Se não conseguir identificar alguma informação, u
     console.log(`✅ [5/6] OCR concluído em ${ocrTime - aiStartTime}ms`);
     console.log(`📊 Texto extraído: ${extractedText.substring(0, 200)}...`);
 
-    let extractedData;
+    let extractedData: Partial<OCRExtraction> & { full_text?: string };
     try {
-      extractedData = extractJSON(extractedText);
-      console.log(`✅ JSON parseado com sucesso:`, {
+      extractedData = extractJSON<OCRExtraction>(extractedText, ocrExtractionSchema);
+      console.log(`✅ JSON parseado e validado com sucesso:`, {
         exam_name: extractedData.exam_name,
         category: extractedData.category,
         parameters: extractedData.parameters?.length || 0
       });
     } catch (parseError) {
-      console.error('⚠️ Erro ao parsear JSON, usando texto bruto');
+      console.error('⚠️ Erro ao parsear/validar JSON, usando texto bruto');
+      console.error('Erro:', parseError instanceof Error ? parseError.message : parseError);
       extractedData = { full_text: extractedText };
     }
 
