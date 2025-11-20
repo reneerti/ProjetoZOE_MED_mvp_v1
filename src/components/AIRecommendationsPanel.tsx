@@ -63,6 +63,15 @@ export function AIRecommendationsPanel() {
     }
   };
 
+  const getRiskColor = (risk: string | null) => {
+    switch (risk) {
+      case 'low': return 'outline';
+      case 'medium': return 'secondary';
+      case 'high': return 'destructive';
+      default: return 'outline';
+    }
+  };
+
   const pendingRecommendations = recommendations?.filter(r => r.status === 'pending') || [];
   const appliedRecommendations = recommendations?.filter(r => r.status === 'applied') || [];
 
@@ -111,17 +120,24 @@ export function AIRecommendationsPanel() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     {getTypeIcon(rec.recommendation_type)}
-                    <div>
-                      <CardTitle className="text-base">{rec.function_name}</CardTitle>
-                      <CardDescription className="text-xs mt-1">
-                        {rec.recommendation_type.replace('_', ' ').toUpperCase()}
-                      </CardDescription>
-                    </div>
+                  <div>
+                    <CardTitle className="text-base">{rec.function_name}</CardTitle>
+                    <CardDescription className="text-xs mt-1">
+                      {rec.recommendation_type.replace('_', ' ').toUpperCase()}
+                    </CardDescription>
                   </div>
+                </div>
+                <div className="flex gap-2">
                   <Badge variant={getPriorityColor(rec.priority)}>
                     {rec.priority.toUpperCase()}
                   </Badge>
+                  {rec.risk_level && (
+                    <Badge variant={getRiskColor(rec.risk_level)}>
+                      Risco: {rec.risk_level.toUpperCase()}
+                    </Badge>
+                  )}
                 </div>
+              </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>

@@ -14,6 +14,7 @@ export interface AIRecommendation {
   reasoning: string;
   estimated_cost_savings: number | null;
   estimated_performance_gain: number | null;
+  risk_level: 'low' | 'medium' | 'high' | null;
   created_at: string;
   applied_at: string | null;
   dismissed_at: string | null;
