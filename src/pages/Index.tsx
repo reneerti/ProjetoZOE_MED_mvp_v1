@@ -9,6 +9,7 @@ import { CriticalAlertsDashboard } from "@/components/CriticalAlertsDashboard";
 import { PeriodComparisonView } from "@/components/PeriodComparisonView";
 import { PatientAnalysisView } from "@/components/PatientAnalysisView";
 import { PatientTimelineView } from "@/components/PatientTimelineView";
+import { ExamsByDateView } from "@/components/ExamsByDateView";
 import { MedicationModule } from "@/components/MedicationModule";
 import { EvolutionModule } from "@/components/EvolutionModule";
 import { GoalsModule } from "@/components/GoalsModule";
