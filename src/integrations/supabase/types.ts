@@ -50,6 +50,75 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_circuit_breaker_config: {
+        Row: {
+          alert_threshold_percentage: number
+          cooldown_seconds: number
+          created_at: string
+          enable_notifications: boolean
+          failure_threshold: number
+          failure_window_minutes: number
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          alert_threshold_percentage?: number
+          cooldown_seconds?: number
+          created_at?: string
+          enable_notifications?: boolean
+          failure_threshold?: number
+          failure_window_minutes?: number
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          alert_threshold_percentage?: number
+          cooldown_seconds?: number
+          created_at?: string
+          enable_notifications?: boolean
+          failure_threshold?: number
+          failure_window_minutes?: number
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_circuit_breaker_state: {
+        Row: {
+          created_at: string
+          failure_count: number
+          function_name: string
+          id: string
+          last_failure_at: string | null
+          last_success_at: string | null
+          opened_at: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          failure_count?: number
+          function_name: string
+          id?: string
+          last_failure_at?: string | null
+          last_success_at?: string | null
+          opened_at?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          failure_count?: number
+          function_name?: string
+          id?: string
+          last_failure_at?: string | null
+          last_success_at?: string | null
+          opened_at?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_response_cache: {
         Row: {
           cache_key: string
@@ -1360,6 +1429,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_ai_failure_alert: {
+        Args: never
+        Returns: {
+          failure_rate: number
+          function_name: string
+          should_alert: boolean
+          threshold_percentage: number
+          total_failures: number
+        }[]
+      }
       check_cache_performance_alert: {
         Args: never
         Returns: {
@@ -1389,6 +1468,16 @@ export type Database = {
           total_storage_mb: number
           total_uploads: number
           total_users: number
+        }[]
+      }
+      get_ai_failure_rate: {
+        Args: { _function_name?: string; _minutes?: number }
+        Returns: {
+          failed_requests: number
+          failure_rate: number
+          function_name: string
+          last_failure_at: string
+          total_requests: number
         }[]
       }
       get_ai_usage_stats: {
@@ -1478,6 +1567,14 @@ export type Database = {
       is_patient_of_controller: {
         Args: { _controller_id: string; _patient_id: string }
         Returns: boolean
+      }
+      record_circuit_breaker_state: {
+        Args: {
+          _failure_count?: number
+          _function_name: string
+          _new_state: string
+        }
+        Returns: undefined
       }
       record_daily_cache_performance: { Args: never; Returns: undefined }
       validate_password_strength: {

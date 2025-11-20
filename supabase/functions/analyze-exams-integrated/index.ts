@@ -157,6 +157,7 @@ Analise os seguintes exames do paciente e forneça:
         ]
       }, user.id, 'analyze-exams-integrated', {
         maxRetries: 3,
+        supabase,
         onRetry: (attempt, error) => {
           console.log(`⚠️ Tentativa ${attempt}/3 - Erro: ${error.message}`);
           console.log(`🔄 Refazendo análise com IA...`);
