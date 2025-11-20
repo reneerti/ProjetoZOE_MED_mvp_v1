@@ -43,10 +43,22 @@ const CACHE_TTL_HOURS = 24;
 
 /**
  * Generate hash from messages for cache key
+ * Uses UTF-8 safe encoding to handle special characters
  */
 function generatePromptHash(messages: AIMessage[]): string {
   const messageText = messages.map(m => `${m.role}:${m.content}`).join('|');
-  return btoa(messageText).substring(0, 64);
+  
+  // Convert to UTF-8 bytes first, then encode to base64
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(messageText);
+  
+  // Convert bytes to base64 safely
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  
+  return btoa(binary).substring(0, 64);
 }
 
 /**
