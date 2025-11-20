@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dashboard } from "@/components/Dashboard";
 import { ExamsModule } from "@/components/ExamsModule";
+import { ExamUploadModule } from "@/components/ExamUploadModule";
 import { MyExamsModule } from "@/components/MyExamsModule";
 import { BioimpedanceModuleRevised } from "@/components/BioimpedanceModuleRevised";
 import { ExamEvolutionCharts } from "@/components/ExamEvolutionCharts";
