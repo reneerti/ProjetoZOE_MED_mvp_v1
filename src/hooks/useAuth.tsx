@@ -34,5 +34,16 @@ export const useAuth = () => {
     navigate("/auth");
   };
 
-  return { user, session, loading, signOut };
+  const hasRole = async (role: 'admin' | 'user' | 'controller') => {
+    if (!user) return false;
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', role)
+      .single();
+    return !!data;
+  };
+
+  return { user, session, loading, signOut, hasRole };
 };
