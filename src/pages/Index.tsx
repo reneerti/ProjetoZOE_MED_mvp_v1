@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dashboard } from "@/components/Dashboard";
 import { ExamsModule } from "@/components/ExamsModule";
-import { MyExamsModule } from "@/components/MyExamsModule";
 import { BioimpedanceModuleRevised } from "@/components/BioimpedanceModuleRevised";
 import { ExamEvolutionCharts } from "@/components/ExamEvolutionCharts";
 import { CriticalAlertsDashboard } from "@/components/CriticalAlertsDashboard";
@@ -89,8 +88,6 @@ const Index = () => {
         return <div key={viewKey} className="animate-slide-in-right"><ExamsByDateView onNavigate={setCurrentView} /></div>;
       case "health-dashboard":
         return <div key={viewKey} className="animate-slide-in-right"><HealthDashboardView onNavigate={setCurrentView} /></div>;
-      case "myexams":
-        return <div key={viewKey} className="animate-slide-in-right"><MyExamsModule onNavigate={setCurrentView} /></div>;
       case "bioimpedance":
         return <div key={viewKey} className="animate-slide-in-right"><BioimpedanceModuleRevised onNavigate={setCurrentView} /></div>;
       case "medication":

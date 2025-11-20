@@ -1,7 +1,6 @@
 export type View = 
   | "dashboard" 
   | "exams" 
-  | "exam-upload"
   | "exams-by-date"
   | "health-dashboard"
   | "myexams" 
