@@ -548,23 +548,5 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
-};
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Limite de Exames Atingido</AlertDialogTitle>
-            <AlertDialogDescription>
-              {limitMessage}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setShowLimitDialog(false)}>
-              Entendi
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
   );
 };
