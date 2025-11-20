@@ -1,8 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sanitizeStructuredData } from '../_shared/promptSanitizer.ts';
-import { callAIWithFallback } from '../_shared/aiFallback.ts';
+import { callAIWithRetry } from '../_shared/aiRetry.ts';
 import { extractJSON } from '../_shared/jsonParser.ts';
+import { wearableAnalysisSchema, type WearableAnalysis } from '../_shared/aiSchemas.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -140,25 +141,33 @@ Responda APENAS em JSON válido no formato:
   "summary": "resumo em português"
 }`;
 
-    const aiResponse = await callAIWithFallback({
-      model: 'google/gemini-2.5-flash',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: aiPrompt }
-      ],
-    }, user.id, 'analyze-wearable-data');
-
-    if (!aiResponse.ok) {
-      console.error('AI error, using simple analysis:', await aiResponse.text());
-      return simpleAnalysis(supabaseClient, user.id, stats, wearableData);
-    }
-
-    const aiResult = await aiResponse.json();
-    const aiContent = aiResult.choices[0]?.message?.content || '{}';
+    let analysis: WearableAnalysis;
     
-    let analysis;
     try {
-      analysis = extractJSON(aiContent);
+      const aiResponse = await callAIWithRetry({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: aiPrompt }
+        ],
+      }, user.id, 'analyze-wearable-data', {
+        maxRetries: 3,
+        onRetry: (attempt, error) => {
+          console.log(`⚠️ Tentativa ${attempt}/3 - Erro: ${error.message}`);
+        }
+      });
+
+      if (!aiResponse.ok) {
+        console.error('AI error, using simple analysis:', await aiResponse.text());
+        return simpleAnalysis(supabaseClient, user.id, stats, wearableData);
+      }
+
+      const aiResult = await aiResponse.json();
+      const aiContent = aiResult.choices[0]?.message?.content || '{}';
+      
+      analysis = extractJSON<WearableAnalysis>(aiContent, wearableAnalysisSchema);
+      console.log('✅ Análise de wearables validada com sucesso');
+      
     } catch (error) {
       console.error('Failed to parse AI response, using simple analysis:', error);
       return simpleAnalysis(supabaseClient, user.id, stats, wearableData);
@@ -172,12 +181,12 @@ Responda APENAS em JSON válido no formato:
       .single();
 
     const wearableAnalysis = {
-      wearable_score: analysis.overallWearableScore,
-      cardiovascular_score: analysis.cardiovascularScore,
-      sleep_score: analysis.sleepScore,
-      activity_score: analysis.activityScore,
+      wearable_score: analysis.overall_score,
+      cardiovascular_score: analysis.cardiovascular_score,
+      sleep_score: analysis.sleep_score,
+      activity_score: analysis.activity_score,
       recommendations: analysis.recommendations,
-      summary: analysis.summary,
+      summary: analysis.recommendations.join('. '),
       stats: stats,
       analyzed_at: new Date().toISOString()
     };
@@ -191,7 +200,7 @@ Responda APENAS em JSON válido no formato:
 
       // Recalcular health_score considerando wearables (30% do peso)
       const examScore = existingAnalysis.health_score || 70;
-      const wearableScore = analysis.overallWearableScore;
+      const wearableScore = analysis.overall_score;
       const newHealthScore = Math.round((examScore * 0.7) + (wearableScore * 0.3));
 
       await supabaseClient
@@ -210,7 +219,7 @@ Responda APENAS em JSON válido no formato:
         .from('health_analysis')
         .insert({
           user_id: user.id,
-          health_score: analysis.overallWearableScore,
+          health_score: analysis.overall_score,
           analysis_summary: { wearables: wearableAnalysis }
         });
     }

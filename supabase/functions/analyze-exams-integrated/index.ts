@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { callAIWithFallback } from '../_shared/aiFallback.ts';
+import { callAIWithRetry } from '../_shared/aiRetry.ts';
 import { extractJSON } from '../_shared/jsonParser.ts';
+import { analysisSchema, type AnalysisResult } from '../_shared/aiSchemas.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -146,33 +147,58 @@ Analise os seguintes exames do paciente e forneça:
   }
 }`;
 
-    const aiResponse = await callAIWithFallback({
-      model: 'google/gemini-2.5-pro',
-      messages: [
-        { role: 'user', content: prompt }
-      ]
-    }, user.id, 'analyze-exams-integrated');
+    let analysis: AnalysisResult;
+    
+    try {
+      const aiResponse = await callAIWithRetry({
+        model: 'google/gemini-2.5-pro',
+        messages: [
+          { role: 'user', content: prompt }
+        ]
+      }, user.id, 'analyze-exams-integrated', {
+        maxRetries: 3,
+        onRetry: (attempt, error) => {
+          console.log(`⚠️ Tentativa ${attempt}/3 - Erro: ${error.message}`);
+          console.log(`🔄 Refazendo análise com IA...`);
+        }
+      });
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI error:', aiResponse.status, errorText);
-      
-      let errorMessage = 'Erro ao processar análise com IA';
-      if (aiResponse.status === 429) {
-        errorMessage = 'Limite de requisições excedido. Tente novamente mais tarde.';
-      } else if (aiResponse.status === 402) {
-        errorMessage = 'Créditos insuficientes. Adicione créditos ao seu workspace Lovable AI.';
+      if (!aiResponse.ok) {
+        const errorText = await aiResponse.text();
+        console.error('AI error:', aiResponse.status, errorText);
+        
+        let errorMessage = 'Erro ao processar análise com IA';
+        if (aiResponse.status === 429) {
+          errorMessage = 'Limite de requisições excedido. Tente novamente mais tarde.';
+        } else if (aiResponse.status === 402) {
+          errorMessage = 'Créditos insuficientes. Adicione créditos ao seu workspace Lovable AI.';
+        }
+        
+        return new Response(
+          JSON.stringify({ error: errorMessage }),
+          { status: aiResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
+
+      const aiData = await aiResponse.json();
+      const analysisText = aiData.choices[0].message.content;
+      
+      // Extrair e validar JSON com schema Zod
+      analysis = extractJSON<AnalysisResult>(analysisText, analysisSchema);
+      
+      console.log('✅ Análise validada com sucesso pelo schema Zod');
+      
+    } catch (retryError) {
+      console.error('❌ Erro após todas as tentativas:', retryError);
       
       return new Response(
-        JSON.stringify({ error: errorMessage }),
-        { status: aiResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          error: 'Falha ao processar análise após múltiplas tentativas. Por favor, tente novamente.',
+          details: retryError instanceof Error ? retryError.message : 'Erro desconhecido'
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const aiData = await aiResponse.json();
-    const analysisText = aiData.choices[0].message.content;
-    const analysis = extractJSON(analysisText);
 
     // LOG 4: Análise concluída
     const aiEndTime = Date.now();

@@ -47,9 +47,7 @@ export const medicationSchema = z.object({
     .optional()
     .transform(val => val || undefined),
   
-  medication_type: z.enum(["oral", "injectable", "glp1"], {
-    errorMap: () => ({ message: "Tipo de medicação inválido" })
-  }),
+  medication_type: z.enum(["oral", "injectable", "glp1"]),
 });
 
 export type MedicationInput = z.infer<typeof medicationSchema>;
@@ -63,26 +61,18 @@ export const supplementSchema = z.object({
     .max(200, "Nome do suplemento deve ter no máximo 200 caracteres")
     .regex(/^[a-zA-ZÀ-ÿ0-9\s.,()+-]*$/, "Nome contém caracteres inválidos"),
   
-  supplement_type: z.enum(["vitamina", "mineral", "proteina", "aminoacido", "outros"], {
-    errorMap: () => ({ message: "Tipo de suplemento inválido" })
-  }),
+  supplement_type: z.enum(["vitamina", "mineral", "proteina", "aminoacido", "outros"]),
   
   current_dose: z.string()
     .min(1, "Dose é obrigatória")
     .max(50, "Dose deve ter no máximo 50 caracteres")
     .regex(/^[\d.,]+$/, "Dose deve conter apenas números"),
   
-  unit: z.enum(["mg", "g", "mcg", "UI", "ml", "comprimido"], {
-    errorMap: () => ({ message: "Unidade inválida" })
-  }),
+  unit: z.enum(["mg", "g", "mcg", "UI", "ml", "comprimido"]),
   
-  frequency: z.enum(["diario", "dia_sim_dia_nao", "semanal", "conforme_necessario"], {
-    errorMap: () => ({ message: "Frequência inválida" })
-  }),
+  frequency: z.enum(["diario", "dia_sim_dia_nao", "semanal", "conforme_necessario"]),
   
-  time_of_day: z.enum(["manha", "tarde", "noite", "jejum", "apos_refeicao"], {
-    errorMap: () => ({ message: "Horário inválido" })
-  }).optional(),
+  time_of_day: z.enum(["manha", "tarde", "noite", "jejum", "apos_refeicao"]).optional(),
   
   notes: z.string()
     .max(500, "Notas devem ter no máximo 500 caracteres")
