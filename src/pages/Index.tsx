@@ -105,8 +105,13 @@ const Index = () => {
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
-                <div>
-                  <h1 className="text-xl font-bold">Recursos</h1>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl font-bold">Recursos</h1>
+                    <span className="px-2 py-0.5 text-xs font-semibold bg-white/20 rounded-full">
+                      Admin
+                    </span>
+                  </div>
                   <p className="text-white/80 text-xs mt-0.5">Gerenciar uso e custos</p>
                 </div>
               </div>
@@ -145,8 +150,13 @@ const Index = () => {
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
-                <div>
-                  <h1 className="text-xl font-bold">Monitoramento de IA</h1>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl font-bold">Monitoramento de IA</h1>
+                    <span className="px-2 py-0.5 text-xs font-semibold bg-white/20 rounded-full">
+                      Admin
+                    </span>
+                  </div>
                   <p className="text-white/80 text-xs mt-0.5">Uso de Lovable AI e Gemini</p>
                 </div>
               </div>
