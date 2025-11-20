@@ -16,8 +16,7 @@ import { ExamUploadDialog } from "./bioimpedance/ExamUploadDialog";
 import type { ExamMetadata } from "@/lib/validation";
 import { ExamPreDiagnostics } from "./ExamPreDiagnostics";
 import { ExamGroupedResults } from "./ExamGroupedResults";
-
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin" | "controller";
+import type { View } from "@/types/views";
 
 interface ExamsModuleProps {
   onNavigate: (view: View) => void;
