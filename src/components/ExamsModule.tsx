@@ -438,78 +438,36 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
         </div>
       </div>
 
-      <div className="px-6 space-y-4 mt-10">
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/jpg,image/png,image/webp"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-        
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <Button 
-            onClick={handleCameraClick}
-            disabled={uploading}
-            className="h-auto py-4 flex flex-col items-center gap-2 bg-gradient-primary hover:opacity-90"
-          >
-            {uploading ? (
-              <Loader2 className="w-6 h-6 animate-spin" />
-            ) : (
-              <Camera className="w-6 h-6" />
+      <div className="px-6 space-y-4 mt-6">
+        {/* Resultados da Análise - PRIMEIRO */}
+        {loadingAnalysis ? (
+          <Card className="p-8 text-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+            <p className="text-muted-foreground">Carregando análise...</p>
+          </Card>
+        ) : !patientAnalysis || (!patientAnalysis.pre_diagnostics && !patientAnalysis.grouped_results) ? (
+          <Card className="p-6 text-center border-dashed border-2">
+            <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+            <h3 className="font-semibold text-foreground mb-2">Nenhuma Análise Disponível</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Faça upload de exames e clique em "Gerar Análise Integrada" para ver os resultados
+            </p>
+          </Card>
+        ) : (
+          <>
+            {patientAnalysis?.pre_diagnostics && patientAnalysis.pre_diagnostics.length > 0 && (
+              <div>
+                <ExamPreDiagnostics preDiagnostics={patientAnalysis.pre_diagnostics} />
+              </div>
             )}
-            <span className="text-sm">Tirar Foto</span>
-          </Button>
-          <Button 
-            onClick={handleFileClick}
-            disabled={uploading}
-            variant="secondary" 
-            className="h-auto py-4 flex flex-col items-center gap-2"
-          >
-            {uploading ? (
-              <Loader2 className="w-6 h-6 animate-spin" />
-            ) : (
-              <Upload className="w-6 h-6" />
+            
+            {patientAnalysis?.grouped_results && patientAnalysis.grouped_results.length > 0 && (
+              <div className="mt-4">
+                <ExamGroupedResults groupedResults={patientAnalysis.grouped_results} />
+              </div>
             )}
-            <span className="text-sm">Upload Imagem</span>
-          </Button>
-        </div>
-
-        <Button 
-          variant="outline" 
-          onClick={() => onNavigate("exams-by-date")}
-          className="w-full"
-        >
-          <Calendar className="w-4 h-4 mr-2" />
-          Ver Exames por Data
-        </Button>
-
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={() => setShowHistory(true)}
-            className="flex-1"
-          >
-            <History className="w-4 h-4 mr-2" />
-            Histórico
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => setShowStats(true)}
-            className="flex-1"
-          >
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Estatísticas
-          </Button>
-        </div>
+          </>
+        )}
 
         {/* Botão de Análise Integrada */}
         <Button 
@@ -531,37 +489,90 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
           )}
         </Button>
 
-        {/* Resultados da Análise */}
-        {loadingAnalysis ? (
-          <Card className="p-8 text-center mt-4">
-            <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
-            <p className="text-muted-foreground">Carregando análise...</p>
-          </Card>
-        ) : !patientAnalysis || (!patientAnalysis.pre_diagnostics && !patientAnalysis.grouped_results) ? (
-          <Card className="p-6 text-center mt-4 border-dashed border-2">
-            <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
-            <h3 className="font-semibold text-foreground mb-2">Nenhuma Análise Disponível</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Clique no botão acima para gerar uma análise integrada dos seus exames
-            </p>
-          </Card>
-        ) : (
-          <>
-            {patientAnalysis?.pre_diagnostics && patientAnalysis.pre_diagnostics.length > 0 && (
-              <div className="mt-4">
-                <ExamPreDiagnostics preDiagnostics={patientAnalysis.pre_diagnostics} />
-              </div>
-            )}
-            
-            {patientAnalysis?.grouped_results && patientAnalysis.grouped_results.length > 0 && (
-              <div className="mt-4">
-                <ExamGroupedResults groupedResults={patientAnalysis.grouped_results} />
-              </div>
-            )}
-          </>
-        )}
+        {/* UPLOAD - DEPOIS */}
+        <Card className="p-4 border-l-4 border-l-primary">
+          <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+            <Upload className="w-4 h-4" />
+            Upload de Novos Exames
+          </h3>
+          
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/webp"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <Button 
+              onClick={handleCameraClick}
+              disabled={uploading}
+              className="h-auto py-3 flex flex-col items-center gap-2 bg-gradient-primary hover:opacity-90"
+            >
+              {uploading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Camera className="w-5 h-5" />
+              )}
+              <span className="text-xs">Tirar Foto</span>
+            </Button>
+            <Button 
+              onClick={handleFileClick}
+              disabled={uploading}
+              variant="secondary" 
+              className="h-auto py-3 flex flex-col items-center gap-2"
+            >
+              {uploading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Upload className="w-5 h-5" />
+              )}
+              <span className="text-xs">Upload Imagem</span>
+            </Button>
+          </div>
 
-        <Card className="p-4 border-l-4 border-l-primary mt-4">
+          <div className="flex gap-2 mb-3">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowHistory(true)}
+              size="sm"
+              className="flex-1"
+            >
+              <History className="w-3 h-3 mr-1" />
+              Histórico
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowStats(true)}
+              size="sm"
+              className="flex-1"
+            >
+              <BarChart3 className="w-3 h-3 mr-1" />
+              Estatísticas
+            </Button>
+          </div>
+
+          <Button 
+            variant="outline" 
+            onClick={() => onNavigate("exams-by-date")}
+            size="sm"
+            className="w-full"
+          >
+            <Calendar className="w-3 h-3 mr-1" />
+            Ver Exames por Data
+          </Button>
+        </Card>
+
+        <Card className="p-4 bg-muted/30">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
               <AlertCircle className="w-4 h-4 text-primary" />
@@ -569,7 +580,7 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
             <div className="flex-1">
               <h3 className="font-semibold text-sm mb-1">Como funciona</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Faça upload ou tire foto dos seus exames. Após o processamento OCR, clique em "Gerar Análise Integrada" para visualizar os resultados agrupados e pré-diagnósticos.
+                Faça upload ou tire foto dos seus exames. Após o processamento OCR, clique em "Gerar Análise Integrada" para visualizar os resultados agrupados e pré-diagnósticos. Clique nos cards de resultados para ver a evolução histórica.
               </p>
             </div>
           </div>
