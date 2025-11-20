@@ -522,105 +522,35 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
           )}
         </Button>
 
-        {/* UPLOAD - DEPOIS */}
-        <Card className="p-4 border-l-4 border-l-primary">
-          <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
-            <Upload className="w-4 h-4" />
-            Upload de Novos Exames
-          </h3>
-          
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/jpg,image/png,image/webp"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-          
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <Button 
-              onClick={handleCameraClick}
-              disabled={uploading}
-              className="h-auto py-3 flex flex-col items-center gap-2 bg-gradient-primary hover:opacity-90"
-            >
-              {uploading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Camera className="w-5 h-5" />
-              )}
-              <span className="text-xs">Tirar Foto</span>
-            </Button>
-            <Button 
-              onClick={handleFileClick}
-              disabled={uploading}
-              variant="secondary" 
-              className="h-auto py-3 flex flex-col items-center gap-2"
-            >
-              {uploading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Upload className="w-5 h-5" />
-              )}
-              <span className="text-xs">Upload Imagem</span>
-            </Button>
-          </div>
-
-          <div className="flex gap-2 mb-3">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowHistory(true)}
-              size="sm"
-              className="flex-1"
-            >
-              <History className="w-3 h-3 mr-1" />
-              Histórico
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowStats(true)}
-              size="sm"
-              className="flex-1"
-            >
-              <BarChart3 className="w-3 h-3 mr-1" />
-              Estatísticas
-            </Button>
-          </div>
-
-          <Button 
-            variant="outline" 
-            onClick={() => onNavigate("exams-by-date")}
-            size="sm"
-            className="w-full"
-          >
-            <Calendar className="w-3 h-3 mr-1" />
-            Ver Exames por Data
-          </Button>
-        </Card>
-
-        <Card className="p-4 bg-muted/30">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <AlertCircle className="w-4 h-4 text-primary" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-sm mb-1">Como funciona</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Faça upload ou tire foto dos seus exames. Após o processamento OCR, clique em "Gerar Análise Integrada" para visualizar os resultados agrupados e pré-diagnósticos. Clique nos cards de resultados para ver a evolução histórica.
-              </p>
-            </div>
-          </div>
+        {/* Disclaimer Médico */}
+        <Card className="p-4 border-l-4 border-l-warning bg-warning/5">
+          <p className="text-xs text-muted-foreground flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />
+            <span>
+              <strong>Importante:</strong> Esta análise é baseada em dados fornecidos e não substitui consulta médica profissional. Sempre consulte seu médico antes de tomar decisões sobre tratamento ou medicação.
+            </span>
+          </p>
         </Card>
       </div>
 
       <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Limite de Exames Atingido</AlertDialogTitle>
+            <AlertDialogDescription>
+              {limitMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowLimitDialog(false)}>
+              Entendi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Limite de Exames Atingido</AlertDialogTitle>
