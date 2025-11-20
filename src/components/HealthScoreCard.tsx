@@ -1,15 +1,14 @@
 import { Activity } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
-import { HealthScoreBreakdownModal } from "./HealthScoreBreakdownModal";
+import type { View } from "@/types/views";
 
 interface HealthScoreCardProps {
   score: number | null;
+  onNavigate: (view: View) => void;
 }
 
-export const HealthScoreCard = ({ score }: HealthScoreCardProps) => {
-  const [showBreakdown, setShowBreakdown] = useState(false);
+export const HealthScoreCard = ({ score, onNavigate }: HealthScoreCardProps) => {
   const displayScore = score !== null ? Math.round(score) : 0;
   const percentage = score !== null ? (score / 1000) * 100 : 0;
 
@@ -24,11 +23,10 @@ export const HealthScoreCard = ({ score }: HealthScoreCardProps) => {
   const scoreInfo = getScoreLabel(displayScore);
 
   return (
-    <>
-      <Card 
-        className={`p-6 bg-gradient-to-br ${scoreInfo.bgGradient} border-border/50 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]`}
-        onClick={() => setShowBreakdown(true)}
-      >
+    <Card 
+      className={`p-6 bg-gradient-to-br ${scoreInfo.bgGradient} border-border/50 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]`}
+      onClick={() => onNavigate("health-dashboard")}
+    >
       <div className="flex items-center gap-2 mb-6">
         <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
           <Activity className="w-4 h-4 text-accent" />
@@ -64,15 +62,8 @@ export const HealthScoreCard = ({ score }: HealthScoreCardProps) => {
         </p>
 
         <p className="text-xs text-primary mt-2 font-medium">
-          Clique para ver detalhamento →
+          Clique para ver Dashboard Completo →
         </p>
       </Card>
-
-      <HealthScoreBreakdownModal 
-        open={showBreakdown}
-        onOpenChange={setShowBreakdown}
-        totalScore={score}
-      />
-    </>
   );
 };
