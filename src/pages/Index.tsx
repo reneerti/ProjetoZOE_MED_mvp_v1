@@ -83,6 +83,8 @@ const Index = () => {
         return <div key={viewKey} className="animate-fade-in"><Dashboard onNavigate={setCurrentView} currentView={currentView} /></div>;
       case "exams":
         return <div key={viewKey} className="animate-slide-in-right"><ExamsModule onNavigate={setCurrentView} /></div>;
+      case "exams-by-date":
+        return <div key={viewKey} className="animate-slide-in-right"><ExamsByDateView onNavigate={setCurrentView} /></div>;
       case "myexams":
         return <div key={viewKey} className="animate-slide-in-right"><MyExamsModule onNavigate={setCurrentView} /></div>;
       case "bioimpedance":

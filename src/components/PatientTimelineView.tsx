@@ -3,14 +3,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, TrendingDown, TrendingUp, Minus, Download, Loader2, ArrowLeft } from "lucide-react";
+import { Calendar, TrendingDown, TrendingUp, Minus, Download, Loader2, ArrowLeft, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import zoeMedLogo from "@/assets/zoe-med-logo-new.png";
 import type { View } from "@/types/views";
+import { TimelineAnnotation, type Annotation } from "./timeline/TimelineAnnotation";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface PatientTimelineViewProps {
   onNavigate: (view: View) => void;
@@ -34,6 +36,14 @@ interface ParameterData {
   }>;
 }
 
+const PARAMETER_CATEGORIES = {
+  cardiovascular: ['Colesterol Total', 'HDL', 'LDL', 'Triglicerídeos', 'Pressão Arterial'],
+  metabolico: ['Glicose', 'Hemoglobina Glicada', 'Insulina', 'TSH', 'T4 Livre'],
+  hepatico: ['TGO', 'TGP', 'Gama GT', 'Fosfatase Alcalina', 'Bilirrubina'],
+  renal: ['Creatinina', 'Ureia', 'Ácido Úrico'],
+  hematologico: ['Hemoglobina', 'Hematócrito', 'Leucócitos', 'Plaquetas']
+};
+
 export const PatientTimelineView = ({ onNavigate }: PatientTimelineViewProps) => {
   const [selectedParameters, setSelectedParameters] = useState<string[]>([]);
   const [availableParameters, setAvailableParameters] = useState<string[]>([]);
@@ -41,10 +51,14 @@ export const PatientTimelineView = ({ onNavigate }: PatientTimelineViewProps) =>
   const [periods, setPeriods] = useState<TimelinePeriod[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [showComparison, setShowComparison] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   useEffect(() => {
     initializePeriods();
     fetchAvailableParameters();
+    loadAnnotations();
   }, []);
 
   useEffect(() => {
@@ -52,6 +66,65 @@ export const PatientTimelineView = ({ onNavigate }: PatientTimelineViewProps) =>
       fetchTimelineData();
     }
   }, [selectedParameters, periods]);
+
+  useEffect(() => {
+    if (selectedCategories.length > 0) {
+      filterParametersByCategory();
+    }
+  }, [selectedCategories]);
+
+  const loadAnnotations = () => {
+    const stored = localStorage.getItem('timeline_annotations');
+    if (stored) {
+      setAnnotations(JSON.parse(stored));
+    }
+  };
+
+  const saveAnnotations = (newAnnotations: Annotation[]) => {
+    localStorage.setItem('timeline_annotations', JSON.stringify(newAnnotations));
+    setAnnotations(newAnnotations);
+  };
+
+  const handleAddAnnotation = (annotation: Omit<Annotation, 'id'>) => {
+    const newAnnotation = {
+      ...annotation,
+      id: Date.now().toString()
+    };
+    saveAnnotations([...annotations, newAnnotation]);
+    toast.success("Anotação adicionada");
+  };
+
+  const handleEditAnnotation = (id: string, annotation: Omit<Annotation, 'id'>) => {
+    const updated = annotations.map(a => a.id === id ? { ...annotation, id } : a);
+    saveAnnotations(updated);
+    toast.success("Anotação atualizada");
+  };
+
+  const handleDeleteAnnotation = (id: string) => {
+    saveAnnotations(annotations.filter(a => a.id !== id));
+    toast.success("Anotação removida");
+  };
+
+  const filterParametersByCategory = () => {
+    if (selectedCategories.length === 0) return;
+
+    const categoryParams = selectedCategories.flatMap(cat => PARAMETER_CATEGORIES[cat as keyof typeof PARAMETER_CATEGORIES] || []);
+    const filtered = availableParameters.filter(p => 
+      categoryParams.some(cp => p.toLowerCase().includes(cp.toLowerCase()))
+    );
+    
+    if (filtered.length > 0) {
+      setSelectedParameters(filtered.slice(0, 5));
+    }
+  };
+
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(category) 
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
 
   const initializePeriods = () => {
     const now = new Date();
@@ -388,6 +461,47 @@ export const PatientTimelineView = ({ onNavigate }: PatientTimelineViewProps) =>
       </div>
 
       <div className="px-6 space-y-6">
+        {/* Anotações */}
+        <TimelineAnnotation
+          annotations={annotations}
+          onAdd={handleAddAnnotation}
+          onEdit={handleEditAnnotation}
+          onDelete={handleDeleteAnnotation}
+        />
+
+        {/* Filtros por categoria */}
+        <Card className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="w-4 h-4 text-primary" />
+            <h3 className="font-semibold text-foreground">Filtrar por Categoria</h3>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {Object.keys(PARAMETER_CATEGORIES).map(category => (
+              <div key={category} className="flex items-center gap-2">
+                <Checkbox
+                  id={category}
+                  checked={selectedCategories.includes(category)}
+                  onCheckedChange={() => toggleCategory(category)}
+                />
+                <label htmlFor={category} className="text-sm capitalize cursor-pointer">
+                  {category}
+                </label>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Toggle comparação */}
+        <div className="flex gap-2">
+          <Button
+            variant={showComparison ? "default" : "outline"}
+            onClick={() => setShowComparison(!showComparison)}
+            className="flex-1"
+          >
+            {showComparison ? "Gráfico Individual" : "Comparação Multi-Parâmetros"}
+          </Button>
+        </div>
+
         {/* Period indicators */}
         <div className="flex flex-wrap gap-2">
           {periods.map(period => (
@@ -429,10 +543,62 @@ export const PatientTimelineView = ({ onNavigate }: PatientTimelineViewProps) =>
           </div>
         </Card>
 
-        {/* Timeline cards */}
+        {/* Timeline cards or comparison chart */}
         {timelineData.length === 0 ? (
           <Card className="p-8 text-center">
             <p className="text-muted-foreground">Selecione parâmetros para visualizar a evolução</p>
+          </Card>
+        ) : showComparison ? (
+          /* Multi-parameter comparison chart */
+          <Card className="p-5">
+            <h3 className="font-semibold text-lg text-foreground mb-4">Comparação Multi-Parâmetros</h3>
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={periods.map(period => {
+                const dataPoint: any = { period: period.label };
+                timelineData.forEach(param => {
+                  const value = param.values.find(v => v.period === period.label);
+                  dataPoint[param.name] = value?.value || null;
+                });
+                return dataPoint;
+              })}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis 
+                  dataKey="period" 
+                  tick={{ fontSize: 11 }}
+                  stroke="hsl(var(--muted-foreground))"
+                />
+                <YAxis 
+                  tick={{ fontSize: 11 }}
+                  stroke="hsl(var(--muted-foreground))"
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    background: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Legend />
+                {timelineData.map((param, index) => {
+                  const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+                  return (
+                    <Line 
+                      key={param.name}
+                      type="monotone" 
+                      dataKey={param.name}
+                      stroke={colors[index % colors.length]}
+                      strokeWidth={2}
+                      dot={{ fill: colors[index % colors.length], r: 4 }}
+                    />
+                  );
+                })}
+              </LineChart>
+            </ResponsiveContainer>
+            <div className="mt-4 p-3 bg-muted/30 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                <strong>Dica:</strong> Este gráfico permite visualizar múltiplos parâmetros simultaneamente para identificar correlações entre diferentes métricas de saúde.
+              </p>
+            </div>
           </Card>
         ) : (
           <div className="grid grid-cols-1 gap-4">

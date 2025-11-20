@@ -25,6 +25,7 @@ interface DashboardHeaderProps {
 const viewLabels: Record<View, string> = {
   dashboard: "Dashboard",
   exams: "Adicionar Exames",
+  "exams-by-date": "Exames por Data",
   myexams: "Meus Exames",
   bioimpedance: "Bioimpedância",
   medication: "Medicações",
