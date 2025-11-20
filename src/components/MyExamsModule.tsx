@@ -581,7 +581,7 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
               Ver Estatísticas de Upload
             </Button>
 
-            {/* Uploaded Exams List */}
+            {/* Uploaded Exams List - Grouped by Date */}
             <div className="space-y-3">
               <h3 className="font-semibold text-foreground">Exames Enviados</h3>
               {uploadedExams.length === 0 ? (
@@ -591,53 +591,89 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
                   <p className="text-sm text-muted-foreground mt-1">Use os botões acima para fazer upload.</p>
                 </Card>
               ) : (
-                uploadedExams.map((exam) => (
-                  <Card key={exam.id} className="overflow-hidden">
-                    <div className="flex items-center gap-3 p-4">
-                      {exam.preview_url && (
-                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                          <img 
-                            src={exam.preview_url} 
-                            alt="Preview" 
-                            className="w-full h-full object-cover"
-                          />
+                (() => {
+                  // Agrupar exames por data
+                  const examsByDate = uploadedExams.reduce((acc, exam) => {
+                    const dateKey = exam.exam_date 
+                      ? new Date(exam.exam_date).toLocaleDateString('pt-BR')
+                      : new Date(exam.created_at).toLocaleDateString('pt-BR');
+                    
+                    if (!acc[dateKey]) {
+                      acc[dateKey] = [];
+                    }
+                    acc[dateKey].push(exam);
+                    return acc;
+                  }, {} as Record<string, typeof uploadedExams>);
+
+                  // Ordenar datas (mais recente primeiro)
+                  const sortedDates = Object.keys(examsByDate).sort((a, b) => {
+                    const dateA = a.split('/').reverse().join('-');
+                    const dateB = b.split('/').reverse().join('-');
+                    return dateB.localeCompare(dateA);
+                  });
+
+                  return sortedDates.map((date) => (
+                    <div key={date} className="space-y-2">
+                      <div className="flex items-center gap-2 px-2 py-1">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <FileText className="w-4 h-4 text-primary" />
                         </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm text-foreground truncate">
-                          {exam.exam_date 
-                            ? new Date(exam.exam_date).toLocaleDateString('pt-BR')
-                            : new Date(exam.created_at).toLocaleDateString('pt-BR')}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {exam.lab_name || 'Laboratório não informado'}
-                        </p>
-                        <div className="mt-2">
-                          {getProcessingStatusBadge(exam.processing_status)}
+                        <div>
+                          <h4 className="font-semibold text-sm text-foreground">{date}</h4>
+                          <p className="text-xs text-muted-foreground">
+                            {examsByDate[date].length} {examsByDate[date].length === 1 ? 'exame' : 'exames'}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        {exam.preview_url && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => window.open(exam.preview_url, '_blank')}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteExam(exam.id, exam.image_url)}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                      
+                      <div className="space-y-2 pl-4 border-l-2 border-primary/20">
+                        {examsByDate[date].map((exam) => (
+                          <Card key={exam.id} className="overflow-hidden">
+                            <div className="flex items-center gap-3 p-3">
+                              {exam.preview_url && (
+                                <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                                  <img 
+                                    src={exam.preview_url} 
+                                    alt="Preview" 
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs text-muted-foreground">
+                                  {exam.lab_name || 'Laboratório não informado'}
+                                </p>
+                                <div className="mt-1">
+                                  {getProcessingStatusBadge(exam.processing_status)}
+                                </div>
+                              </div>
+                              <div className="flex gap-1">
+                                {exam.preview_url && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => window.open(exam.preview_url, '_blank')}
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => handleDeleteExam(exam.id, exam.image_url)}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
                       </div>
                     </div>
-                  </Card>
-                ))
+                  ));
+                })()
               )}
             </div>
           </TabsContent>
