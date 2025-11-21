@@ -1,14 +1,18 @@
 project_id = "irlfnzxmeympvsslbnwn"
 
-[functions.test-monthly-report]
+# ═══════════════════════════════════════════════════════════════
+# CONFIGURAÇÃO DE SEGURANÇA
+# ═══════════════════════════════════════════════════════════════
+# NOTA: verify_jwt = false porque a autenticação é feita internamente
+# nas funções usando o header Authorization. Isso permite maior
+# flexibilidade e controle sobre o fluxo de autenticação.
+# ═══════════════════════════════════════════════════════════════
+
+# Novo serviço unificado de processamento de documentos
+[functions.process-exam-document]
 verify_jwt = false
 
-[functions.google-fit-auth]
-verify_jwt = false
-
-[functions.google-fit-webhook]
-verify_jwt = false
-
+# Funções de processamento de exames
 [functions.process-ocr]
 verify_jwt = false
 
@@ -18,8 +22,19 @@ verify_jwt = false
 [functions.analyze-wearable-data]
 verify_jwt = false
 
-[functions.send-webhook-notification]
+# Funções de relatórios
+[functions.test-monthly-report]
 verify_jwt = false
 
 [functions.send-monthly-ai-report]
+verify_jwt = false
+
+# Funções de integrações externas
+[functions.google-fit-auth]
+verify_jwt = false
+
+[functions.google-fit-webhook]
+verify_jwt = false
+
+[functions.send-webhook-notification]
 verify_jwt = false
