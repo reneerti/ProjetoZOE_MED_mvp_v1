@@ -86,6 +86,54 @@ export const UsersManager = ({ onRefresh }: UsersManagerProps) => {
     }
   };
 
+  const handleRoleChange = async (userId: string, newRole: 'admin' | 'user' | 'controller') => {
+    try {
+      const user = users.find(u => u.id === userId);
+      const oldRole = user?.role || 'user';
+
+      // Check if role exists for this user
+      const { data: existingRole } = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      let error;
+      if (existingRole) {
+        // Update existing role
+        const result = await supabase
+          .from('user_roles')
+          .update({ role: newRole })
+          .eq('user_id', userId);
+        error = result.error;
+      } else {
+        // Insert new role
+        const result = await supabase
+          .from('user_roles')
+          .insert({ user_id: userId, role: newRole });
+        error = result.error;
+      }
+
+      if (error) throw error;
+
+      // Log action
+      await logAction({
+        action: 'role_updated',
+        entityType: 'user_role',
+        entityId: userId,
+        oldValues: { role: oldRole },
+        newValues: { role: newRole }
+      });
+
+      toast.success("Permissão atualizada!");
+      fetchData();
+      onRefresh();
+    } catch (error: any) {
+      console.error("Error updating role:", error);
+      toast.error(error.message || "Erro ao atualizar permissão");
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-8 text-muted-foreground">Carregando...</div>;
   }
@@ -121,6 +169,20 @@ export const UsersManager = ({ onRefresh }: UsersManagerProps) => {
               </div>
 
               <div className="flex flex-col gap-2 min-w-[140px]">
+                <Select
+                  value={user.role}
+                  onValueChange={(value: any) => handleRoleChange(user.id, value)}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Permissão" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user" className="text-xs">Usuário</SelectItem>
+                    <SelectItem value="controller" className="text-xs">Controlador</SelectItem>
+                    <SelectItem value="admin" className="text-xs">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+
                 <Select
                   value={user.subscription?.plan_id || ""}
                   onValueChange={(value) => handlePlanChange(user.id, value)}
