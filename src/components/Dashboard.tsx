@@ -87,7 +87,7 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
         supabase.from('bioimpedance_measurements').select('*').eq('user_id', user?.id).order('measurement_date', { ascending: false }).limit(2),
         supabase.from('health_analysis').select('health_score, analysis_summary').eq('user_id', user?.id).order('updated_at', { ascending: false }).limit(1).single(),
         supabase.from('health_alerts').select('id').eq('user_id', user?.id).eq('status', 'unread'),
-        supabase.from('user_roles').select('role').eq('user_id', user?.id).single()
+        supabase.from('user_roles').select('role').eq('user_id', user?.id).maybeSingle()
       ]);
 
       setProfile(profileResult.data);

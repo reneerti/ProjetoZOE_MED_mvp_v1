@@ -52,7 +52,7 @@ export const ProfileModule = ({ onNavigate }: ProfileModuleProps) => {
           .from("user_roles")
           .select("role")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
         
         setUserRole(roleData?.role || null);
       }
