@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -17,15 +18,19 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
+  const { setTheme } = useTheme();
 
   useEffect(() => {
+    // Força tema claro na tela de autenticação
+    setTheme("light");
+
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate("/");
       }
     });
-  }, [navigate]);
+  }, [navigate, setTheme]);
 
   const passwordSchema = z.string()
     .min(6, 'A senha deve ter no mínimo 6 caracteres')
