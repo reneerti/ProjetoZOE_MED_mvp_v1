@@ -8,6 +8,7 @@ import { wearableAnalysisSchema, type WearableAnalysis } from '../_shared/aiSche
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';",
 };
 
 // Analisar dados de wearables com IA e atualizar health score
