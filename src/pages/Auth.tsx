@@ -115,8 +115,8 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8 space-y-6">
+    <div className="light min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md p-8 space-y-6 shadow-xl">
         <div className="text-center space-y-4">
           <div className="mx-auto flex justify-center">
             <img src={logoImage} alt="Zoe Med" className="w-32 h-32 animate-fade-in" />
