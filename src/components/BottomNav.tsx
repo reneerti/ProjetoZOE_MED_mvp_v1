@@ -1,4 +1,4 @@
-import { Home, FileText, Settings, User } from "lucide-react";
+import { Home, FileText, Settings, User, Activity } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,7 +50,8 @@ export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
 
   const baseNavItems = [
     { id: "dashboard" as View, icon: Home, label: "Início" },
-    { id: "exams" as View, icon: FileText, label: "Meus Exames" },
+    { id: "health-dashboard" as View, icon: Activity, label: "Dashboard" },
+    { id: "myexams" as View, icon: FileText, label: "Meus Exames" },
     { id: "profile" as View, icon: User, label: "Perfil" },
   ];
 

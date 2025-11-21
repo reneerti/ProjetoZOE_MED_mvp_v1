@@ -6,6 +6,7 @@ import { ocrExtractionSchema, type OCRExtraction } from '../_shared/aiSchemas.ts
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';",
 };
 
 serve(async (req) => {
