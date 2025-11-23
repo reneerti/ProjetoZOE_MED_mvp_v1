@@ -1,6 +1,7 @@
 import { Activity } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
 import type { View } from "@/types/views";
 
 interface HealthScoreCardProps {
@@ -9,8 +10,24 @@ interface HealthScoreCardProps {
 }
 
 export const HealthScoreCard = ({ score, onNavigate }: HealthScoreCardProps) => {
-  const displayScore = score !== null ? Math.round(score) : 0;
-  const percentage = score !== null ? (score / 1000) * 100 : 0;
+  const [cachedScore, setCachedScore] = useState<number | null>(() => {
+    const cached = localStorage.getItem('healthScore');
+    return cached ? Number(cached) : null;
+  });
+  
+  const [displayScore, setDisplayScore] = useState(cachedScore || 0);
+
+  useEffect(() => {
+    if (score !== null) {
+      localStorage.setItem('healthScore', score.toString());
+      setCachedScore(score);
+      setDisplayScore(Math.round(score));
+    } else if (cachedScore !== null) {
+      setDisplayScore(Math.round(cachedScore));
+    }
+  }, [score, cachedScore]);
+
+  const percentage = displayScore ? (displayScore / 1000) * 100 : 0;
 
   const getScoreLabel = (score: number) => {
     if (score >= 800) return { label: "Excelente", color: "bg-success/5 text-success border-success/10", bgGradient: "from-success/5 to-success/10" };
@@ -49,10 +66,19 @@ export const HealthScoreCard = ({ score, onNavigate }: HealthScoreCardProps) => 
           <span>500</span>
           <span>1000</span>
         </div>
-        <div className="relative h-3 bg-muted/30 rounded-full overflow-hidden">
+        <div className="relative h-3 bg-muted/30 rounded-full overflow-hidden shadow-inner">
+          {/* Background glow effect */}
           <div 
-            className="absolute inset-y-0 left-0 bg-gradient-to-r from-success/60 via-accent/60 to-success/60 rounded-full transition-all duration-500"
+            className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-300/40 via-cyan-300/40 to-green-400/40 rounded-full transition-all duration-1000 ease-out blur-sm"
             style={{ width: `${percentage}%` }}
+          />
+          {/* Main progress bar */}
+          <div 
+            className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-400 via-cyan-400 to-green-500 rounded-full transition-all duration-1000 ease-out shadow-md"
+            style={{ 
+              width: `${percentage}%`,
+              animation: 'shimmer 3s ease-in-out infinite'
+            }}
           />
         </div>
       </div>

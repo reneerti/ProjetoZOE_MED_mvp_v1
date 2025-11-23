@@ -18,11 +18,28 @@ interface GroupedResult {
 
 interface ExamGroupedResultsProps {
   groupedResults: GroupedResult[];
+  statusFilter?: 'all' | 'normal' | 'attention';
 }
 
-export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) => {
+export const ExamGroupedResults = ({ groupedResults, statusFilter = 'all' }: ExamGroupedResultsProps) => {
   const [selectedGroup, setSelectedGroup] = useState<GroupedResult | null>(null);
   const [showEvolution, setShowEvolution] = useState(false);
+
+  // Filter groups based on status filter
+  const filteredResults = groupedResults.map(group => {
+    if (statusFilter === 'all') return group;
+    
+    const filteredParams = group.parameters.filter(param => {
+      if (statusFilter === 'normal') {
+        return param.status === 'normal';
+      } else if (statusFilter === 'attention') {
+        return param.status === 'alto' || param.status === 'baixo' || param.status === 'critico';
+      }
+      return true;
+    });
+
+    return { ...group, parameters: filteredParams };
+  }).filter(group => group.parameters.length > 0); // Remove grupos sem parâmetros após filtro
 
   const handleCardClick = (group: GroupedResult) => {
     setSelectedGroup(group);
@@ -122,6 +139,18 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
     return null;
   }
 
+  if (filteredResults.length === 0) {
+    return (
+      <Card className="p-8 text-center">
+        <AlertTriangle className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+        <h3 className="font-semibold text-foreground mb-2">Nenhum Resultado Encontrado</h3>
+        <p className="text-sm text-muted-foreground">
+          Não há exames {statusFilter === 'normal' ? 'normais' : statusFilter === 'attention' ? 'que precisam de atenção' : ''} para exibir.
+        </p>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-2">
@@ -132,7 +161,7 @@ export const ExamGroupedResults = ({ groupedResults }: ExamGroupedResultsProps) 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {groupedResults.map((group, index) => {
+        {filteredResults.map((group, index) => {
           const hasAbnormal = group.parameters.some(p => p.status?.toLowerCase() !== 'normal');
           
           return (

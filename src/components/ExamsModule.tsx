@@ -40,6 +40,7 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
   const [patientAnalysis, setPatientAnalysis] = useState<any>(null);
   const [analyzingExams, setAnalyzingExams] = useState(false);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'normal' | 'attention'>('all');
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -341,17 +342,53 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
         }}
       />
       
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-[#10b981] to-[#059669] text-white p-6 shadow-lg">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => onNavigate("dashboard")}
-            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" strokeWidth={2.4} />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold drop-shadow-md">Meus Exames</h1>
-            <p className="text-white/90 text-sm drop-shadow">Upload, análise e resultados</p>
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-[#10b981] to-[#059669] text-white shadow-lg">
+        <div className="p-6 pb-4">
+          <div className="flex items-center gap-4 mb-4">
+            <button 
+              onClick={() => onNavigate("dashboard")}
+              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" strokeWidth={2.4} />
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold drop-shadow-md">Meus Exames</h1>
+              <p className="text-white/90 text-sm drop-shadow">Upload, análise e resultados</p>
+            </div>
+          </div>
+          
+          {/* Filter Pills */}
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                statusFilter === 'all'
+                  ? 'bg-white text-[#10b981] shadow-md'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              Todos
+            </button>
+            <button
+              onClick={() => setStatusFilter('normal')}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                statusFilter === 'normal'
+                  ? 'bg-white text-green-600 shadow-md'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              ✓ Normais
+            </button>
+            <button
+              onClick={() => setStatusFilter('attention')}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                statusFilter === 'attention'
+                  ? 'bg-white text-red-600 shadow-md'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              ⚠ Atenção
+            </button>
           </div>
         </div>
       </div>
@@ -483,7 +520,10 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
             
             {patientAnalysis?.grouped_results && patientAnalysis.grouped_results.length > 0 && (
               <div className="mt-4">
-                <ExamGroupedResults groupedResults={patientAnalysis.grouped_results} />
+                <ExamGroupedResults 
+                  groupedResults={patientAnalysis.grouped_results}
+                  statusFilter={statusFilter}
+                />
               </div>
             )}
           </>
