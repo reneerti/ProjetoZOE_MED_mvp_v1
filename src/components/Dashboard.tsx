@@ -72,7 +72,7 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
       // Buscar todos os dados em paralelo para performance
       const [
         profileResult,
-        examsResult,
+        examResultsData,
         examImagesResult,
         medicationsResult,
         bioResult,
@@ -81,7 +81,10 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
         rolesResult
       ] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user?.id).single(),
-        supabase.from('exams').select('status').eq('user_id', user?.id),
+        supabase.from('exam_results').select(`
+          status,
+          exam_images!inner(user_id, processing_status)
+        `).eq('exam_images.user_id', user?.id).eq('exam_images.processing_status', 'completed'),
         supabase.from('exam_images').select('id, processing_status').eq('user_id', user?.id),
         supabase.from('medications').select('id').eq('user_id', user?.id).eq('active', true),
         supabase.from('bioimpedance_measurements').select('*').eq('user_id', user?.id).order('measurement_date', { ascending: false }).limit(2),
@@ -98,10 +101,12 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
       const completedExams = examImagesResult.data?.filter(e => e.processing_status === 'completed') || [];
       const examsCount = completedExams.length;
 
-      // Stats de exames (simplificado)
-      const exams = examsResult.data || [];
-      const normalCount = exams.filter(e => e.status === 'normal').length;
-      const attentionCount = exams.filter(e => e.status === 'attention').length;
+      // Stats de exames baseado nos resultados
+      const examResults = examResultsData.data || [];
+      const normalCount = examResults.filter(e => e.status === 'normal').length;
+      const attentionCount = examResults.filter(e => 
+        e.status === 'high' || e.status === 'low' || e.status === 'critical'
+      ).length;
 
       const medicationsCount = medicationsResult.data?.length || 0;
 
