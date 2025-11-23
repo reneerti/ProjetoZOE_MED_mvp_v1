@@ -40,23 +40,7 @@ export const HealthScoreCard = ({ score, onNavigate }: HealthScoreCardProps) => 
   const scoreInfo = getScoreLabel(displayScore);
 
   return (
-    <div className="space-y-3">
-      {/* Alertas Críticos Badge */}
-      <Card className="p-3 border-2 border-destructive bg-destructive/5 animate-pulse">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-destructive/20 flex items-center justify-center flex-shrink-0">
-            <Activity className="w-4 h-4 text-destructive" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-destructive">🔴 Alertas Críticos Detectados</p>
-            <p className="text-[10px] text-muted-foreground truncate">Fígado Gorduroso • Inflamação Alta</p>
-          </div>
-          <Badge className="bg-destructive text-white text-xs">3</Badge>
-        </div>
-      </Card>
-
-      {/* Health Score Card */}
-      <Card 
+    <Card
         className={`p-6 bg-gradient-to-br ${scoreInfo.bgGradient} border-border/50 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]`}
         onClick={() => onNavigate("health-dashboard")}
       >
@@ -124,6 +108,5 @@ export const HealthScoreCard = ({ score, onNavigate }: HealthScoreCardProps) => 
           Clique para ver Dashboard Completo →
         </p>
       </Card>
-    </div>
   );
 };
