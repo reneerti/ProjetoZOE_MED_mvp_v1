@@ -37,11 +37,11 @@ export const PatientAnalysisView = ({ patientView }: PatientAnalysisViewProps) =
   const getStatusColor = (status: string) => {
     switch (status) {
       case "critical":
-        return "bg-gradient-to-br from-destructive-light to-destructive/20 border-destructive";
+        return "bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/30 dark:to-red-900/20 border-red-500";
       case "warning":
-        return "bg-gradient-to-br from-warning-light to-warning/20 border-warning";
+        return "bg-gradient-to-br from-yellow-50 to-yellow-100/50 dark:from-yellow-950/30 dark:to-yellow-900/20 border-yellow-500";
       default:
-        return "bg-gradient-to-br from-success-light to-success/20 border-success";
+        return "bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 border-green-500";
     }
   };
 
@@ -64,21 +64,21 @@ export const PatientAnalysisView = ({ patientView }: PatientAnalysisViewProps) =
     switch (status) {
       case "critical":
         return (
-          <Badge variant="destructive" className="text-xs flex items-center gap-1">
+          <Badge className="text-xs flex items-center gap-1 bg-red-100 text-red-700 border-red-500 dark:bg-red-950/50 dark:text-red-300">
             <AlertCircle className="w-3 h-3" />
             Crítico
           </Badge>
         );
       case "warning":
         return (
-          <Badge className="text-xs bg-warning text-warning-foreground flex items-center gap-1">
+          <Badge className="text-xs flex items-center gap-1 bg-yellow-100 text-yellow-700 border-yellow-500 dark:bg-yellow-950/50 dark:text-yellow-300">
             <AlertTriangle className="w-3 h-3" />
             Atenção
           </Badge>
         );
       default:
         return (
-          <Badge variant="outline" className="text-xs bg-success-light text-success border-success flex items-center gap-1">
+          <Badge className="text-xs flex items-center gap-1 bg-green-100 text-green-700 border-green-500 dark:bg-green-950/50 dark:text-green-300">
             <CheckCircle className="w-3 h-3" />
             Normal
           </Badge>
@@ -105,25 +105,25 @@ export const PatientAnalysisView = ({ patientView }: PatientAnalysisViewProps) =
 
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-3">
-        <Card className="bg-gradient-to-br from-success-light to-success/20 p-4 text-center border-success">
-          <div className="text-3xl font-bold text-success mb-1">
+        <Card className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 p-4 text-center border-green-500">
+          <div className="text-3xl font-bold text-green-700 dark:text-green-300 mb-1">
             {patientView.summary.normal_count}
           </div>
-          <div className="text-xs text-success-foreground">Normais</div>
+          <div className="text-xs text-green-600 dark:text-green-400">Normais</div>
         </Card>
         
-        <Card className="bg-gradient-to-br from-warning-light to-warning/20 p-4 text-center border-warning">
-          <div className="text-3xl font-bold text-warning mb-1">
+        <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 dark:from-yellow-950/30 dark:to-yellow-900/20 p-4 text-center border-yellow-500">
+          <div className="text-3xl font-bold text-yellow-700 dark:text-yellow-300 mb-1">
             {patientView.summary.attention_count}
           </div>
-          <div className="text-xs text-warning-foreground">Atenção</div>
+          <div className="text-xs text-yellow-600 dark:text-yellow-400">Atenção</div>
         </Card>
         
-        <Card className="bg-gradient-to-br from-destructive-light to-destructive/20 p-4 text-center border-destructive">
-          <div className="text-3xl font-bold text-destructive mb-1">
+        <Card className="bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/30 dark:to-red-900/20 p-4 text-center border-red-500">
+          <div className="text-3xl font-bold text-red-700 dark:text-red-300 mb-1">
             {patientView.summary.critical_count}
           </div>
-          <div className="text-xs text-destructive-foreground">Críticos</div>
+          <div className="text-xs text-red-600 dark:text-red-400">Críticos</div>
         </Card>
       </div>
 
