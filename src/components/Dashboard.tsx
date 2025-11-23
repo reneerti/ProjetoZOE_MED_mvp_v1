@@ -251,8 +251,7 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
           {/* Filter badges */}
           <div className="flex gap-2 flex-wrap">
             <Badge 
-              variant="outline" 
-              className="text-[10px] bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 border-green-500 hover:bg-green-100 dark:hover:bg-green-900/50 cursor-pointer transition-colors"
+              className="text-[10px] bg-green-600 text-white border-0 hover:bg-green-700 cursor-pointer transition-colors font-medium shadow-sm"
               onClick={(e) => {
                 e.stopPropagation();
                 onNavigate("exams");
@@ -262,8 +261,7 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
               ✓ {stats.examsStats.normal} Normais
             </Badge>
             <Badge 
-              variant="outline" 
-              className="text-[10px] bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 border-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 cursor-pointer transition-colors"
+              className="text-[10px] bg-red-600 text-white border-0 hover:bg-red-700 cursor-pointer transition-colors font-medium shadow-sm"
               onClick={(e) => {
                 e.stopPropagation();
                 onNavigate("exams");
