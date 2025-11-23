@@ -51,6 +51,7 @@ All colors MUST be HSL.
     
     --gradient-primary: linear-gradient(135deg, hsl(195, 85%, 95%), hsl(205, 70%, 92%));
     --gradient-header: linear-gradient(135deg, hsl(195, 82%, 42%) 0%, hsl(205, 65%, 50%) 100%);
+    --gradient-auth-bg: linear-gradient(135deg, hsl(187, 71%, 92%) 0%, hsl(204, 100%, 92%) 50%, hsl(187, 71%, 94%) 100%);
     --gradient-exams: linear-gradient(135deg, hsl(210, 50%, 50%) 0%, hsl(210, 50%, 55%) 100%);
     --gradient-bioimpedance: linear-gradient(135deg, hsl(142, 45%, 45%) 0%, hsl(142, 45%, 50%) 100%);
     --gradient-medication: linear-gradient(135deg, hsl(340, 50%, 55%) 0%, hsl(340, 50%, 60%) 100%);
@@ -117,6 +118,7 @@ All colors MUST be HSL.
     
     --gradient-primary: linear-gradient(135deg, hsl(220, 15%, 14%), hsl(220, 15%, 18%));
     --gradient-header: linear-gradient(135deg, hsl(195, 82%, 42%) 0%, hsl(205, 65%, 50%) 100%);
+    --gradient-auth-bg: linear-gradient(135deg, hsl(195, 30%, 15%) 0%, hsl(205, 35%, 18%) 50%, hsl(195, 28%, 20%) 100%);
     --gradient-exams: linear-gradient(135deg, hsl(210, 50%, 45%) 0%, hsl(210, 50%, 50%) 100%);
     --gradient-bioimpedance: linear-gradient(135deg, hsl(142, 45%, 40%) 0%, hsl(142, 45%, 45%) 100%);
     --gradient-medication: linear-gradient(135deg, hsl(340, 50%, 50%) 0%, hsl(340, 50%, 55%) 100%);
@@ -259,6 +261,15 @@ All colors MUST be HSL.
     }
   }
 
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
   @keyframes glow {
     0%, 100% {
       box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
@@ -311,6 +322,10 @@ All colors MUST be HSL.
 
   .animate-heartbeat {
     animation: heartbeat 3s ease-in-out infinite;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
   }
 
   .hover-lift {

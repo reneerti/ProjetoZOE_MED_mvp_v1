@@ -120,14 +120,14 @@ const Auth = () => {
   };
 
   return (
-    <div className="light min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-cyan-100 flex items-center justify-center p-4">
+    <div className="light min-h-screen bg-[image:var(--gradient-auth-bg)] flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 space-y-6 shadow-xl">
         <div className="text-center space-y-4">
           <div className="mx-auto flex justify-center">
             <img 
               src={logoImage} 
               alt="Zoe Med" 
-              className="w-48 h-auto animate-[fade-in_0.6s_ease-out,scale-in_0.5s_ease-out]" 
+              className="w-48 h-auto animate-[fade-in_0.6s_ease-out,scale-in_0.5s_ease-out] animate-float" 
             />
           </div>
           <div className="space-y-2">

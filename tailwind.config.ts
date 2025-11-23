@@ -179,6 +179,14 @@ export default {
             transform: "translateY(-4px)",
           },
         },
+        "float": {
+          "0%, 100%": {
+            transform: "translateY(0px)",
+          },
+          "50%": {
+            transform: "translateY(-8px)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -191,6 +199,7 @@ export default {
         "scale-in": "scale-in 0.3s ease-out",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "bounce-subtle": "bounce-subtle 1s ease-in-out infinite",
+        "float": "float 3s ease-in-out infinite",
       },
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",
