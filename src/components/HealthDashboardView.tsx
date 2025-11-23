@@ -36,6 +36,121 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
           analysis_summary: {
             grouped_results: [
               {
+                category_name: "Cardiologia",
+                parameters: [
+                  {
+                    name: "Troponina T",
+                    value: "12",
+                    unit: "ng/L",
+                    reference_range: "< 14 ng/L",
+                    status: "normal"
+                  },
+                  {
+                    name: "BNP (Peptídeo Natriurético)",
+                    value: "85",
+                    unit: "pg/mL",
+                    reference_range: "< 100 pg/mL",
+                    status: "normal"
+                  },
+                  {
+                    name: "Colesterol Total",
+                    value: "198",
+                    unit: "mg/dL",
+                    reference_range: "< 200 mg/dL",
+                    status: "normal"
+                  },
+                  {
+                    name: "LDL Colesterol",
+                    value: "125",
+                    unit: "mg/dL",
+                    reference_range: "< 130 mg/dL",
+                    status: "normal"
+                  },
+                  {
+                    name: "HDL Colesterol",
+                    value: "52",
+                    unit: "mg/dL",
+                    reference_range: "> 40 mg/dL",
+                    status: "normal"
+                  },
+                  {
+                    name: "Triglicerídeos",
+                    value: "145",
+                    unit: "mg/dL",
+                    reference_range: "< 150 mg/dL",
+                    status: "normal"
+                  },
+                  {
+                    name: "Homocisteína",
+                    value: "10.5",
+                    unit: "µmol/L",
+                    reference_range: "5-15 µmol/L",
+                    status: "normal"
+                  }
+                ]
+              },
+              {
+                category_name: "Metabolismo",
+                parameters: [
+                  {
+                    name: "Glicemia em Jejum",
+                    value: "96",
+                    unit: "mg/dL",
+                    reference_range: "70-100 mg/dL",
+                    status: "normal"
+                  },
+                  {
+                    name: "Hemoglobina Glicada (HbA1c)",
+                    value: "5.6",
+                    unit: "%",
+                    reference_range: "< 5.7%",
+                    status: "normal"
+                  },
+                  {
+                    name: "Insulina em Jejum",
+                    value: "8.5",
+                    unit: "µU/mL",
+                    reference_range: "2-25 µU/mL",
+                    status: "normal"
+                  },
+                  {
+                    name: "HOMA-IR",
+                    value: "2.0",
+                    unit: "",
+                    reference_range: "< 2.5",
+                    status: "normal"
+                  },
+                  {
+                    name: "TSH",
+                    value: "2.3",
+                    unit: "mUI/L",
+                    reference_range: "0.4-4.0 mUI/L",
+                    status: "normal"
+                  },
+                  {
+                    name: "T4 Livre",
+                    value: "1.2",
+                    unit: "ng/dL",
+                    reference_range: "0.8-1.8 ng/dL",
+                    status: "normal"
+                  },
+                  {
+                    name: "Cortisol",
+                    value: "12.5",
+                    unit: "µg/dL",
+                    reference_range: "5-25 µg/dL",
+                    status: "normal"
+                  },
+                  {
+                    name: "Vitamina D",
+                    value: "32",
+                    unit: "ng/mL",
+                    reference_range: "30-100 ng/mL",
+                    status: "normal"
+                  }
+                ]
+              },
+              {
                 category_name: "Função Hepática",
                 parameters: [
                   {
@@ -65,6 +180,27 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
                     unit: "U/L",
                     reference_range: "40-150 U/L",
                     status: "alto"
+                  },
+                  {
+                    name: "Bilirrubina Total",
+                    value: "1.1",
+                    unit: "mg/dL",
+                    reference_range: "0.3-1.2 mg/dL",
+                    status: "normal"
+                  },
+                  {
+                    name: "Bilirrubina Direta",
+                    value: "0.3",
+                    unit: "mg/dL",
+                    reference_range: "< 0.4 mg/dL",
+                    status: "normal"
+                  },
+                  {
+                    name: "Albumina",
+                    value: "4.2",
+                    unit: "g/dL",
+                    reference_range: "3.5-5.5 g/dL",
+                    status: "normal"
                   }
                 ]
               },
@@ -362,7 +498,7 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
               <div className="space-y-3">
                 {/* Parâmetros Críticos */}
                 {criticalParams.map((param: any, idx: number) => (
-                  <Card key={`crit-${idx}`} className="p-4 bg-destructive/10 border-2 border-destructive">
+                  <div key={`crit-${idx}`} className="p-4 bg-destructive/10 rounded-lg">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
@@ -383,12 +519,12 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
                         </Badge>
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 ))}
 
                 {/* Parâmetros Altos */}
                 {highParams.map((param: any, idx: number) => (
-                  <Card key={`high-${idx}`} className="p-4 bg-warning/10 border-2 border-warning">
+                  <div key={`high-${idx}`} className="p-4 bg-warning/10 rounded-lg">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
@@ -409,12 +545,12 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
                         </Badge>
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 ))}
 
                 {/* Pré-diagnósticos de Alta Severidade */}
                 {highSeverityDiagnostics.map((diagnostic: any, idx: number) => (
-                  <Card key={`diag-${idx}`} className="p-4 bg-destructive/10 border-2 border-destructive">
+                  <div key={`diag-${idx}`} className="p-4 bg-destructive/10 rounded-lg">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center flex-shrink-0">
                         <AlertTriangle className="w-5 h-5 text-destructive" />
@@ -449,7 +585,7 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
                         )}
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 ))}
               </div>
 
@@ -547,16 +683,195 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
             </TabsList>
 
             <TabsContent value="all" className="mt-4">
-              <p className="text-sm text-muted-foreground">Exibindo todos os parâmetros</p>
+              <p className="text-sm text-muted-foreground mb-3">Exibindo todos os parâmetros</p>
             </TabsContent>
-            <TabsContent value="cardiovascular" className="mt-4">
-              <p className="text-sm text-muted-foreground">Filtro: Parâmetros cardiovasculares</p>
+            
+            <TabsContent value="cardiovascular" className="mt-4 space-y-3">
+              <p className="text-sm font-semibold text-foreground mb-3">Parâmetros Cardiovasculares</p>
+              
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">Troponina T</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: &lt; 14 ng/L</span>
+                  <span className="text-lg font-bold text-success">12 ng/L</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">BNP (Peptídeo Natriurético)</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: &lt; 100 pg/mL</span>
+                  <span className="text-lg font-bold text-success">85 pg/mL</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">Colesterol Total</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: &lt; 200 mg/dL</span>
+                  <span className="text-lg font-bold text-success">198 mg/dL</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">LDL Colesterol</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: &lt; 130 mg/dL</span>
+                  <span className="text-lg font-bold text-success">125 mg/dL</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">HDL Colesterol</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: &gt; 40 mg/dL</span>
+                  <span className="text-lg font-bold text-success">52 mg/dL</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">Triglicerídeos</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: &lt; 150 mg/dL</span>
+                  <span className="text-lg font-bold text-success">145 mg/dL</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">Homocisteína</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: 5-15 µmol/L</span>
+                  <span className="text-lg font-bold text-success">10.5 µmol/L</span>
+                </div>
+              </div>
             </TabsContent>
-            <TabsContent value="metabolico" className="mt-4">
-              <p className="text-sm text-muted-foreground">Filtro: Parâmetros metabólicos</p>
+            
+            <TabsContent value="metabolico" className="mt-4 space-y-3">
+              <p className="text-sm font-semibold text-foreground mb-3">Parâmetros Metabólicos</p>
+              
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">Glicemia em Jejum</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: 70-100 mg/dL</span>
+                  <span className="text-lg font-bold text-success">96 mg/dL</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">Hemoglobina Glicada (HbA1c)</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: &lt; 5.7%</span>
+                  <span className="text-lg font-bold text-success">5.6 %</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">Insulina em Jejum</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: 2-25 µU/mL</span>
+                  <span className="text-lg font-bold text-success">8.5 µU/mL</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">HOMA-IR</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: &lt; 2.5</span>
+                  <span className="text-lg font-bold text-success">2.0</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">TSH</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: 0.4-4.0 mUI/L</span>
+                  <span className="text-lg font-bold text-success">2.3 mUI/L</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">T4 Livre</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: 0.8-1.8 ng/dL</span>
+                  <span className="text-lg font-bold text-success">1.2 ng/dL</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">Cortisol</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: 5-25 µg/dL</span>
+                  <span className="text-lg font-bold text-success">12.5 µg/dL</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">Vitamina D</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: 30-100 ng/mL</span>
+                  <span className="text-lg font-bold text-success">32 ng/mL</span>
+                </div>
+              </div>
             </TabsContent>
-            <TabsContent value="hepatico" className="mt-4">
-              <p className="text-sm text-muted-foreground">Filtro: Parâmetros hepáticos</p>
+            
+            <TabsContent value="hepatico" className="mt-4 space-y-3">
+              <p className="text-sm font-semibold text-foreground mb-3">Parâmetros Hepáticos</p>
+              
+              <div className="p-4 bg-destructive/10 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-destructive">TGO/AST ⚠</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: até 40 U/L</span>
+                  <span className="text-lg font-bold text-destructive">89 U/L</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-destructive/10 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-destructive">TGP/ALT ⚠</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: até 41 U/L</span>
+                  <span className="text-lg font-bold text-destructive">125 U/L</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-warning/10 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-warning">GGT ↑</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: até 73 U/L</span>
+                  <span className="text-lg font-bold text-warning">78 U/L</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-warning/10 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-warning">Fosfatase Alcalina ↑</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: 40-150 U/L</span>
+                  <span className="text-lg font-bold text-warning">156 U/L</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">Bilirrubina Total</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: 0.3-1.2 mg/dL</span>
+                  <span className="text-lg font-bold text-success">1.1 mg/dL</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">Bilirrubina Direta</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: &lt; 0.4 mg/dL</span>
+                  <span className="text-lg font-bold text-success">0.3 mg/dL</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-success/5 rounded-lg">
+                <h4 className="font-medium text-sm mb-2 text-success">Albumina</h4>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Ref: 3.5-5.5 g/dL</span>
+                  <span className="text-lg font-bold text-success">4.2 g/dL</span>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </Card>
@@ -583,7 +898,7 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
             </div>
             <div className="space-y-3">
               {filteredGroups.map((group: any, idx: number) => (
-                <Card key={idx} className="p-4 bg-muted/30">
+                <div key={idx} className="p-4 bg-muted/30 rounded-lg">
                   <h4 className="font-medium text-sm mb-3">{group.category_name}</h4>
                   <div className="space-y-2">
                     {group.parameters.slice(0, 3).map((param: any, pidx: number) => (
@@ -608,7 +923,7 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
                       +{group.parameters.length - 3} parâmetros
                     </p>
                   )}
-                </Card>
+                </div>
               ))}
             </div>
             <Button 
@@ -645,13 +960,13 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
               </div>
               <div className="space-y-3">
                 {nonCriticalDiagnostics.map((diagnostic: any, idx: number) => (
-                  <Card key={idx} className={`p-4 ${
-                    diagnostic.severity === 'medium' ? 'bg-warning/10 border-warning' :
-                    'bg-info/10 border-info'
+                  <div key={idx} className={`p-4 rounded-lg ${
+                    diagnostic.severity === 'medium' ? 'bg-warning/10' :
+                    'bg-info/10'
                   }`}>
                     <h4 className="font-medium text-sm mb-2">{diagnostic.name}</h4>
                     <p className="text-xs text-muted-foreground">{diagnostic.explanation}</p>
-                  </Card>
+                  </div>
                 ))}
               </div>
             </Card>
