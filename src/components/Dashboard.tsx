@@ -224,7 +224,7 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
         <Card
           className="p-4 sm:p-5 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#3B82F6] bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.25s' }}
-          onClick={() => onNavigate("myexams")}
+          onClick={() => onNavigate("exams")}
         >
           <div className="flex items-center gap-3 sm:gap-4">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#3B82F6] flex items-center justify-center flex-shrink-0 shadow-lg">
