@@ -109,20 +109,86 @@ export const CriticalAlertsDashboard = ({ onNavigate }: CriticalAlertsDashboardP
 
   const loadAlerts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('health_alerts')
-        .select(`
-          *,
-          exam_images (
-            exam_date,
-            lab_name
-          )
-        `)
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
+      // DADOS FICTÍCIOS para demonstração
+      const fictitiousAlerts: Alert[] = [
+        {
+          id: "alert-1",
+          parameter_name: "TGP/ALT (Função Hepática)",
+          value: 125,
+          critical_threshold: 41,
+          threshold_type: "high",
+          severity: "critical",
+          status: "unread",
+          created_at: new Date().toISOString(),
+          exam_image_id: "exam-1",
+          exam_images: {
+            exam_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            lab_name: "Laboratório São Lucas"
+          }
+        },
+        {
+          id: "alert-2",
+          parameter_name: "TGO/AST (Função Hepática)",
+          value: 89,
+          critical_threshold: 40,
+          threshold_type: "high",
+          severity: "critical",
+          status: "unread",
+          created_at: new Date().toISOString(),
+          exam_image_id: "exam-1",
+          exam_images: {
+            exam_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            lab_name: "Laboratório São Lucas"
+          }
+        },
+        {
+          id: "alert-3",
+          parameter_name: "PCR - Proteína C Reativa",
+          value: 18.5,
+          critical_threshold: 5,
+          threshold_type: "high",
+          severity: "critical",
+          status: "unread",
+          created_at: new Date().toISOString(),
+          exam_image_id: "exam-1",
+          exam_images: {
+            exam_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            lab_name: "Laboratório São Lucas"
+          }
+        },
+        {
+          id: "alert-4",
+          parameter_name: "GGT (Gama-GT)",
+          value: 78,
+          critical_threshold: 73,
+          threshold_type: "high",
+          severity: "high",
+          status: "unread",
+          created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+          exam_image_id: "exam-1",
+          exam_images: {
+            exam_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            lab_name: "Laboratório São Lucas"
+          }
+        },
+        {
+          id: "alert-5",
+          parameter_name: "VHS (Velocidade de Hemossedimentação)",
+          value: 35,
+          critical_threshold: 20,
+          threshold_type: "high",
+          severity: "high",
+          status: "unread",
+          created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+          exam_image_id: "exam-1",
+          exam_images: {
+            exam_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            lab_name: "Laboratório São Lucas"
+          }
+        }
+      ];
 
-      if (error) throw error;
-      setAlerts(data || []);
+      setAlerts(fictitiousAlerts);
     } catch (error) {
       console.error("Error loading alerts:", error);
       toast.error("Erro ao carregar alertas");
@@ -229,6 +295,49 @@ export const CriticalAlertsDashboard = ({ onNavigate }: CriticalAlertsDashboardP
       </div>
 
       <div className="p-4 space-y-4 pb-24">
+        {/* AI Analysis Alert */}
+        <Card className="p-4 border-2 border-primary bg-gradient-to-br from-primary/5 to-primary/10">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-6 h-6 text-primary animate-pulse" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-base mb-1 flex items-center gap-2">
+                🤖 Análise IA: Consulta Especialista Recomendada
+              </h3>
+              <p className="text-sm text-foreground mb-3 leading-relaxed">
+                Nosso sistema de IA detectou <strong>marcadores críticos de comprometimento hepático e processo inflamatório sistêmico</strong>. 
+              </p>
+              <div className="bg-destructive/10 border-l-4 border-destructive p-3 rounded mb-3">
+                <p className="text-xs font-semibold text-destructive mb-2">⚠️ ATENÇÃO URGENTE</p>
+                <ul className="text-xs space-y-1 text-foreground">
+                  <li>• <strong>Esteatose Hepática</strong> (Fígado Gorduroso) confirmada</li>
+                  <li>• <strong>Inflamação Sistêmica</strong> em nível crítico</li>
+                  <li>• Risco de progressão para quadro mais grave</li>
+                </ul>
+              </div>
+              <div className="bg-primary/10 border-l-4 border-primary p-3 rounded mb-3">
+                <p className="text-xs font-semibold text-primary mb-2">📋 Especialistas Recomendados:</p>
+                <ul className="text-xs space-y-1 text-foreground">
+                  <li>• <strong>Hepatologista</strong> ou Gastroenterologista</li>
+                  <li>• <strong>Clínico Geral</strong> ou Imunologista</li>
+                  <li>• <strong>Nutricionista</strong> para orientação alimentar</li>
+                </ul>
+              </div>
+              <p className="text-xs text-muted-foreground italic mb-3">
+                ⚕️ Este é um alerta automático baseado em análise de IA. Consulte um médico para avaliação completa e diagnóstico preciso.
+              </p>
+              <Button
+                size="sm"
+                className="w-full bg-primary hover:bg-primary/90"
+                onClick={() => toast.info("Entre em contato com seu médico ou procure um pronto-atendimento")}
+              >
+                Entendi - Procurar Especialista
+              </Button>
+            </div>
+          </div>
+        </Card>
+
         {/* Notification Settings */}
         {!notificationsEnabled && (
           <Card className="p-4 border-warning bg-warning/10">
