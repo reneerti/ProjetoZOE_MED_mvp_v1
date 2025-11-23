@@ -105,6 +105,22 @@ ${JSON.stringify(bioContext, null, 2)}
 </dados_bioimpedancia>
 
 Com base nesses dados médicos, sugira até 5 suplementos que seriam benéficos para este paciente.
+
+IMPORTANTE: Se você não puder usar tool calling, retorne sua resposta como JSON puro no seguinte formato:
+{
+  "supplements": [
+    {
+      "name": "Nome do suplemento",
+      "dose": "quantidade",
+      "unit": "unidade (mg, mcg, UI, etc)",
+      "type": "tipo (vitamina, mineral, proteína, etc)",
+      "frequency": "diário, semanal, etc",
+      "timeOfDay": "manhã, tarde, noite, com refeições, etc",
+      "reasoning": "justificativa baseada nos dados"
+    }
+  ]
+}
+
 Para cada suplemento, forneça:
 1. Nome do suplemento
 2. Dosagem recomendada (com unidade)
@@ -161,13 +177,38 @@ Para cada suplemento, forneça:
     }
 
     const aiData = await aiResponse.json();
-    const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
+    const message = aiData.choices[0]?.message;
     
-    if (!toolCall) {
-      throw new Error('No tool call in AI response');
+    let suggestions;
+    
+    // Try to get structured data from tool_calls first (preferred)
+    const toolCall = message?.tool_calls?.[0];
+    if (toolCall) {
+      console.log('Using tool call response');
+      suggestions = JSON.parse(toolCall.function.arguments);
+    } else {
+      // Fallback: try to parse JSON from content if tool_calls not present
+      console.log('No tool call found, attempting to parse content as JSON');
+      const content = message?.content;
+      
+      if (!content) {
+        throw new Error('No content or tool_calls in AI response');
+      }
+      
+      // Try to extract JSON from markdown code blocks if present
+      let jsonText = content;
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        jsonText = jsonMatch[1];
+      }
+      
+      try {
+        suggestions = JSON.parse(jsonText);
+      } catch (parseError) {
+        console.error('Failed to parse AI response as JSON:', content);
+        throw new Error('AI response is not in expected format');
+      }
     }
-
-    const suggestions = JSON.parse(toolCall.function.arguments);
 
     // Store recommendations
     const recommendations = suggestions.supplements.map((sup: any) => ({
