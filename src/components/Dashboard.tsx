@@ -36,6 +36,8 @@ interface DashboardStats {
     attention: number;
   };
   unreadAlerts: number;
+  supplementsCount: number;
+  wearablesCount: number;
 }
 
 export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
@@ -50,7 +52,9 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
     healthScore: null,
     latestBioimpedance: null,
     examsStats: { normal: 0, attention: 0 },
-    unreadAlerts: 0
+    unreadAlerts: 0,
+    supplementsCount: 0,
+    wearablesCount: 0
   });
   const [loading, setLoading] = useState(true);
   const [showAlerts, setShowAlerts] = useState(false);
@@ -80,7 +84,9 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
         bioResult,
         analysisResult,
         alertsResult,
-        rolesResult
+        rolesResult,
+        supplementsResult,
+        wearablesResult
       ] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user?.id).single(),
         supabase.from('exam_results').select(`
@@ -92,7 +98,9 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
         supabase.from('bioimpedance_measurements').select('*').eq('user_id', user?.id).order('measurement_date', { ascending: false }).limit(2),
         supabase.from('health_analysis').select('health_score, analysis_summary').eq('user_id', user?.id).order('updated_at', { ascending: false }).limit(1).single(),
         supabase.from('health_alerts').select('id').eq('user_id', user?.id).eq('status', 'unread'),
-        supabase.from('user_roles').select('role').eq('user_id', user?.id).maybeSingle()
+        supabase.from('user_roles').select('role').eq('user_id', user?.id).maybeSingle(),
+        supabase.from('supplements').select('id').eq('user_id', user?.id).eq('active', true),
+        supabase.from('wearable_data').select('id, date').eq('user_id', user?.id).order('date', { ascending: false }).limit(7)
       ]);
 
       setProfile(profileResult.data);
@@ -131,6 +139,8 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
       const healthScore = analysisResult.data?.health_score || null;
       
       const unreadAlerts = alertsResult.data?.length || 0;
+      const supplementsCount = supplementsResult.data?.length || 0;
+      const wearablesCount = wearablesResult.data?.length || 0;
 
       // Fetch unread alerts count
       const { data: alerts } = await supabase
@@ -146,7 +156,9 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
         healthScore,
         latestBioimpedance,
         examsStats: { normal: normalCount, attention: attentionCount },
-        unreadAlerts
+        unreadAlerts,
+        supplementsCount,
+        wearablesCount
       });
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -375,12 +387,12 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
                 <h3 className="font-semibold text-foreground text-sm">Suplementação</h3>
-                <Badge variant="secondary" className="text-[10px] h-5 bg-accent/10 text-accent">
-                  IA
+                <Badge variant="secondary" className="text-[10px] h-5">
+                  {stats.supplementsCount}
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground truncate">
-                Recomendações personalizadas
+                {stats.supplementsCount === 1 ? 'suplemento ativo' : 'suplementos ativos'}
               </p>
             </div>
           </div>
@@ -397,13 +409,13 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
-                <h3 className="font-semibold text-foreground text-sm">Wearables</h3>
-                <Badge variant="secondary" className="text-[10px] h-5 bg-primary/10 text-primary">
-                  Novo
+                <h3 className="font-semibold text-foreground text-sm">Saúde Fit</h3>
+                <Badge variant="secondary" className="text-[10px] h-5">
+                  {stats.wearablesCount}
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground truncate">
-                Dados de dispositivos conectados
+                Smartwatches • {stats.wearablesCount === 1 ? 'registro esta semana' : 'registros esta semana'}
               </p>
             </div>
           </div>
