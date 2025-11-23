@@ -1,4 +1,4 @@
-import { ArrowLeft, Upload, Camera, FileText, Loader2, History, BarChart3, Sparkles, Calendar } from "lucide-react";
+import { ArrowLeft, Upload, Camera, FileText, Loader2, History, BarChart3, Sparkles, Calendar, RefreshCw } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,7 @@ import type { ExamMetadata } from "@/lib/validation";
 import { ExamPreDiagnostics } from "./ExamPreDiagnostics";
 import { ExamGroupedResults } from "./ExamGroupedResults";
 import type { View } from "@/types/views";
+import { useExamCache } from "@/hooks/useExamCache";
 
 interface ExamsModuleProps {
   onNavigate: (view: View) => void;
@@ -43,39 +44,24 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'normal' | 'attention'>('all');
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Use cache hook
+  const examCache = useExamCache(userId);
 
   useEffect(() => {
-    fetchAnalysis();
     getUserId();
   }, []);
+
+  useEffect(() => {
+    if (examCache.data) {
+      setPatientAnalysis(examCache.data);
+      setLoadingAnalysis(false);
+    }
+  }, [examCache.data]);
 
   const getUserId = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) setUserId(user.id);
-  };
-
-  const fetchAnalysis = async () => {
-    setLoadingAnalysis(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('health_analysis')
-        .select('analysis_summary')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data?.analysis_summary) {
-        setPatientAnalysis(data.analysis_summary);
-      }
-    } catch (error) {
-      console.error('Error fetching analysis:', error);
-    } finally {
-      setLoadingAnalysis(false);
-    }
   };
 
   const runIntegratedAnalysis = async () => {
@@ -110,7 +96,8 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
           description: "Análise integrada concluída com sucesso!",
         });
         
-        await fetchAnalysis();
+        // Invalidate cache to fetch fresh data
+        examCache.invalidateCache();
       }
     } catch (error) {
       console.error('Erro ao executar análise:', error);
@@ -286,6 +273,9 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
                 title: "Análise concluída!",
                 description: "Exame processado e índice de saúde atualizado",
               });
+              
+              // Invalidate cache to fetch fresh data
+              examCache.invalidateCache();
             }
           });
       }
@@ -351,10 +341,27 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
             >
               <ArrowLeft className="w-5 h-5" strokeWidth={2.4} />
             </button>
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl font-bold drop-shadow-md">Meus Exames</h1>
               <p className="text-white/90 text-sm drop-shadow">Upload, análise e resultados</p>
+              {examCache.lastUpdate && (
+                <p className="text-white/70 text-xs mt-1">
+                  Atualizado: {examCache.lastUpdate.toLocaleTimeString('pt-BR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </p>
+              )}
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => examCache.refresh()}
+              disabled={examCache.loading}
+              className="text-white hover:bg-white/10"
+            >
+              <RefreshCw className={`w-5 h-5 ${examCache.loading ? 'animate-spin' : ''}`} />
+            </Button>
           </div>
           
           {/* Filter Pills */}
@@ -497,7 +504,7 @@ export const ExamsModule = ({ onNavigate }: ExamsModuleProps) => {
         </Button>
 
         {/* Results Section */}
-        {loadingAnalysis ? (
+        {examCache.loading ? (
           <Card className="p-8 text-center">
             <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
             <p className="text-muted-foreground">Carregando análise...</p>
