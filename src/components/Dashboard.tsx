@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FileText, Scale, Pill, TrendingUp, Target, Database, Settings, Watch, Bell, Sparkles, Activity } from "lucide-react";
+import { FileText, Scale, Pill, TrendingUp, Target, Database, Settings, Watch, Bell, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +13,6 @@ import { ExamChatDialog } from "./ExamChatDialog";
 import { HealthScoreCard } from "./HealthScoreCard";
 import { WearableTokenNotifications } from "./wearables/WearableTokenNotifications";
 import { AIUsageNotifications } from "./AIUsageNotifications";
-import { MedicationDashboard } from "./medication/MedicationDashboard";
 import type { View } from "@/types/views";
 
 interface DashboardProps {
@@ -59,7 +58,6 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
   const [loading, setLoading] = useState(true);
   const [showAlerts, setShowAlerts] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [showMonjaroDashboard, setShowMonjaroDashboard] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -345,36 +343,6 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
           </div>
         </Card>
 
-        {/* Card Monjaro com Gráficos */}
-        <Card
-          className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-accent bg-gradient-to-r from-accent/5 to-transparent backdrop-blur-sm animate-scale-in group"
-          style={{ animationDelay: '0.36s' }}
-          onClick={() => setShowMonjaroDashboard(true)}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center flex-shrink-0 shadow-lg">
-              <Activity className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <h3 className="font-semibold text-foreground text-sm">MONJARO</h3>
-                <Badge variant="outline" className="text-[10px] h-5 bg-accent/10 text-accent border-0">
-                  GLP-1
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground truncate">
-                7.5 mg • Semanal • 100% adesão
-              </p>
-            </div>
-          </div>
-          <div className="mt-3 flex items-center gap-2">
-            <div className="h-1.5 flex-1 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-accent" style={{ width: '66%' }} />
-            </div>
-            <span className="text-[10px] text-muted-foreground">8 doses</span>
-          </div>
-        </Card>
-
         <Card
           className="p-4 cursor-pointer hover-lift shadow-lg border-l-4 border-l-[#06B6D4] bg-white dark:bg-card backdrop-blur-sm animate-scale-in group"
           style={{ animationDelay: '0.37s' }}
@@ -525,16 +493,6 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
       </div>
 
       <ExamChatDialog open={showChat} onOpenChange={setShowChat} />
-      
-      <MedicationDashboard 
-        open={showMonjaroDashboard} 
-        onOpenChange={setShowMonjaroDashboard}
-        medication={{
-          medication_name: "MONJARO",
-          current_dose: "7.5 mg",
-          schedule: { type: "glp1", frequency: "weekly" }
-        }}
-      />
     </div>
   );
 };

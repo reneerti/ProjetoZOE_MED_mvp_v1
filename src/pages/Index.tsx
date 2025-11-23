@@ -12,6 +12,7 @@ import { PatientTimelineView } from "@/components/PatientTimelineView";
 import { ExamsByDateView } from "@/components/ExamsByDateView";
 import { HealthDashboardView } from "@/components/HealthDashboardView";
 import { MedicationModule } from "@/components/MedicationModule";
+import { MedicationDashboardView } from "@/components/MedicationDashboardView";
 import { EvolutionModule } from "@/components/EvolutionModule";
 import { GoalsModule } from "@/components/GoalsModule";
 import { ResourceDashboard } from "@/components/ResourceDashboard";
@@ -95,6 +96,8 @@ const Index = () => {
         return <div key={viewKey} className="animate-slide-in-right"><BioimpedanceModuleRevised onNavigate={setCurrentView} /></div>;
       case "medication":
         return <div key={viewKey} className="animate-slide-in-right"><MedicationModule onNavigate={setCurrentView} /></div>;
+      case "medication-dashboard":
+        return <div key={viewKey} className="animate-slide-in-right"><MedicationDashboardView onNavigate={setCurrentView} /></div>;
       case "evolution":
         return <div key={viewKey} className="animate-slide-in-right"><EvolutionModule onNavigate={setCurrentView} /></div>;
       case "goals":

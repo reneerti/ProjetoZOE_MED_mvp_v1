@@ -31,6 +31,7 @@ const viewLabels: Record<View, string> = {
   myexams: "Meus Exames",
   bioimpedance: "Bioimpedância",
   medication: "Medicações",
+  "medication-dashboard": "Dashboard Monjaro",
   evolution: "Evolução Geral",
   profile: "Perfil",
   goals: "Metas",
