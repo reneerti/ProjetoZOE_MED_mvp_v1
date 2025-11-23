@@ -2,6 +2,7 @@ import { Activity, Bell, Sparkles, LogOut, Moon, Sun, ChevronDown, ChevronRight,
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "next-themes";
+import logoIcon from "@/assets/zoe-med-icon.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,13 +58,13 @@ export const DashboardHeader = ({
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className={`sticky top-0 z-50 border-b ${isAdmin ? 'bg-[#6B7280] text-white' : 'bg-card/95 backdrop-blur-sm border-border'}`}>
+    <div className={`sticky top-0 z-50 border-b ${isAdmin ? 'bg-gradient-to-r from-[#6B7280] to-[#4B5563] text-white shadow-lg' : 'bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 backdrop-blur-md border-border shadow-sm'}`}>
       <div className="p-4">
         <div className="flex items-center justify-between">
           {/* Logo and Breadcrumbs */}
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isAdmin ? 'bg-white/20' : 'bg-gradient-to-br from-primary/10 to-accent/10'}`}>
-              <Activity className={`w-5 h-5 ${isAdmin ? 'text-white' : 'text-primary'}`} />
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ${isAdmin ? 'bg-white/20 ring-2 ring-white/30' : 'bg-white shadow-md'}`}>
+              <img src={logoIcon} alt="ZoeMed" className="w-full h-full object-contain" />
             </div>
             <div>
               <div className="flex items-center gap-2">
