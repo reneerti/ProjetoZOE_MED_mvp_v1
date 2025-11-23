@@ -124,7 +124,7 @@ const Auth = () => {
       <Card className="w-full max-w-md p-8 space-y-6 shadow-xl">
         <div className="text-center space-y-4">
           <div className="mx-auto flex justify-center">
-            <img src={logoImage} alt="Zoe Med" className="w-32 h-32 animate-fade-in" />
+            <img src={logoImage} alt="Zoe Med" className="w-48 h-auto animate-fade-in" />
           </div>
           <div className="space-y-2">
             <h2 className="text-xl font-medium text-foreground">
