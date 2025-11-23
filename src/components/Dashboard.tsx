@@ -231,7 +231,7 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
           style={{ animationDelay: '0.25s' }}
           onClick={() => onNavigate("exams")}
         >
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 mb-3">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#3B82F6] flex items-center justify-center flex-shrink-0 shadow-lg">
               <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
             </div>
@@ -246,6 +246,32 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
                 {stats.examsStats.normal} normais • {stats.examsStats.attention} atenção
               </p>
             </div>
+          </div>
+          
+          {/* Filter badges */}
+          <div className="flex gap-2 flex-wrap">
+            <Badge 
+              variant="outline" 
+              className="text-[10px] bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 border-green-500 hover:bg-green-100 dark:hover:bg-green-900/50 cursor-pointer transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNavigate("exams");
+                // TODO: Implement filter logic
+              }}
+            >
+              ✓ {stats.examsStats.normal} Normais
+            </Badge>
+            <Badge 
+              variant="outline" 
+              className="text-[10px] bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 border-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 cursor-pointer transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNavigate("exams");
+                // TODO: Implement filter logic
+              }}
+            >
+              ⚠ {stats.examsStats.attention} Atenção
+            </Badge>
           </div>
         </Card>
 
