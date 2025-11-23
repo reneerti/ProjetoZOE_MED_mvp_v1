@@ -8,9 +8,8 @@ import { toast } from "sonner";
 import { MedicationCreateDialog } from "./medication/MedicationCreateDialog";
 import { MedicationHistoryDialog } from "./medication/MedicationHistoryDialog";
 import { MedicationCard } from "./medication/MedicationCard";
-import { MedicationDashboard } from "./medication/MedicationDashboard";
 
-type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals";
+type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "medication-dashboard" | "evolution" | "profile" | "goals";
 
 interface MedicationModuleProps {
   onNavigate: (view: View) => void;
@@ -22,7 +21,6 @@ export const MedicationModule = ({ onNavigate }: MedicationModuleProps) => {
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
-  const [showDashboard, setShowDashboard] = useState(false);
   const [selectedMedication, setSelectedMedication] = useState<any>(null);
 
   useEffect(() => {
@@ -120,8 +118,7 @@ export const MedicationModule = ({ onNavigate }: MedicationModuleProps) => {
   };
 
   const handleOpenDashboard = (medication: any) => {
-    setSelectedMedication(medication);
-    setShowDashboard(true);
+    onNavigate("medication-dashboard");
   };
 
   return (
@@ -224,12 +221,6 @@ export const MedicationModule = ({ onNavigate }: MedicationModuleProps) => {
       <MedicationHistoryDialog
         open={showHistoryDialog}
         onOpenChange={setShowHistoryDialog}
-        medication={selectedMedication}
-      />
-
-      <MedicationDashboard
-        open={showDashboard}
-        onOpenChange={setShowDashboard}
         medication={selectedMedication}
       />
     </div>
