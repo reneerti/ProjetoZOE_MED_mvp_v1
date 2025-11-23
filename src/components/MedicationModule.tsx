@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { MedicationCreateDialog } from "./medication/MedicationCreateDialog";
 import { MedicationHistoryDialog } from "./medication/MedicationHistoryDialog";
 import { MedicationCard } from "./medication/MedicationCard";
+import { MedicationDashboard } from "./medication/MedicationDashboard";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals";
 
@@ -21,6 +22,7 @@ export const MedicationModule = ({ onNavigate }: MedicationModuleProps) => {
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
   const [selectedMedication, setSelectedMedication] = useState<any>(null);
 
   useEffect(() => {
@@ -38,7 +40,56 @@ export const MedicationModule = ({ onNavigate }: MedicationModuleProps) => {
         .order('start_date', { ascending: false });
 
       if (error) throw error;
-      setMedications(data || []);
+      
+      // Se não houver medicações, criar dados de exemplo
+      if (!data || data.length === 0) {
+        const exampleMedications = [
+          {
+            user_id: user?.id,
+            medication_name: "MONJARO",
+            current_dose: "7.5 mg - Toda Semana",
+            start_date: "2024-09-01",
+            active: true,
+            schedule: { type: "glp1", frequency: "weekly" },
+            notes: "GLP-1 para controle de peso e glicemia"
+          },
+          {
+            user_id: user?.id,
+            medication_name: "VITAMINA B12",
+            current_dose: "1000 mcg - A cada 6 meses",
+            start_date: "2024-01-15",
+            active: true,
+            schedule: { type: "injectable", frequency: "every_6_months" },
+            notes: "Suplementação de B12"
+          },
+          {
+            user_id: user?.id,
+            medication_name: "VITAMINAS",
+            current_dose: "Complexo - A cada 60 dias",
+            start_date: "2024-02-01",
+            active: true,
+            schedule: { type: "oral", frequency: "every_60_days" },
+            notes: "Multivitamínico completo"
+          }
+        ];
+
+        const { error: insertError } = await supabase
+          .from('medications')
+          .insert(exampleMedications);
+
+        if (insertError) throw insertError;
+        
+        // Recarregar após inserir
+        const { data: newData } = await supabase
+          .from('medications')
+          .select('*')
+          .eq('user_id', user?.id)
+          .order('start_date', { ascending: false });
+        
+        setMedications(newData || []);
+      } else {
+        setMedications(data);
+      }
     } catch (error) {
       console.error("Error fetching medications:", error);
       toast.error("Erro ao carregar medicações");
@@ -68,21 +119,26 @@ export const MedicationModule = ({ onNavigate }: MedicationModuleProps) => {
     setShowHistoryDialog(true);
   };
 
+  const handleOpenDashboard = (medication: any) => {
+    setSelectedMedication(medication);
+    setShowDashboard(true);
+  };
+
   return (
     <div className="animate-fade-in">
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-card border-b border-border">
+      {/* Header com Cor */}
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-accent to-accent/80 text-white">
         <div className="p-4">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => onNavigate("dashboard")}
-              className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+              className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5 text-white" />
             </button>
             <div>
-              <h1 className="text-xl font-semibold">Medicações</h1>
-              <p className="text-sm text-muted-foreground">Gerencie seu tratamento</p>
+              <h1 className="text-xl font-semibold text-white">Medicações</h1>
+              <p className="text-sm text-white/80">Gerencie seu tratamento</p>
             </div>
           </div>
         </div>
@@ -126,6 +182,7 @@ export const MedicationModule = ({ onNavigate }: MedicationModuleProps) => {
                   medication={medication}
                   onViewHistory={handleViewHistory}
                   onDeactivate={handleDeactivate}
+                  onOpenDashboard={handleOpenDashboard}
                 />
               ))}
             </div>
@@ -167,6 +224,12 @@ export const MedicationModule = ({ onNavigate }: MedicationModuleProps) => {
       <MedicationHistoryDialog
         open={showHistoryDialog}
         onOpenChange={setShowHistoryDialog}
+        medication={selectedMedication}
+      />
+
+      <MedicationDashboard
+        open={showDashboard}
+        onOpenChange={setShowDashboard}
         medication={selectedMedication}
       />
     </div>

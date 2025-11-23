@@ -8,9 +8,10 @@ interface MedicationCardProps {
   medication: any;
   onViewHistory: (medication: any) => void;
   onDeactivate: (id: string) => void;
+  onOpenDashboard?: (medication: any) => void;
 }
 
-export const MedicationCard = ({ medication, onViewHistory, onDeactivate }: MedicationCardProps) => {
+export const MedicationCard = ({ medication, onViewHistory, onDeactivate, onOpenDashboard }: MedicationCardProps) => {
   const getMedicationType = () => {
     const type = medication.schedule?.type || "oral";
     if (type === "glp1") return { label: "GLP-1", color: "bg-accent/10 text-accent" };
@@ -20,8 +21,13 @@ export const MedicationCard = ({ medication, onViewHistory, onDeactivate }: Medi
 
   const typeInfo = getMedicationType();
 
+  const isMonjaro = medication.medication_name.toLowerCase().includes('monjaro');
+
   return (
-    <Card className="p-4 hover:shadow-md transition-shadow">
+    <Card 
+      className={`p-4 hover:shadow-md transition-all ${isMonjaro ? 'cursor-pointer hover:border-accent' : ''}`}
+      onClick={() => isMonjaro && onOpenDashboard && onOpenDashboard(medication)}
+    >
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center shrink-0">
           <Pill className="w-5 h-5 text-primary" />
