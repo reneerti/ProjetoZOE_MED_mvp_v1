@@ -123,18 +123,18 @@ const Auth = () => {
     <div className="light min-h-screen bg-[image:var(--gradient-auth-bg)] flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 space-y-6 shadow-xl">
         <div className="text-center space-y-4">
-          <div className="mx-auto flex justify-center">
+          <div className="mx-auto flex justify-center mb-6">
             <img 
               src={logoImage} 
               alt="Zoe Med" 
-              className="w-48 h-auto animate-[fade-in_0.6s_ease-out,scale-in_0.5s_ease-out] animate-float" 
+              className="w-56 h-auto animate-[fade-in_0.6s_ease-out,scale-in_0.5s_ease-out] animate-float" 
             />
           </div>
-          <div className="space-y-2">
-            <h2 className="text-xl font-medium text-foreground">
+          <div className="space-y-3 mt-8">
+            <h2 className="text-2xl font-medium text-foreground">
               {isSignUp ? "Criar Conta" : "Bem-vindo"}
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-base">
               {isSignUp 
                 ? "Crie sua conta para começar a monitorar sua saúde" 
                 : "Entre para acessar seus dados de saúde"}
