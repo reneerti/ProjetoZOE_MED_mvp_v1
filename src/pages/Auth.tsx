@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Mail } from "lucide-react";
-import logoImage from "@/assets/zoe-med-logo-new.png";
+import logoImage from "@/assets/zoe-med-logo-oficial.png";
 import { PasswordStrengthMeter } from "@/components/PasswordStrengthMeter";
 import { z } from "zod";
 
