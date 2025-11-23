@@ -218,9 +218,9 @@ export const PeriodComparisonView = ({ onNavigate }: PeriodComparisonViewProps) 
       case 'high':
       case 'low':
       case 'critical':
-        return <Badge variant="destructive" className="text-xs">Alterado</Badge>;
+        return <Badge className="text-xs bg-red-100 text-red-700 border-red-500 dark:bg-red-950/50 dark:text-red-300">Alterado</Badge>;
       default:
-        return <Badge variant="outline" className="text-xs bg-success/10 text-success border-success">Normal</Badge>;
+        return <Badge className="text-xs bg-green-100 text-green-700 border-green-500 dark:bg-green-950/50 dark:text-green-300">Normal</Badge>;
     }
   };
 
@@ -313,11 +313,11 @@ export const PeriodComparisonView = ({ onNavigate }: PeriodComparisonViewProps) 
 
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-3">
-          <Card className="p-3 bg-success/10 border-success/20">
+          <Card className="p-3 bg-green-50 dark:bg-green-950/30 border-green-500">
             <div className="text-center">
-              <TrendingUp className="w-6 h-6 mx-auto text-success mb-1" />
-              <div className="text-2xl font-bold text-success">{improvedCount}</div>
-              <div className="text-xs text-muted-foreground">Melhorou</div>
+              <TrendingUp className="w-6 h-6 mx-auto text-green-600 dark:text-green-400 mb-1" />
+              <div className="text-2xl font-bold text-green-700 dark:text-green-300">{improvedCount}</div>
+              <div className="text-xs text-green-600 dark:text-green-400">Melhorou</div>
             </div>
           </Card>
           <Card className="p-3 bg-muted/50">
@@ -327,11 +327,11 @@ export const PeriodComparisonView = ({ onNavigate }: PeriodComparisonViewProps) 
               <div className="text-xs text-muted-foreground">Estável</div>
             </div>
           </Card>
-          <Card className="p-3 bg-destructive/10 border-destructive/20">
+          <Card className="p-3 bg-red-50 dark:bg-red-950/30 border-red-500">
             <div className="text-center">
-              <TrendingDown className="w-6 h-6 mx-auto text-destructive mb-1" />
-              <div className="text-2xl font-bold text-destructive">{worsenedCount}</div>
-              <div className="text-xs text-muted-foreground">Piorou</div>
+              <TrendingDown className="w-6 h-6 mx-auto text-red-600 dark:text-red-400 mb-1" />
+              <div className="text-2xl font-bold text-red-700 dark:text-red-300">{worsenedCount}</div>
+              <div className="text-xs text-red-600 dark:text-red-400">Piorou</div>
             </div>
           </Card>
         </div>
@@ -429,22 +429,24 @@ export const PeriodComparisonView = ({ onNavigate }: PeriodComparisonViewProps) 
                   comparisons.slice(0, 10).map((comp, index) => {
                     const chartData = [
                       {
-                        name: getPeriodLabel(period1),
+                        name: 'Inicial',
                         value: comp.period1Value,
-                        period: 'Inicial'
+                        period: getPeriodLabel(period1),
+                        status: comp.period1Status
                       },
                       {
-                        name: getPeriodLabel(period2),
+                        name: 'Atual',
                         value: comp.period2Value,
-                        period: 'Final'
+                        period: getPeriodLabel(period2),
+                        status: comp.period2Status
                       }
                     ];
 
-                    const barColor = comp.trend === 'improved' 
-                      ? 'hsl(var(--success))' 
-                      : comp.trend === 'worsened' 
-                      ? 'hsl(var(--destructive))' 
-                      : 'hsl(var(--muted-foreground))';
+                    const getBarColor = (status: string) => {
+                      if (status === 'normal') return '#22c55e'; // green
+                      if (status === 'critical' || status === 'high' || status === 'low') return '#ef4444'; // red
+                      return '#eab308'; // yellow
+                    };
 
                     return (
                       <Card key={index} className="p-6">
@@ -469,15 +471,13 @@ export const PeriodComparisonView = ({ onNavigate }: PeriodComparisonViewProps) 
                           </Badge>
                         </div>
 
-                        <ResponsiveContainer width="100%" height={200}>
-                          <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                        <ResponsiveContainer width="100%" height={240}>
+                          <BarChart data={chartData} margin={{ top: 30, right: 30, bottom: 20, left: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                             <XAxis 
                               dataKey="name" 
-                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                              angle={-15}
-                              textAnchor="end"
-                              height={60}
+                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 13, fontWeight: 500 }}
+                              height={40}
                             />
                             <YAxis 
                               tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
@@ -485,7 +485,7 @@ export const PeriodComparisonView = ({ onNavigate }: PeriodComparisonViewProps) 
                                 value: comp.unit, 
                                 angle: -90, 
                                 position: 'insideLeft',
-                                style: { fill: 'hsl(var(--muted-foreground))' }
+                                style: { fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }
                               }}
                             />
                             <Tooltip 
@@ -493,32 +493,47 @@ export const PeriodComparisonView = ({ onNavigate }: PeriodComparisonViewProps) 
                                 backgroundColor: 'hsl(var(--card))',
                                 border: '1px solid hsl(var(--border))',
                                 borderRadius: '8px',
-                                fontSize: '12px'
+                                fontSize: '13px',
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                               }}
-                              formatter={(value: any) => [`${Number(value).toFixed(2)} ${comp.unit}`, 'Valor']}
+                              formatter={(value: any, name: any, props: any) => [
+                                `${Number(value).toFixed(2)} ${comp.unit}`,
+                                props.payload.period
+                              ]}
+                              labelFormatter={(label) => `${label}`}
                             />
-                            <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                              <Cell fill="hsl(var(--primary))" fillOpacity={0.6} />
-                              <Cell fill={barColor} fillOpacity={0.9} />
+                            <Legend 
+                              wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
+                              iconType="square"
+                              formatter={(value, entry: any) => {
+                                const item = chartData.find(d => d.name === entry.payload?.name);
+                                return item ? `${item.period} (${item.status === 'normal' ? 'Normal' : 'Alterado'})` : value;
+                              }}
+                            />
+                            <Bar dataKey="value" radius={[8, 8, 0, 0]} label={{ position: 'top', formatter: (val: number) => val.toFixed(1), fill: 'hsl(var(--foreground))', fontSize: 12, fontWeight: 600 }}>
+                              {chartData.map((entry, idx) => (
+                                <Cell key={idx} fill={getBarColor(entry.status)} />
+                              ))}
                             </Bar>
-                            {/* Trend Arrow Overlay */}
-                            {comp.trend !== 'stable' && (
-                              <ReferenceLine 
-                                y={Math.max(comp.period1Value, comp.period2Value)} 
-                                stroke="transparent"
-                              />
-                            )}
                           </BarChart>
                         </ResponsiveContainer>
 
-                        {/* Status badges below chart */}
+                        {/* Detailed comparison below chart */}
                         <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t">
-                          <div className="text-center">
-                            <p className="text-xs text-muted-foreground mb-1">Status Inicial</p>
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground font-medium">Período Inicial</p>
+                            <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
+                              <span className="text-lg font-bold">{comp.period1Value.toFixed(2)}</span>
+                              <span className="text-xs text-muted-foreground">{comp.unit}</span>
+                            </div>
                             {getStatusBadge(comp.period1Status)}
                           </div>
-                          <div className="text-center">
-                            <p className="text-xs text-muted-foreground mb-1">Status Final</p>
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground font-medium">Período Atual</p>
+                            <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
+                              <span className="text-lg font-bold">{comp.period2Value.toFixed(2)}</span>
+                              <span className="text-xs text-muted-foreground">{comp.unit}</span>
+                            </div>
                             {getStatusBadge(comp.period2Status)}
                           </div>
                         </div>

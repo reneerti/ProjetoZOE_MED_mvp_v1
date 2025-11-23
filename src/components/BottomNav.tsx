@@ -64,8 +64,8 @@ export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
   return (
     <nav className={`fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl border-t border-border/50 shadow-md z-50 transition-all duration-300 ${
       scrollingUp 
-        ? 'bg-white/40 dark:bg-card/40 backdrop-blur-xl' 
-        : 'bg-white/80 dark:bg-card/80 backdrop-blur-sm'
+        ? 'bg-background/85 backdrop-blur-xl' 
+        : 'bg-background/90 backdrop-blur-xl'
     }`}>
       <div className="flex items-center justify-around py-2">
         {navItems.map((item) => {

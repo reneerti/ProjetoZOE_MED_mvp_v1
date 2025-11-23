@@ -58,7 +58,7 @@ export const DashboardHeader = ({
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className={`sticky top-0 z-50 border-b ${isAdmin ? 'bg-gradient-to-r from-[#6B7280] to-[#4B5563] text-white shadow-lg' : 'bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 backdrop-blur-md border-border shadow-sm'}`}>
+    <div className={`sticky top-0 z-50 border-b ${isAdmin ? 'bg-gradient-to-r from-[#6B7280]/95 to-[#4B5563]/95 text-white shadow-lg backdrop-blur-xl' : 'bg-gradient-to-r from-background/90 via-muted/80 to-background/90 backdrop-blur-xl border-border shadow-sm'}`}>
       <div className="p-4">
         <div className="flex items-center justify-between">
           {/* Logo and Breadcrumbs */}
