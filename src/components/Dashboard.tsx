@@ -243,6 +243,16 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
           style={{ animationDelay: '0.25s' }}
           onClick={() => onNavigate("exams")}
         >
+          {/* Alerta crítico no topo */}
+          <div className="mb-3 p-2 bg-destructive/10 border border-destructive/30 rounded-lg">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-destructive/20 flex items-center justify-center animate-pulse">
+                <span className="text-destructive text-xs">🔴</span>
+              </div>
+              <p className="text-[10px] font-bold text-destructive">Fígado Gorduroso + Inflamação Detectados</p>
+            </div>
+          </div>
+
           <div className="flex items-center gap-3 sm:gap-4 mb-3">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#3B82F6] flex items-center justify-center flex-shrink-0 shadow-lg">
               <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow-lg group-hover:scale-110 transition-transform" strokeWidth={2.8} />
@@ -267,7 +277,6 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
               onClick={(e) => {
                 e.stopPropagation();
                 onNavigate("exams");
-                // TODO: Implement filter logic
               }}
             >
               ✓ {stats.examsStats.normal} Normais
@@ -277,10 +286,18 @@ export const Dashboard = ({ onNavigate, currentView }: DashboardProps) => {
               onClick={(e) => {
                 e.stopPropagation();
                 onNavigate("exams");
-                // TODO: Implement filter logic
               }}
             >
               ⚠ {stats.examsStats.attention} Atenção
+            </Badge>
+            <Badge 
+              className="text-[10px] bg-destructive text-white border-0 animate-pulse cursor-pointer transition-colors font-bold shadow-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNavigate("exams");
+              }}
+            >
+              🔴 3 Críticos
             </Badge>
           </div>
         </Card>
