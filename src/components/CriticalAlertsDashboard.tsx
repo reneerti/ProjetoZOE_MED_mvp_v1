@@ -112,6 +112,21 @@ export const CriticalAlertsDashboard = ({ onNavigate }: CriticalAlertsDashboardP
       // DADOS FICTÍCIOS para demonstração
       const fictitiousAlerts: Alert[] = [
         {
+          id: "alert-0",
+          parameter_name: "⚠️ Fígado Gorduroso + Inflamação Sistêmica",
+          value: 0,
+          critical_threshold: 0,
+          threshold_type: "diagnostic",
+          severity: "critical",
+          status: "unread",
+          created_at: new Date().toISOString(),
+          exam_image_id: "exam-1",
+          exam_images: {
+            exam_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            lab_name: "Laboratório São Lucas"
+          }
+        },
+        {
           id: "alert-1",
           parameter_name: "TGP/ALT (Função Hepática)",
           value: 125,
@@ -512,14 +527,24 @@ const AlertCard = ({ alert, onMarkAsRead, getSeverityColor, getSeverityIcon }: A
           </div>
           
           <div className="space-y-1 mb-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Valor:</span>
-              <span className="font-semibold">{alert.value}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Limite {alert.threshold_type === 'high' ? 'máximo' : 'mínimo'}:</span>
-              <span className="font-semibold">{alert.critical_threshold}</span>
-            </div>
+            {alert.threshold_type === 'diagnostic' ? (
+              <div className="p-2 rounded bg-destructive/10 border border-destructive/30">
+                <p className="text-xs text-destructive font-medium">
+                  🩺 Condição crítica identificada através da análise integrada dos exames laboratoriais.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Valor:</span>
+                  <span className="font-semibold">{alert.value}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Limite {alert.threshold_type === 'high' ? 'máximo' : 'mínimo'}:</span>
+                  <span className="font-semibold">{alert.critical_threshold}</span>
+                </div>
+              </>
+            )}
             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
               <Clock className="w-3 h-3" />
               {new Date(alert.created_at).toLocaleString('pt-BR')}
