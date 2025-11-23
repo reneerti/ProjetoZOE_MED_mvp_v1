@@ -5,7 +5,7 @@ interface LogoProps {
   onClick?: () => void;
 }
 
-export const Logo = ({ className = "w-16 h-16", onClick }: LogoProps) => {
+export const Logo = ({ className = "w-20 h-auto", onClick }: LogoProps) => {
   return (
     <img 
       src={logoImage} 
