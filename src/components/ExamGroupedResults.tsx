@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Droplet, Heart, Pill, TestTube, TrendingUp, Brain, CheckCircle, AlertTriangle } from "lucide-react";
+import { Activity, Droplet, Heart, Pill, TestTube, TrendingUp, Brain, CheckCircle, AlertTriangle, LineChart } from "lucide-react";
 import { ExamCategoryEvolutionModal } from "./ExamCategoryEvolutionModal";
+import { ParameterTrendChart } from "./ParameterTrendChart";
 
 interface GroupedResult {
   category_name: string;
@@ -24,6 +25,13 @@ interface ExamGroupedResultsProps {
 export const ExamGroupedResults = ({ groupedResults, statusFilter = 'all' }: ExamGroupedResultsProps) => {
   const [selectedGroup, setSelectedGroup] = useState<GroupedResult | null>(null);
   const [showEvolution, setShowEvolution] = useState(false);
+  const [selectedParameter, setSelectedParameter] = useState<{
+    name: string;
+    value: string | number;
+    unit?: string;
+    status: string;
+  } | null>(null);
+  const [showParameterTrend, setShowParameterTrend] = useState(false);
 
   // Filter groups based on status filter
   const filteredResults = groupedResults.map(group => {
@@ -196,14 +204,25 @@ export const ExamGroupedResults = ({ groupedResults, statusFilter = 'all' }: Exa
 
             <div className="space-y-3">
               {group.parameters.map((param, pIndex) => (
-                <div key={pIndex} className={`flex items-start justify-between gap-3 p-2 rounded-md ${
-                  param.status?.toLowerCase() === 'normal'
-                    ? 'bg-success/10 border border-success/30'
-                    : 'bg-background/50'
-                }`}>
+                <div 
+                  key={pIndex} 
+                  className={`flex items-start justify-between gap-3 p-2 rounded-md cursor-pointer transition-all hover:scale-[1.02] hover:shadow-md ${
+                    param.status?.toLowerCase() === 'normal'
+                      ? 'bg-success/10 border border-success/30'
+                      : 'bg-background/50'
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedParameter(param);
+                    setShowParameterTrend(true);
+                  }}
+                >
                   <div className="flex-1">
-                    <div className="text-sm text-foreground font-bold">
-                      {param.name}
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm text-foreground font-bold">
+                        {param.name}
+                      </div>
+                      <LineChart className="w-3.5 h-3.5 text-primary opacity-60" />
                     </div>
                     {param.reference_range && (
                       <div className="text-xs text-muted-foreground mt-0.5 italic">
@@ -233,6 +252,17 @@ export const ExamGroupedResults = ({ groupedResults, statusFilter = 'all' }: Exa
           onOpenChange={setShowEvolution}
           categoryName={selectedGroup.category_name}
           parameters={selectedGroup.parameters}
+        />
+      )}
+
+      {selectedParameter && (
+        <ParameterTrendChart
+          open={showParameterTrend}
+          onOpenChange={setShowParameterTrend}
+          parameterName={selectedParameter.name}
+          currentValue={selectedParameter.value}
+          unit={selectedParameter.unit}
+          status={selectedParameter.status}
         />
       )}
     </div>
