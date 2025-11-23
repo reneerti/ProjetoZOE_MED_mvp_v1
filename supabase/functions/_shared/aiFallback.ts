@@ -557,18 +557,28 @@ export async function callAIWithFallback(
   console.log('Using Groq API as final fallback...');
   const groqStartTime = Date.now();
 
+  const groqBody: any = {
+    model: 'llama-3.3-70b-versatile',
+    messages: options.messages,
+    temperature: options.temperature || 0.7,
+    max_tokens: options.max_tokens || 2048,
+  };
+
+  // Add tools if provided (Groq supports tool calling)
+  if (options.tools && options.tools.length > 0) {
+    groqBody.tools = options.tools;
+    if (options.tool_choice) {
+      groqBody.tool_choice = options.tool_choice;
+    }
+  }
+
   const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${GROQ_API_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages: options.messages,
-      temperature: options.temperature || 0.7,
-      max_tokens: options.max_tokens || 2048,
-    }),
+    body: JSON.stringify(groqBody),
   });
 
   if (!groqResponse.ok) {
@@ -595,7 +605,7 @@ export async function callAIWithFallback(
   }
 
   const groqData = await groqResponse.json();
-  const content = groqData.choices[0].message.content;
+  const message = groqData.choices[0].message;
   
   const responseTime = Date.now() - groqStartTime;
   const estimatedTokens = groqData.usage?.total_tokens || options.messages.reduce((sum, m) => sum + m.content.length / 4, 0);
@@ -618,7 +628,7 @@ export async function callAIWithFallback(
     await updateMonthlySpending(supabaseUrl, supabaseKey, estimatedCost);
   }
 
-  // Cache Groq response
+  // Cache Groq response (cache the full message including tool_calls if present)
   if (options.enableCache !== false) {
     await saveToCache(
       supabaseUrl,
@@ -626,7 +636,7 @@ export async function callAIWithFallback(
       functionName || 'unknown',
       promptHash,
       cacheKey,
-      { content },
+      message,
       'groq_api',
       'llama-3.3-70b-versatile',
       estimatedTokens
@@ -635,11 +645,8 @@ export async function callAIWithFallback(
 
   console.log(`✓ Groq fallback successful (${responseTime}ms)`);
 
-  return new Response(JSON.stringify({
-    choices: [{
-      message: { content }
-    }]
-  }), {
+  // Return the full response structure including tool_calls if present
+  return new Response(JSON.stringify(groqData), {
     headers: { 'Content-Type': 'application/json' }
   });
 }
