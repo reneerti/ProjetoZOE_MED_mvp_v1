@@ -20,6 +20,13 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [chartData, setChartData] = useState<any[]>([]);
 
+  const categoryLabels: Record<string, string> = {
+    all: 'Todas as Categorias',
+    cardiovascular: 'Cardiologia',
+    metabolico: 'Metabolismo',
+    hepatico: 'Função Hepática'
+  };
+
   useEffect(() => {
     fetchHealthData();
   }, []);
@@ -627,9 +634,23 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
         {/* Gráficos de Evolução Temporal */}
         {chartData.length > 0 && (
           <Card className="p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              <h3 className="font-semibold text-foreground">Evolução Temporal dos Parâmetros Críticos</h3>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary" />
+                <div>
+                  <h3 className="font-semibold text-foreground">Evolução Temporal dos Parâmetros Críticos</h3>
+                  <p className="text-xs text-muted-foreground">Últimos 6 meses - {selectedCategory === 'all' ? 'Todas as Categorias' : categoryLabels[selectedCategory]}</p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onNavigate('period-comparison')}
+                className="flex items-center gap-2"
+              >
+                <Activity className="w-4 h-4" />
+                Comparar Períodos
+              </Button>
             </div>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
