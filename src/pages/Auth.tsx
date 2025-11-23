@@ -147,7 +147,7 @@ const Auth = () => {
           <Button
             type="button"
             variant="outline"
-            className="w-full"
+            className="w-full transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:border-accent hover:bg-accent/5 hover:-translate-y-0.5"
             onClick={() => handleSocialLogin('google')}
             disabled={loading}
           >
@@ -175,7 +175,7 @@ const Auth = () => {
           <Button
             type="button"
             variant="outline"
-            className="w-full"
+            className="w-full transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:border-primary hover:bg-primary/5 hover:-translate-y-0.5"
             onClick={() => handleSocialLogin('apple')}
             disabled={loading}
           >
@@ -229,7 +229,7 @@ const Auth = () => {
 
           <Button 
             type="submit" 
-            className="w-full"
+            className="w-full transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:-translate-y-0.5"
             disabled={loading}
           >
             <Mail className="w-4 h-4 mr-2" />
@@ -241,7 +241,7 @@ const Auth = () => {
           <button
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-sm text-primary hover:underline"
+            className="text-sm text-primary hover:underline transition-all duration-200 hover:text-accent"
             disabled={loading}
           >
             {isSignUp 
