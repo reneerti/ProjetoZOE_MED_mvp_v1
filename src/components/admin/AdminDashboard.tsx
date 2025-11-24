@@ -13,6 +13,7 @@ import { SystemConfigManager } from "./SystemConfigManager";
 import { AuditLogsViewer } from "./AuditLogsViewer";
 import { AuditStatsDashboard } from "./AuditStatsDashboard";
 import { PWAManager } from "./PWAManager";
+import { AdminPasswordReset } from "./AdminPasswordReset";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin";
 
@@ -125,7 +126,7 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
       {/* Management Tabs */}
       <div className="p-6">
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 gap-1">
+          <TabsList className="grid w-full grid-cols-8 gap-1">
             <TabsTrigger value="users" className="text-xs">Usuários</TabsTrigger>
             <TabsTrigger value="controllers" className="text-xs">Controllers</TabsTrigger>
             <TabsTrigger value="plans" className="text-xs">Planos</TabsTrigger>
@@ -133,6 +134,7 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
             <TabsTrigger value="pwa" className="text-xs">Offline</TabsTrigger>
             <TabsTrigger value="audit" className="text-xs">Logs</TabsTrigger>
             <TabsTrigger value="stats" className="text-xs">Stats</TabsTrigger>
+            <TabsTrigger value="password" className="text-xs">Senha</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="mt-6">
@@ -161,6 +163,10 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
 
           <TabsContent value="stats" className="mt-6">
             <AuditStatsDashboard />
+          </TabsContent>
+
+          <TabsContent value="password" className="mt-6">
+            <AdminPasswordReset />
           </TabsContent>
         </Tabs>
       </div>
