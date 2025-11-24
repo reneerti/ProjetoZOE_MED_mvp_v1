@@ -1,5 +1,19 @@
 project_id = "irlfnzxmeympvsslbnwn"
 
+[auth]
+enable_signup = true
+enable_confirmations = false
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = false
+enable_confirmations = false
+
+# Permitir senhas de 3 caracteres apenas numéricas (provisório)
+[auth.password]
+min_length = 3
+required_characters = []
+
 [functions.test-monthly-report]
 verify_jwt = false
 
