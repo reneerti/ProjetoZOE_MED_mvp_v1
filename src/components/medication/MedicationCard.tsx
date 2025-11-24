@@ -14,9 +14,71 @@ interface MedicationCardProps {
 export const MedicationCard = ({ medication, onViewHistory, onDeactivate, onOpenDashboard }: MedicationCardProps) => {
   const getMedicationType = () => {
     const type = medication.schedule?.type || "oral";
-    if (type === "glp1") return { label: "GLP-1", badgeClass: "bg-accent/10 text-accent", iconBg: "bg-accent/10", iconColor: "text-accent" };
-    if (type === "injectable") return { label: "Injetável", badgeClass: "bg-success/10 text-success", iconBg: "bg-success/10", iconColor: "text-success" };
-    return { label: "Oral", badgeClass: "bg-muted text-muted-foreground", iconBg: "bg-primary/5", iconColor: "text-primary" };
+    const name = medication.medication_name.toLowerCase();
+    
+    // MONJARO - Destaque especial com gradiente moderno
+    if (name.includes('monjaro')) {
+      return { 
+        label: "GLP-1", 
+        badgeClass: "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800",
+        iconBg: "bg-gradient-to-br from-purple-500/20 to-pink-500/20",
+        iconColor: "text-purple-600 dark:text-purple-400",
+        cardBg: "bg-gradient-to-br from-purple-50/80 to-pink-50/80 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200/50 dark:border-purple-800/50"
+      };
+    }
+    
+    // Vitamina B12 - Azul vibrante
+    if (name.includes('b12') || name.includes('b-12')) {
+      return { 
+        label: "Injetável", 
+        badgeClass: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800",
+        iconBg: "bg-blue-500/10",
+        iconColor: "text-blue-600 dark:text-blue-400",
+        cardBg: "bg-blue-50/80 dark:bg-blue-950/20 border-blue-200/50 dark:border-blue-800/50"
+      };
+    }
+    
+    // Vitaminas gerais - Verde natural
+    if (name.includes('vitamin') || name.includes('multivit') || name.includes('complexo')) {
+      return { 
+        label: "Oral", 
+        badgeClass: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800",
+        iconBg: "bg-emerald-500/10",
+        iconColor: "text-emerald-600 dark:text-emerald-400",
+        cardBg: "bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/50"
+      };
+    }
+    
+    // GLP-1 genérico - Roxo/Rosa
+    if (type === "glp1") {
+      return { 
+        label: "GLP-1", 
+        badgeClass: "bg-accent/10 text-accent border border-accent/20",
+        iconBg: "bg-accent/10",
+        iconColor: "text-accent",
+        cardBg: "bg-accent/5 dark:bg-accent/10 border-accent/20"
+      };
+    }
+    
+    // Injetável genérico - Laranja
+    if (type === "injectable") {
+      return { 
+        label: "Injetável", 
+        badgeClass: "bg-orange-500/10 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800",
+        iconBg: "bg-orange-500/10",
+        iconColor: "text-orange-600 dark:text-orange-400",
+        cardBg: "bg-orange-50/80 dark:bg-orange-950/20 border-orange-200/50 dark:border-orange-800/50"
+      };
+    }
+    
+    // Oral padrão - Cinza neutro
+    return { 
+      label: "Oral", 
+      badgeClass: "bg-muted text-muted-foreground border border-border",
+      iconBg: "bg-muted",
+      iconColor: "text-muted-foreground",
+      cardBg: "bg-card border-border"
+    };
   };
 
   const typeInfo = getMedicationType();
@@ -25,7 +87,9 @@ export const MedicationCard = ({ medication, onViewHistory, onDeactivate, onOpen
 
   return (
     <Card 
-      className={`p-4 hover:shadow-md transition-all ${isMonjaro ? 'cursor-pointer hover:border-accent' : ''}`}
+      className={`p-4 hover:shadow-lg transition-all duration-300 border ${typeInfo.cardBg} ${
+        isMonjaro ? 'cursor-pointer hover:scale-[1.02] hover:shadow-xl' : 'hover:scale-[1.01]'
+      }`}
       onClick={() => isMonjaro && onOpenDashboard && onOpenDashboard(medication)}
     >
       <div className="flex items-start gap-3">
