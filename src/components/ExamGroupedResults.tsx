@@ -54,7 +54,11 @@ export const ExamGroupedResults = ({ groupedResults, statusFilter = 'all' }: Exa
     setShowEvolution(true);
   };
 
-  const getCategoryIcon = (iconName: string) => {
+  const getCategoryIcon = (iconName: string | undefined | null) => {
+    if (!iconName) {
+      return <TestTube className="w-5 h-5" />;
+    }
+    
     switch (iconName.toLowerCase()) {
       case "heart":
       case "glicemia":
