@@ -20,54 +20,54 @@ export const MedicationCard = ({ medication, onViewHistory, onDeactivate, onOpen
     if (name.includes('monjaro')) {
       return { 
         label: "GLP-1", 
-        badgeClass: "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800",
-        iconBg: "bg-gradient-to-br from-purple-500/20 to-pink-500/20",
+        badgeClass: "bg-purple-100/80 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-0",
+        iconBg: "bg-gradient-to-br from-purple-100/80 to-pink-100/80 dark:from-purple-900/30 dark:to-pink-900/30",
         iconColor: "text-purple-600 dark:text-purple-400",
-        cardBg: "bg-gradient-to-br from-purple-50/80 to-pink-50/80 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200/50 dark:border-purple-800/50"
+        cardBg: "bg-gradient-to-br from-purple-50/60 to-pink-50/60 dark:from-purple-950/15 dark:to-pink-950/15 border-purple-200/30 dark:border-purple-800/30"
       };
     }
     
-    // Vitamina B12 - Azul vibrante
+    // Vitamina B12 - Azul suave
     if (name.includes('b12') || name.includes('b-12')) {
       return { 
         label: "Injetável", 
-        badgeClass: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800",
-        iconBg: "bg-blue-500/10",
-        iconColor: "text-blue-600 dark:text-blue-400",
-        cardBg: "bg-blue-50/80 dark:bg-blue-950/20 border-blue-200/50 dark:border-blue-800/50"
+        badgeClass: "bg-sky-100/80 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 border-0",
+        iconBg: "bg-sky-100/80 dark:bg-sky-900/30",
+        iconColor: "text-sky-600 dark:text-sky-400",
+        cardBg: "bg-sky-50/60 dark:bg-sky-950/15 border-sky-200/30 dark:border-sky-800/30"
       };
     }
     
-    // Vitaminas gerais - Verde natural
+    // Vitaminas gerais - Verde alegre
     if (name.includes('vitamin') || name.includes('multivit') || name.includes('complexo')) {
       return { 
         label: "Oral", 
-        badgeClass: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800",
-        iconBg: "bg-emerald-500/10",
+        badgeClass: "bg-emerald-100/80 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-0",
+        iconBg: "bg-emerald-100/80 dark:bg-emerald-900/30",
         iconColor: "text-emerald-600 dark:text-emerald-400",
-        cardBg: "bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/50"
+        cardBg: "bg-emerald-50/60 dark:bg-emerald-950/15 border-emerald-200/30 dark:border-emerald-800/30"
       };
     }
     
-    // GLP-1 genérico - Roxo/Rosa
+    // GLP-1 genérico - Roxo suave
     if (type === "glp1") {
       return { 
         label: "GLP-1", 
-        badgeClass: "bg-accent/10 text-accent border border-accent/20",
-        iconBg: "bg-accent/10",
-        iconColor: "text-accent",
-        cardBg: "bg-accent/5 dark:bg-accent/10 border-accent/20"
+        badgeClass: "bg-violet-100/80 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border-0",
+        iconBg: "bg-violet-100/80 dark:bg-violet-900/30",
+        iconColor: "text-violet-600 dark:text-violet-400",
+        cardBg: "bg-violet-50/60 dark:bg-violet-950/15 border-violet-200/30 dark:border-violet-800/30"
       };
     }
     
-    // Injetável genérico - Laranja
+    // Injetável genérico - Laranja alegre
     if (type === "injectable") {
       return { 
         label: "Injetável", 
-        badgeClass: "bg-orange-500/10 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800",
-        iconBg: "bg-orange-500/10",
-        iconColor: "text-orange-600 dark:text-orange-400",
-        cardBg: "bg-orange-50/80 dark:bg-orange-950/20 border-orange-200/50 dark:border-orange-800/50"
+        badgeClass: "bg-amber-100/80 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-0",
+        iconBg: "bg-amber-100/80 dark:bg-amber-900/30",
+        iconColor: "text-amber-600 dark:text-amber-400",
+        cardBg: "bg-amber-50/60 dark:bg-amber-950/15 border-amber-200/30 dark:border-amber-800/30"
       };
     }
     

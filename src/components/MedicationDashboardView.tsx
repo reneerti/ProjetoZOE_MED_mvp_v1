@@ -114,17 +114,20 @@ export const MedicationDashboardView = ({ onNavigate }: MedicationDashboardViewP
 
         {/* Estatísticas Gerais */}
         <div className="grid grid-cols-3 gap-4">
-          <Card className="p-4 text-center">
-            <div className="text-2xl font-bold text-accent mb-1">8</div>
-            <div className="text-xs text-muted-foreground">Aplicações</div>
+          <Card className="p-4 text-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200/50 dark:border-purple-800/50">
+            <Calendar className="w-6 h-6 text-purple-500 dark:text-purple-400 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-purple-700 dark:text-purple-300 mb-1">8</div>
+            <div className="text-xs text-purple-600/80 dark:text-purple-400/80">Aplicações</div>
           </Card>
-          <Card className="p-4 text-center">
-            <div className="text-2xl font-bold text-primary mb-1">5.0 mg</div>
-            <div className="text-xs text-muted-foreground">Dose Atual</div>
+          <Card className="p-4 text-center bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-950/20 dark:to-rose-950/20 border-pink-200/50 dark:border-pink-800/50">
+            <Activity className="w-6 h-6 text-pink-500 dark:text-pink-400 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-pink-700 dark:text-pink-300 mb-1">5.0 mg</div>
+            <div className="text-xs text-pink-600/80 dark:text-pink-400/80">Dose Atual</div>
           </Card>
-          <Card className="p-4 text-center">
-            <div className="text-2xl font-bold text-success mb-1">100%</div>
-            <div className="text-xs text-muted-foreground">Adesão</div>
+          <Card className="p-4 text-center bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 border-emerald-200/50 dark:border-emerald-800/50">
+            <TrendingUp className="w-6 h-6 text-emerald-500 dark:text-emerald-400 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mb-1">100%</div>
+            <div className="text-xs text-emerald-600/80 dark:text-emerald-400/80">Adesão</div>
           </Card>
         </div>
 
