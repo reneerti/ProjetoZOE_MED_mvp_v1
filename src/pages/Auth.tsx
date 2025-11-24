@@ -219,11 +219,14 @@ const Auth = () => {
             </label>
             <Input
               id="password"
-              type="password"
-              placeholder="••••••••"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="123"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value.replace(/\D/g, ''))}
               disabled={loading}
+              maxLength={3}
             />
             {isSignUp && <PasswordStrengthMeter password={password} />}
           </div>

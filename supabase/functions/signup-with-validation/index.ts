@@ -31,7 +31,12 @@ serve(async (req) => {
     // Server-side password validation using database function
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
 
     const { data: validationResult, error: validationError } = await supabase
       .rpc('validate_password_strength', { password_text: password });
