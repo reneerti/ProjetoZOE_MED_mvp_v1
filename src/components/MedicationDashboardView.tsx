@@ -188,6 +188,43 @@ export const MedicationDashboardView = ({ onNavigate }: MedicationDashboardViewP
             ))}
           </div>
         </Card>
+
+        {/* Análise de IA */}
+        <Card className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Activity className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">Análise Inteligente</h3>
+              <p className="text-xs text-muted-foreground">Baseada no seu histórico de tratamento</p>
+            </div>
+          </div>
+          
+          <div className="space-y-3 text-sm text-foreground">
+            <p>
+              Seu tratamento com Monjaro está evoluindo de forma consistente. A titulação gradual de 2.5mg para 5.0mg 
+              demonstra uma progressão adequada, respeitando o protocolo médico recomendado de 4 semanas entre aumentos de dose.
+            </p>
+            
+            <p>
+              A adesão de <strong className="text-success">100%</strong> às aplicações programadas é excelente e fundamental para 
+              a eficácia do tratamento. Manter esse padrão de regularidade otimiza os resultados terapêuticos e minimiza 
+              potenciais efeitos adversos.
+            </p>
+
+            <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg mt-4">
+              <p className="text-sm font-medium text-foreground flex items-start gap-2">
+                <span className="text-warning text-lg">⚕️</span>
+                <span>
+                  <strong>Importante:</strong> Esta análise é informativa e não substitui a orientação médica. 
+                  Sempre mantenha acompanhamento regular com seu endocrinologista ou médico especialista para 
+                  avaliação clínica, ajustes de dosagem e monitoramento de possíveis efeitos colaterais.
+                </span>
+              </p>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );
