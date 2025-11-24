@@ -112,16 +112,15 @@ export const SupplementCard = ({ supplement, onUpdate, onViewHistory }: Suppleme
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Button
-            size="sm"
-            variant="outline"
+            size="icon"
+            variant="ghost"
             onClick={handleLogIntake}
             disabled={logging}
-            className="h-8 gap-2"
+            className="h-8 w-8 text-success hover:bg-success/10"
           >
             <Check className="w-4 h-4" />
-            Tomei
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
