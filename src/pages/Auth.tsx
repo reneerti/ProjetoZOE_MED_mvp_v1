@@ -27,6 +27,8 @@ const Auth = () => {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
+        // Sempre redirecionar para dashboard ao fazer login
+        localStorage.setItem('currentView', 'dashboard');
         navigate("/");
       }
     });
@@ -92,6 +94,8 @@ const Auth = () => {
 
         if (error) throw error;
         
+        // Sempre redirecionar para dashboard ao fazer login
+        localStorage.setItem('currentView', 'dashboard');
         toast.success("Login realizado com sucesso!");
         navigate("/");
       }

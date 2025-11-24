@@ -21,7 +21,8 @@ export const PWAInstallPrompt = () => {
       // Check if user dismissed before
       const dismissed = localStorage.getItem('pwa-install-dismissed');
       if (!dismissed) {
-        setShowPrompt(true);
+        // Mostrar prompt após 3 segundos
+        setTimeout(() => setShowPrompt(true), 3000);
       }
     };
 

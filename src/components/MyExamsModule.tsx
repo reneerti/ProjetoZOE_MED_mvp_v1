@@ -70,9 +70,20 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    loadGroupedExams();
-    loadUploadedExams();
-    loadPatientAnalysis();
+    const loadData = async () => {
+      try {
+        await Promise.all([
+          loadGroupedExams(),
+          loadUploadedExams(),
+          loadPatientAnalysis()
+        ]);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        toast.error("Erro ao carregar dados. Tente novamente.");
+      }
+    };
+
+    loadData();
 
     // Escutar mudanças em tempo real nos exames
     const channel = supabase
@@ -114,8 +125,15 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
 
   const loadGroupedExams = async () => {
     try {
+      setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.error('No user found');
+        setLoading(false);
+        return;
+      }
+
+      setUserId(user.id);
 
       // Buscar exames com categorias e resultados
       const { data: examImages, error: examError } = await supabase
@@ -172,6 +190,7 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
       setGroupedExams(Object.values(grouped));
     } catch (error) {
       console.error('Error loading grouped exams:', error);
+      toast.error("Erro ao carregar exames");
     } finally {
       setLoading(false);
     }
@@ -480,22 +499,29 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
 
   return (
     <div className="animate-fade-in pb-24">
-      <UploadStatsDialog open={showStats} onOpenChange={setShowStats} userId={userId} />
-      <ImagePreviewDialog
-        open={showPreview}
-        onOpenChange={setShowPreview}
-        imageUrl={previewUrl}
-        fileName={previewFile?.name || ""}
-        originalSize={originalSize}
-        compressedSize={compressedSize}
-        isCompressing={isCompressing}
-        onConfirm={handleFileUpload}
-        onCancel={() => {
-          setShowPreview(false);
-          setPreviewFile(null);
-          setPreviewUrl("");
-        }}
-      />
+      {loading ? (
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+          <p className="text-sm text-muted-foreground">Carregando exames...</p>
+        </div>
+      ) : (
+        <>
+          <UploadStatsDialog open={showStats} onOpenChange={setShowStats} userId={userId} />
+          <ImagePreviewDialog
+            open={showPreview}
+            onOpenChange={setShowPreview}
+            imageUrl={previewUrl}
+            fileName={previewFile?.name || ""}
+            originalSize={originalSize}
+            compressedSize={compressedSize}
+            isCompressing={isCompressing}
+            onConfirm={handleFileUpload}
+            onCancel={() => {
+              setShowPreview(false);
+              setPreviewFile(null);
+              setPreviewUrl("");
+            }}
+          />
       
       <input
         ref={cameraInputRef}
@@ -754,6 +780,8 @@ export const MyExamsModule = ({ onNavigate }: MyExamsModuleProps) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+        </>
+      )}
     </div>
   );
 };
