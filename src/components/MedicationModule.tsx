@@ -171,53 +171,77 @@ export const MedicationModule = ({ onNavigate }: MedicationModuleProps) => {
                 Adicionar
               </Button>
             </div>
-            
-            <div className="space-y-3">
-              {medications.filter(m => m.active).map((medication) => (
-                <MedicationCard
-                  key={medication.id}
-                  medication={medication}
-                  onViewHistory={handleViewHistory}
-                  onDeactivate={handleDeactivate}
-                  onOpenDashboard={handleOpenDashboard}
-                />
-              ))}
-            </div>
+
+            {(() => {
+              const uniqueActive = Array.from(
+                new Map(
+                  medications
+                    .filter((m) => m.active)
+                    .map((m) => [`${m.medication_name}-${m.active}`, m])
+                ).values()
+              );
+
+              return (
+                <div className="space-y-3">
+                  {uniqueActive.map((medication) => (
+                    <MedicationCard
+                      key={medication.id}
+                      medication={medication}
+                      onViewHistory={handleViewHistory}
+                      onDeactivate={handleDeactivate}
+                      onOpenDashboard={handleOpenDashboard}
+                    />
+                  ))}
+                </div>
+              );
+            })()}
           </div>
 
-          {medications.filter(m => !m.active).length > 0 && (
-            <div className="px-6 pb-6">
-              <h2 className="text-lg font-semibold text-foreground mb-3">Histórico</h2>
-              <div className="space-y-3 opacity-60">
-                {medications.filter(m => !m.active).map((medication) => (
-                  <Card key={medication.id} className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-sm">{medication.medication_name}</h3>
-                        <p className="text-xs text-muted-foreground">{medication.current_dose}</p>
+          {(() => {
+            const uniqueInactive = Array.from(
+              new Map(
+                medications
+                  .filter((m) => !m.active)
+                  .map((m) => [`${m.medication_name}-${m.active}`, m])
+              ).values()
+            );
+
+            if (uniqueInactive.length === 0) return null;
+
+            return (
+              <div className="px-6 pb-6">
+                <h2 className="text-lg font-semibold text-foreground mb-3">Histórico</h2>
+                <div className="space-y-3 opacity-60">
+                  {uniqueInactive.map((medication) => (
+                    <Card key={medication.id} className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-sm">{medication.medication_name}</h3>
+                          <p className="text-xs text-muted-foreground">{medication.current_dose}</p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleViewHistory(medication)}
+                        >
+                          Ver
+                        </Button>
                       </div>
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => handleViewHistory(medication)}
-                      >
-                        Ver
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </>
       )}
-
+ 
       <MedicationCreateDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         onSuccess={fetchMedications}
       />
-
+ 
       <MedicationHistoryDialog
         open={showHistoryDialog}
         onOpenChange={setShowHistoryDialog}
