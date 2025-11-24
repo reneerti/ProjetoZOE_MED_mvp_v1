@@ -12,6 +12,7 @@ import { ControllersManager } from "./ControllersManager";
 import { SystemConfigManager } from "./SystemConfigManager";
 import { AuditLogsViewer } from "./AuditLogsViewer";
 import { AuditStatsDashboard } from "./AuditStatsDashboard";
+import { PWAManager } from "./PWAManager";
 
 type View = "dashboard" | "exams" | "myexams" | "bioimpedance" | "medication" | "evolution" | "profile" | "goals" | "resources" | "supplements" | "exam-charts" | "alerts" | "period-comparison" | "admin";
 
@@ -124,13 +125,14 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
       {/* Management Tabs */}
       <div className="p-6">
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="users">Usuários</TabsTrigger>
-            <TabsTrigger value="controllers">Controladores</TabsTrigger>
-            <TabsTrigger value="plans">Planos</TabsTrigger>
-            <TabsTrigger value="config">Configurações</TabsTrigger>
-            <TabsTrigger value="audit">Logs</TabsTrigger>
-            <TabsTrigger value="stats">Estatísticas</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-7 gap-1">
+            <TabsTrigger value="users" className="text-xs">Usuários</TabsTrigger>
+            <TabsTrigger value="controllers" className="text-xs">Controllers</TabsTrigger>
+            <TabsTrigger value="plans" className="text-xs">Planos</TabsTrigger>
+            <TabsTrigger value="config" className="text-xs">Config</TabsTrigger>
+            <TabsTrigger value="pwa" className="text-xs">Offline</TabsTrigger>
+            <TabsTrigger value="audit" className="text-xs">Logs</TabsTrigger>
+            <TabsTrigger value="stats" className="text-xs">Stats</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="mt-6">
@@ -147,6 +149,10 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
 
           <TabsContent value="config" className="mt-6">
             <SystemConfigManager />
+          </TabsContent>
+
+          <TabsContent value="pwa" className="mt-6">
+            <PWAManager />
           </TabsContent>
 
           <TabsContent value="audit" className="mt-6">
