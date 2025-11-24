@@ -37,6 +37,9 @@ const Auth = () => {
   const passwordSchema = z.string()
     .min(3, 'A senha deve ter no mínimo 3 caracteres')
     .regex(/^[0-9]+$/, 'A senha deve conter apenas números');
+  
+  const loginPasswordSchema = z.string()
+    .min(3, 'A senha deve ter no mínimo 3 caracteres');
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,14 +222,14 @@ const Auth = () => {
             </label>
             <Input
               id="password"
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              placeholder="123"
+              type={isSignUp ? "text" : "password"}
+              inputMode={isSignUp ? "numeric" : undefined}
+              pattern={isSignUp ? "[0-9]*" : undefined}
+              placeholder={isSignUp ? "123" : "Digite sua senha"}
               value={password}
-              onChange={(e) => setPassword(e.target.value.replace(/\D/g, ''))}
+              onChange={(e) => setPassword(isSignUp ? e.target.value.replace(/\D/g, '') : e.target.value)}
               disabled={loading}
-              maxLength={3}
+              maxLength={isSignUp ? 3 : undefined}
             />
             {isSignUp && <PasswordStrengthMeter password={password} />}
           </div>
