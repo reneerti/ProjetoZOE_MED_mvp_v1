@@ -87,26 +87,26 @@ export const SupplementCard = ({ supplement, onUpdate, onViewHistory }: Suppleme
   };
 
   return (
-    <Card className="p-4">
+    <Card className="p-4 overflow-hidden">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 flex-1">
+        <div className="flex items-start gap-3 flex-1 min-w-0">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
             <Pill className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h3 className="font-semibold text-sm truncate">{supplement.supplement_name}</h3>
-              <Badge variant="secondary" className={`text-xs ${getTypeColor(supplement.supplement_type)}`}>
+              <Badge variant="secondary" className={`text-xs shrink-0 ${getTypeColor(supplement.supplement_type)}`}>
                 {supplement.supplement_type}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground mb-2">
+            <p className="text-sm text-muted-foreground mb-2 break-words">
               {supplement.current_dose} {supplement.unit} • {supplement.frequency}
             </p>
             {supplement.time_of_day && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Clock className="w-3 h-3" />
-                {supplement.time_of_day}
+              <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+                <Clock className="w-3 h-3 shrink-0" />
+                <span className="truncate">{supplement.time_of_day}</span>
               </div>
             )}
           </div>
