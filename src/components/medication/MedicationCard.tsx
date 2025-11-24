@@ -16,57 +16,57 @@ export const MedicationCard = ({ medication, onViewHistory, onDeactivate, onOpen
     const type = medication.schedule?.type || "oral";
     const name = medication.medication_name.toLowerCase();
     
-    // MONJARO - Destaque especial com gradiente moderno
+    // MONJARO - Destaque com cores do tema
     if (name.includes('monjaro')) {
       return { 
         label: "GLP-1", 
-        badgeClass: "bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border-0",
-        iconBg: "bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/40",
-        iconColor: "text-purple-500 dark:text-purple-400",
+        badgeClass: "bg-primary/10 text-primary border-0",
+        iconBg: "bg-primary/10",
+        iconColor: "text-primary",
         cardBg: "bg-card border-border"
       };
     }
     
-    // Vitamina B12 - Azul suave
+    // Vitamina B12 - Tema padrão
     if (name.includes('b12') || name.includes('b-12')) {
       return { 
         label: "Injetável", 
-        badgeClass: "bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 border-0",
-        iconBg: "bg-sky-50 dark:bg-sky-950/40",
-        iconColor: "text-sky-500 dark:text-sky-400",
+        badgeClass: "bg-secondary/10 text-secondary border-0",
+        iconBg: "bg-secondary/10",
+        iconColor: "text-secondary",
         cardBg: "bg-card border-border"
       };
     }
     
-    // Vitaminas gerais - Verde alegre
+    // Vitaminas gerais - Tema padrão
     if (name.includes('vitamin') || name.includes('multivit') || name.includes('complexo')) {
       return { 
         label: "Oral", 
-        badgeClass: "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-0",
-        iconBg: "bg-emerald-50 dark:bg-emerald-950/40",
-        iconColor: "text-emerald-500 dark:text-emerald-400",
+        badgeClass: "bg-success/10 text-success border-0",
+        iconBg: "bg-success/10",
+        iconColor: "text-success",
         cardBg: "bg-card border-border"
       };
     }
     
-    // GLP-1 genérico - Roxo suave
+    // GLP-1 genérico - Tema padrão
     if (type === "glp1") {
       return { 
         label: "GLP-1", 
-        badgeClass: "bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 border-0",
-        iconBg: "bg-violet-50 dark:bg-violet-950/40",
-        iconColor: "text-violet-500 dark:text-violet-400",
+        badgeClass: "bg-accent/10 text-accent border-0",
+        iconBg: "bg-accent/10",
+        iconColor: "text-accent",
         cardBg: "bg-card border-border"
       };
     }
     
-    // Injetável genérico - Laranja alegre
+    // Injetável genérico - Tema padrão
     if (type === "injectable") {
       return { 
         label: "Injetável", 
-        badgeClass: "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-0",
-        iconBg: "bg-amber-50 dark:bg-amber-950/40",
-        iconColor: "text-amber-500 dark:text-amber-400",
+        badgeClass: "bg-warning/10 text-warning border-0",
+        iconBg: "bg-warning/10",
+        iconColor: "text-warning",
         cardBg: "bg-card border-border"
       };
     }

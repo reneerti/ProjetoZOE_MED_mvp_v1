@@ -503,58 +503,6 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
               </div>
 
               <div className="space-y-3">
-                {/* Parâmetros Críticos */}
-                {criticalParams.map((param: any, idx: number) => (
-                  <div key={`crit-${idx}`} className="p-4 bg-destructive/10 rounded-lg">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge className="bg-destructive text-white text-xs">CRÍTICO</Badge>
-                          <span className="text-sm text-muted-foreground">{param.category}</span>
-                        </div>
-                        <h4 className="font-bold text-foreground">{param.name}</h4>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Ref: {param.reference_range}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-destructive">
-                          {param.value} {param.unit}
-                        </p>
-                        <Badge className="bg-destructive text-white mt-1">
-                          ⚠ Muito Alto
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Parâmetros Altos */}
-                {highParams.map((param: any, idx: number) => (
-                  <div key={`high-${idx}`} className="p-4 bg-warning/10 rounded-lg">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge className="bg-warning text-white text-xs">ALTO</Badge>
-                          <span className="text-sm text-muted-foreground">{param.category}</span>
-                        </div>
-                        <h4 className="font-semibold text-foreground">{param.name}</h4>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Ref: {param.reference_range}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xl font-bold text-warning">
-                          {param.value} {param.unit}
-                        </p>
-                        <Badge className="bg-warning text-white mt-1">
-                          ↑ Elevado
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
                 {/* Pré-diagnósticos de Alta Severidade */}
                 {highSeverityDiagnostics.map((diagnostic: any, idx: number) => (
                   <div key={`diag-${idx}`} className="p-4 bg-destructive/10 rounded-lg">
@@ -565,9 +513,28 @@ export const HealthDashboardView = ({ onNavigate }: HealthDashboardViewProps) =>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <Badge className="bg-destructive text-white">ATENÇÃO</Badge>
-                          <h4 className="font-bold text-foreground">{diagnostic.name}</h4>
+                          <h4 
+                            className="font-bold text-foreground"
+                            dangerouslySetInnerHTML={{ 
+                              __html: diagnostic.name
+                                .replace(/Esteatose Hepática/gi, '<strong>Esteatose Hepática</strong>')
+                                .replace(/Fígado Gorduroso/gi, '<strong>Fígado Gorduroso</strong>')
+                                .replace(/Processo Inflamatório Sistêmico/gi, '<strong>Processo Inflamatório Sistêmico</strong>')
+                                .replace(/Síndrome Metabólica/gi, '<strong>Síndrome Metabólica</strong>')
+                            }}
+                          />
                         </div>
-                        <p className="text-sm text-foreground mb-3">{diagnostic.explanation}</p>
+                        <p 
+                          className="text-sm text-foreground mb-3"
+                          dangerouslySetInnerHTML={{ 
+                            __html: diagnostic.explanation
+                              .replace(/Função Hepática/gi, '<strong>Função Hepática</strong>')
+                              .replace(/Esteatose Hepática/gi, '<strong>Esteatose Hepática</strong>')
+                              .replace(/Fígado Gorduroso/gi, '<strong>Fígado Gorduroso</strong>')
+                              .replace(/Processo Inflamatório Sistêmico/gi, '<strong>Processo Inflamatório Sistêmico</strong>')
+                              .replace(/Síndrome Metabólica/gi, '<strong>Síndrome Metabólica</strong>')
+                          }}
+                        />
                         {diagnostic.related_parameters && diagnostic.related_parameters.length > 0 && (
                           <div className="space-y-1 mb-3">
                             {diagnostic.related_parameters.map((param: any, pidx: number) => (
