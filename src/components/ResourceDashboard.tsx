@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Database, HardDrive, TrendingUp, DollarSign, RefreshCw, Trash2, LineChart, Shield } from "lucide-react";
+import { Database, HardDrive, TrendingUp, DollarSign, RefreshCw, Trash2, LineChart, Shield, Download, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,11 +27,48 @@ export const ResourceDashboard = ({ onNavigate }: ResourceDashboardProps) => {
   const [cleaning, setCleaning] = useState(false);
   const { user, hasRole } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
     fetchStats();
     checkAdminRole();
+    setupPWA();
   }, []);
+
+  const setupPWA = () => {
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+    }
+
+    // Listen for install prompt
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  };
+
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) {
+      toast.info("Este app já está instalado ou o navegador não suporta instalação.");
+      return;
+    }
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+
+    if (outcome === 'accepted') {
+      toast.success('App instalado com sucesso! Acesse pelo ícone na tela inicial.');
+      setIsInstalled(true);
+    }
+
+    setDeferredPrompt(null);
+  };
 
   const checkAdminRole = async () => {
     if (!user) return;
@@ -147,6 +184,66 @@ export const ResourceDashboard = ({ onNavigate }: ResourceDashboardProps) => {
           Atualizar
         </Button>
       </div>
+
+      {/* Install App Offline */}
+      <Card className="p-6 bg-gradient-to-br from-success/10 to-primary/10 border-success/20">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-success to-primary flex items-center justify-center flex-shrink-0">
+            <Smartphone className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="font-semibold text-foreground">Instalar Aplicativo</h3>
+              {isInstalled && (
+                <span className="px-2 py-0.5 text-xs font-semibold bg-success/20 text-success rounded-full">
+                  ✓ Instalado
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Instale o ZoeMed na tela inicial do seu dispositivo para acesso rápido e funcionamento offline
+            </p>
+            <div className="space-y-2 mb-4">
+              <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                <Download className="w-3 h-3 mt-0.5 text-success" />
+                <span>Acesso instantâneo sem abrir o navegador</span>
+              </div>
+              <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                <Database className="w-3 h-3 mt-0.5 text-success" />
+                <span>Funciona offline após primeira instalação</span>
+              </div>
+              <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                <Smartphone className="w-3 h-3 mt-0.5 text-success" />
+                <span>Experiência como app nativo</span>
+              </div>
+            </div>
+            {!isInstalled && deferredPrompt && (
+              <Button 
+                onClick={handleInstallApp}
+                variant="default"
+                className="w-full sm:w-auto bg-success hover:bg-success/90"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Instalar Agora
+              </Button>
+            )}
+            {isInstalled && (
+              <div className="p-3 bg-success/10 border border-success/20 rounded-lg">
+                <p className="text-sm text-success font-medium">
+                  ✓ App instalado! Acesse pelo ícone na sua tela inicial.
+                </p>
+              </div>
+            )}
+            {!isInstalled && !deferredPrompt && (
+              <div className="p-3 bg-muted/50 border border-border rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  💡 <strong>Dica:</strong> No celular, use o menu do navegador (⋮) e selecione "Adicionar à tela inicial" ou "Instalar app"
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
 
       {/* AI Monitoring Button */}
       <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent/10">
