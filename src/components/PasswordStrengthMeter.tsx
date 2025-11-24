@@ -9,11 +9,8 @@ interface PasswordStrengthMeterProps {
 export const PasswordStrengthMeter = ({ password }: PasswordStrengthMeterProps) => {
   const checks = useMemo(() => {
     return {
-      length: password.length >= 6,
-      uppercase: /[A-Z]/.test(password),
-      lowercase: /[a-z]/.test(password),
-      number: /[0-9]/.test(password),
-      special: /[^A-Za-z0-9]/.test(password),
+      length: password.length >= 3,
+      numeric: /^[0-9]+$/.test(password),
     };
   }, [password]);
 
@@ -21,9 +18,9 @@ export const PasswordStrengthMeter = ({ password }: PasswordStrengthMeterProps) 
     const score = Object.values(checks).filter(Boolean).length;
     return {
       score,
-      percentage: (score / 5) * 100,
-      label: score === 0 ? "" : score <= 2 ? "Fraca" : score <= 4 ? "Média" : "Forte",
-      color: score === 0 ? "" : score <= 2 ? "bg-destructive" : score <= 4 ? "bg-warning" : "bg-success",
+      percentage: (score / 2) * 100,
+      label: score === 0 ? "" : score === 1 ? "Incompleta" : "Válida",
+      color: score === 0 ? "" : score === 1 ? "bg-warning" : "bg-success",
     };
   }, [checks]);
 
@@ -41,11 +38,8 @@ export const PasswordStrengthMeter = ({ password }: PasswordStrengthMeterProps) 
       </div>
       
       <div className="space-y-1">
-        <RequirementItem met={checks.length} text="Mínimo de 6 caracteres" />
-        <RequirementItem met={checks.uppercase} text="Letra maiúscula" />
-        <RequirementItem met={checks.lowercase} text="Letra minúscula" />
-        <RequirementItem met={checks.number} text="Número" />
-        <RequirementItem met={checks.special} text="Caractere especial" />
+        <RequirementItem met={checks.length} text="Mínimo de 3 caracteres" />
+        <RequirementItem met={checks.numeric} text="Apenas números" />
       </div>
     </div>
   );
