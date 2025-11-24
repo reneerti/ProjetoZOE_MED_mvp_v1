@@ -196,7 +196,11 @@ export const ExamGroupedResults = ({ groupedResults, statusFilter = 'all' }: Exa
                   {getCategoryIcon(group.category_icon)}
                 </div>
                 <h3 className="font-bold text-foreground text-base">
-                  {group.category_name}
+                  {group.category_name === "Função Hepática" ? (
+                    <strong>{group.category_name}</strong>
+                  ) : (
+                    group.category_name
+                  )}
                 </h3>
               </div>
               {!hasAbnormal ? (
