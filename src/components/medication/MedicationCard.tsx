@@ -20,10 +20,10 @@ export const MedicationCard = ({ medication, onViewHistory, onDeactivate, onOpen
     if (name.includes('monjaro')) {
       return { 
         label: "GLP-1", 
-        badgeClass: "bg-purple-100/80 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-0",
-        iconBg: "bg-gradient-to-br from-purple-100/80 to-pink-100/80 dark:from-purple-900/30 dark:to-pink-900/30",
-        iconColor: "text-purple-600 dark:text-purple-400",
-        cardBg: "bg-gradient-to-br from-purple-50/60 to-pink-50/60 dark:from-purple-950/15 dark:to-pink-950/15 border-purple-200/30 dark:border-purple-800/30"
+        badgeClass: "bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border-0",
+        iconBg: "bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/40",
+        iconColor: "text-purple-500 dark:text-purple-400",
+        cardBg: "bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-100 dark:border-purple-900/30"
       };
     }
     
@@ -31,10 +31,10 @@ export const MedicationCard = ({ medication, onViewHistory, onDeactivate, onOpen
     if (name.includes('b12') || name.includes('b-12')) {
       return { 
         label: "Injetável", 
-        badgeClass: "bg-sky-100/80 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 border-0",
-        iconBg: "bg-sky-100/80 dark:bg-sky-900/30",
-        iconColor: "text-sky-600 dark:text-sky-400",
-        cardBg: "bg-sky-50/60 dark:bg-sky-950/15 border-sky-200/30 dark:border-sky-800/30"
+        badgeClass: "bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 border-0",
+        iconBg: "bg-sky-50 dark:bg-sky-950/40",
+        iconColor: "text-sky-500 dark:text-sky-400",
+        cardBg: "bg-sky-50/50 dark:bg-sky-950/20 border-sky-100 dark:border-sky-900/30"
       };
     }
     
@@ -42,10 +42,10 @@ export const MedicationCard = ({ medication, onViewHistory, onDeactivate, onOpen
     if (name.includes('vitamin') || name.includes('multivit') || name.includes('complexo')) {
       return { 
         label: "Oral", 
-        badgeClass: "bg-emerald-100/80 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-0",
-        iconBg: "bg-emerald-100/80 dark:bg-emerald-900/30",
-        iconColor: "text-emerald-600 dark:text-emerald-400",
-        cardBg: "bg-emerald-50/60 dark:bg-emerald-950/15 border-emerald-200/30 dark:border-emerald-800/30"
+        badgeClass: "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-0",
+        iconBg: "bg-emerald-50 dark:bg-emerald-950/40",
+        iconColor: "text-emerald-500 dark:text-emerald-400",
+        cardBg: "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30"
       };
     }
     
@@ -53,10 +53,10 @@ export const MedicationCard = ({ medication, onViewHistory, onDeactivate, onOpen
     if (type === "glp1") {
       return { 
         label: "GLP-1", 
-        badgeClass: "bg-violet-100/80 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border-0",
-        iconBg: "bg-violet-100/80 dark:bg-violet-900/30",
-        iconColor: "text-violet-600 dark:text-violet-400",
-        cardBg: "bg-violet-50/60 dark:bg-violet-950/15 border-violet-200/30 dark:border-violet-800/30"
+        badgeClass: "bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 border-0",
+        iconBg: "bg-violet-50 dark:bg-violet-950/40",
+        iconColor: "text-violet-500 dark:text-violet-400",
+        cardBg: "bg-violet-50/50 dark:bg-violet-950/20 border-violet-100 dark:border-violet-900/30"
       };
     }
     
@@ -64,10 +64,10 @@ export const MedicationCard = ({ medication, onViewHistory, onDeactivate, onOpen
     if (type === "injectable") {
       return { 
         label: "Injetável", 
-        badgeClass: "bg-amber-100/80 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-0",
-        iconBg: "bg-amber-100/80 dark:bg-amber-900/30",
-        iconColor: "text-amber-600 dark:text-amber-400",
-        cardBg: "bg-amber-50/60 dark:bg-amber-950/15 border-amber-200/30 dark:border-amber-800/30"
+        badgeClass: "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-0",
+        iconBg: "bg-amber-50 dark:bg-amber-950/40",
+        iconColor: "text-amber-500 dark:text-amber-400",
+        cardBg: "bg-amber-50/50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30"
       };
     }
     
