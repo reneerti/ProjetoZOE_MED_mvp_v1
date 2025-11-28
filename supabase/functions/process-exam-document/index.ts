@@ -19,6 +19,17 @@ import { analyzeExamsWithAI, analyzeImageWithAI, type AIResponse } from '../_sha
 import { createCacheService, generateCacheKey } from '../_shared/cacheService.ts';
 import { ocrExtractionSchema, type OCRExtraction } from '../_shared/aiSchemas.ts';
 import { extractJSON } from '../_shared/jsonParser.ts';
+import {
+  matchOrCreateLaboratory,
+  matchOrCreateDoctor,
+  matchExamFromLibrary,
+  mapParametersToLibrary,
+  extractCRMFromText,
+  extractDoctorNameFromText,
+  calculateAge,
+  determineParameterStatus,
+} from '../_shared/entityMatcher.ts';
+import { detectDiagnoses } from '../_shared/diagnosisDetector.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -382,7 +393,43 @@ REGRAS:
       }
     }
 
-    // Buscar categoria do exame
+    // ═══════════════════════════════════════
+    // 9.1 MATCHING DE ENTIDADES
+    // ═══════════════════════════════════════
+    console.log("🔍 Vinculando entidades do banco de dados...");
+
+    // Match laboratório
+    const labMatch = await matchOrCreateLaboratory(
+      supabaseAdmin,
+      extractedData.lab_name
+    );
+    if (labMatch) {
+      console.log(`✅ Laboratório: ${labMatch.name} (${labMatch.created ? 'criado' : 'encontrado'})`);
+    }
+
+    // Extrair e match médico
+    const crmFromText = extractCRMFromText(extractedText);
+    const doctorNameFromText = extractDoctorNameFromText(extractedText);
+    const doctorMatch = await matchOrCreateDoctor(
+      supabaseAdmin,
+      doctorNameFromText,
+      crmFromText
+    );
+    if (doctorMatch) {
+      console.log(`✅ Médico: ${doctorMatch.full_name} - CRM ${doctorMatch.crm} (${doctorMatch.created ? 'criado' : 'encontrado'})`);
+    }
+
+    // Match exame na biblioteca
+    const examLibraryMatch = await matchExamFromLibrary(
+      supabaseAdmin,
+      extractedData.exam_name,
+      extractedData.category
+    );
+    if (examLibraryMatch) {
+      console.log(`✅ Exame na biblioteca: ${examLibraryMatch.exam_name} (${examLibraryMatch.exam_code})`);
+    }
+
+    // Buscar categoria do exame (backward compatibility)
     let categoryId = null;
     if (extractedData.category) {
       const { data: category } = await supabaseAdmin
@@ -396,16 +443,24 @@ REGRAS:
       }
     }
 
-    // Atualizar exam_images
+    // ═══════════════════════════════════════
+    // 9.2 ATUALIZAR EXAM_IMAGES COM VÍNCULOS
+    // ═══════════════════════════════════════
+    const updateData: any = {
+      ocr_text: extractedText,
+      processing_status: 'completed',
+      exam_date: extractedData.exam_date || null,
+      lab_name: extractedData.lab_name || null,
+      exam_category_id: categoryId,
+      // Novos vínculos
+      laboratory_id: labMatch?.id || null,
+      requesting_doctor_id: doctorMatch?.id || null,
+      exam_library_id: examLibraryMatch?.id || null,
+    };
+
     const { error: updateError } = await supabaseAdmin
       .from('exam_images')
-      .update({
-        ocr_text: extractedText,
-        processing_status: 'completed',
-        exam_date: extractedData.exam_date || null,
-        lab_name: extractedData.lab_name || null,
-        exam_category_id: categoryId,
-      })
+      .update(updateData)
       .eq('id', examImageId);
 
     if (updateError) {
@@ -413,7 +468,9 @@ REGRAS:
       throw updateError;
     }
 
-    // Salvar parâmetros extraídos
+    // ═══════════════════════════════════════
+    // 9.3 MAPEAR E SALVAR PARÂMETROS
+    // ═══════════════════════════════════════
     if (extractedData.parameters && extractedData.parameters.length > 0) {
       // Limpar resultados anteriores
       await supabaseAdmin
@@ -421,14 +478,57 @@ REGRAS:
         .delete()
         .eq('exam_image_id', examImageId);
 
-      const resultsToInsert = extractedData.parameters.map(param => ({
-        exam_image_id: examImageId,
-        parameter_name: param.name,
-        value: param.value ? parseFloat(String(param.value)) : null,
-        value_text: String(param.value || ''),
-        unit: param.unit || null,
-        status: param.status || 'normal',
-      }));
+      let parameterMappings = null;
+
+      // Se vinculamos com a biblioteca, mapear parâmetros
+      if (examLibraryMatch) {
+        parameterMappings = await mapParametersToLibrary(
+          supabaseAdmin,
+          examLibraryMatch.id,
+          extractedData.parameters
+        );
+        console.log(`✅ ${parameterMappings.filter(m => m.parameter_code).length}/${extractedData.parameters.length} parâmetros mapeados para a biblioteca`);
+      }
+
+      // Buscar dados do usuário para cálculo de idade
+      const { data: userProfile } = await supabaseAdmin
+        .from('user_profiles')
+        .select('birth_date, sex')
+        .eq('user_id', user.id)
+        .single();
+
+      const userAge = calculateAge(userProfile?.birth_date);
+      const userSex = userProfile?.sex;
+
+      const resultsToInsert = extractedData.parameters.map((param, index) => {
+        const mapping = parameterMappings?.[index];
+        let status = param.status || 'normal';
+
+        // Se temos mapeamento e referências, recalcular status
+        if (mapping?.reference_range && param.value) {
+          const numValue = parseFloat(String(param.value));
+          if (!isNaN(numValue)) {
+            status = determineParameterStatus(
+              numValue,
+              mapping.reference_range,
+              userAge,
+              userSex
+            );
+          }
+        }
+
+        return {
+          exam_image_id: examImageId,
+          parameter_name: param.name,
+          value: param.value ? parseFloat(String(param.value)) : null,
+          value_text: String(param.value || ''),
+          unit: param.unit || null,
+          status: status,
+          // Novos campos
+          parameter_code: mapping?.parameter_code || null,
+          exam_library_parameter_id: mapping?.exam_library_parameter_id || null,
+        };
+      });
 
       const { error: resultsError } = await supabaseAdmin
         .from('exam_results')
@@ -438,6 +538,28 @@ REGRAS:
         console.error('⚠️ Erro ao inserir resultados:', resultsError);
       } else {
         console.log(`✅ ${resultsToInsert.length} parâmetros salvos`);
+
+        // ═══════════════════════════════════════
+        // 9.4 DETECTAR DIAGNÓSTICOS AUTOMATICAMENTE
+        // ═══════════════════════════════════════
+        try {
+          const diagnoses = await detectDiagnoses(
+            supabaseAdmin,
+            user.id,
+            examImageId,
+            userSex
+          );
+
+          if (diagnoses.length > 0) {
+            console.log(`🎯 Diagnósticos detectados:`);
+            for (const diagnosis of diagnoses) {
+              console.log(`   - ${diagnosis.condition_name} (${diagnosis.confidence_score}% confiança, ${diagnosis.urgency_level})`);
+            }
+          }
+        } catch (diagnosisError) {
+          console.error('⚠️ Erro na detecção de diagnósticos:', diagnosisError);
+          // Não falhar o processamento se a detecção falhar
+        }
       }
     }
 
