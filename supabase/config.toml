@@ -12,6 +12,10 @@ project_id = "irlfnzxmeympvsslbnwn"
 [functions.process-exam-document]
 verify_jwt = false
 
+# Gerenciamento de configurações de APIs (apenas admins)
+[functions.manage-api-configs]
+verify_jwt = false
+
 # Funções de processamento de exames
 [functions.process-ocr]
 verify_jwt = false
